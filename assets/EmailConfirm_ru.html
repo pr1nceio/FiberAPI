@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Подтвердите свою почту | FruitSpace</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #191921;
+                font: 12pt sans-serif;
+                color: white;
+            }
+
+            p {
+                margin:.5rem;
+            }
+
+            .btn {
+                text-align: center;
+            }
+            .btn > a {
+                background: linear-gradient(135deg, #8e388e,#5a00ff 70%, #0d6efd);
+                border: none;
+                border-radius: 12px;
+                color: white;
+                padding: 12px 16px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .container > h1 {
+                text-align: center;
+            }
+            .container > img {
+                max-height: 6rem;
+                margin: 1rem auto;
+                display: block;
+            }
+            .content {
+                border-radius: 12px;
+                background-color: #212125;
+                padding: 1rem;
+            }
+
+            .del {
+                background-color: #484a4d;
+                height: 1px;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="https://fruitspace.ru/logo.png" />
+            <h1>Подтвердите свою почту</h1>
+            <div class="content">
+                <p>Привет, {uname} 👋</p>
+                <p>Спасибо, что выбрали FruitSpace! Мы рады видеть вас на борту.</p>
+                <p>Прежде чем начать использовать хостинг, нужно будет подтвердить почту.</p>
+                <p>👇 Для этого нажмите на классную кнопку снизу.</p>
+                <p class="btn"><a href="https://api.fruitspace.one/v1/auth/confirm_email?token={token}">Подтвердить</a></p>
+                <p>Если же вы считаете, что получили данное письмо по ошибке, просто проигнорируйте его!</p>
+                <div class="del"></div>
+                <p>С лучшими пожеланиями,</p>
+                <p>Команда FruitSpace</p>
+            </div>
+        </div>
+    </body>
+</html>

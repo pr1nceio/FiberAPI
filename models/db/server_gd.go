@@ -30,11 +30,11 @@ type ServerGd struct {
 	Description      string         `gorm:"column:description;type:varchar;size:1000;default:Welcome to my GDPS!;" json:"description"`
 	TextAlign        int            `gorm:"column:textAlign;type:tinyint;default:0;" json:"text_align"`
 	Visits           int            `gorm:"column:visits;type:int;default:0;" json:"visits"`
-	IsSpaceMusic     int            `gorm:"column:isSpaceMusic;type:tinyint;default:0;" json:"is_space_music"`
-	Is22             int            `gorm:"column:is22;type:tinyint;default:0;" json:"is_22"`
 	Discord          string         `gorm:"column:discord;type:varchar;size:128;" json:"discord"`
 	Vk               string         `gorm:"column:vk;type:varchar;size:128;" json:"vk"`
-	IsCustomTextures int            `gorm:"column:isCustomTextures;type:tinyint;default:0;" json:"is_custom_textures"`
+	IsSpaceMusic     bool           `gorm:"column:isSpaceMusic;type:tinyint;default:0;" json:"is_space_music"`
+	Is22             bool           `gorm:"column:is22;type:tinyint;default:0;" json:"is_22"`
+	IsCustomTextures bool           `gorm:"column:isCustomTextures;type:tinyint;default:0;" json:"is_custom_textures"`
 }
 
 func (s *ServerGd) TableName() string {

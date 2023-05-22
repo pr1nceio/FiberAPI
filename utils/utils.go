@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -182,4 +183,23 @@ func Should(err error) error {
 		sentry.CaptureException(err)
 	}
 	return err
+}
+
+func GetDBStructColumn(model interface{}, field string) string {
+	f, ok := reflect.TypeOf(model).FieldByName(field)
+	if !ok {
+		return ""
+	}
+	val, ok := f.Tag.Lookup("gorm")
+	if !ok {
+		return ""
+	}
+	keys := strings.Split(val, ";")
+	for _, key := range keys {
+		kv := strings.Split(key, ":")
+		if kv[0] == "column" && len(kv) > 1 {
+			return kv[1]
+		}
+	}
+	return ""
 }

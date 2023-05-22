@@ -76,6 +76,10 @@ func (a *Account) calcPassHash(uname, password string) string {
 
 //region Get User
 
+func (a *Account) Data() *db.User {
+	return a.user
+}
+
 func (a *Account) GetUserByUID(uid int) bool {
 	return a.p.db.First(&a.user, uid).Error == nil
 }
@@ -214,14 +218,6 @@ func (a *Account) GetServersCount() map[string]int {
 	return count
 }
 
-// NewSession creates new session for Account and puts it in utils.MultiRedis Store
-func (a *Account) NewSession(uid int) string {
-	// Create new session
-	sess := strconv.Itoa(uid) + uuid.New().String()
-	a.p.redis.Get("sessions").SetEX(context.Background(), sess, strconv.Itoa(uid), time.Hour*24*30)
-	return sess
-}
-
 //region Emails
 
 // DecodeEmailToken decodes UID from token
@@ -311,6 +307,14 @@ func (a *Account) VerifyEmail() error {
 //endregion
 
 //region Authentication
+
+// NewSession creates new session for Account and puts it in utils.MultiRedis Store
+func (a *Account) NewSession(uid int) string {
+	// Create new session
+	sess := strconv.Itoa(uid) + uuid.New().String()
+	a.p.redis.Get("sessions").SetEX(context.Background(), sess, strconv.Itoa(uid), time.Hour*24*30)
+	return sess
+}
 
 // Register registers user and sends confirmation email
 func (a *Account) Register(uname string, name string, surname string, email string, password string, affiliate string, ip string, lang string) error {

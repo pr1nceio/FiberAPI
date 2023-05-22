@@ -11,7 +11,7 @@ type Notification struct {
 	Text       string    `gorm:"column:text;type:varchar;size:128;" json:"text"`
 	CreatedAt  time.Time `gorm:"column:sendDate;type:datetime;default:CURRENT_TIMESTAMP;" json:"send_date"`
 	ExpireDate time.Time `gorm:"column:expireDate;type:datetime;default:CURRENT_TIMESTAMP;" json:"expire_date"`
-	UserRead   int       `gorm:"column:userRead;type:tinyint;default:0;" json:"user_read"`
+	UserRead   bool      `gorm:"column:userRead;type:tinyint;default:0;" json:"user_read"`
 }
 
 func (n *Notification) TableName() string {

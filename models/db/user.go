@@ -13,9 +13,9 @@ type User struct {
 	ProfilePic   string    `gorm:"column:profilePic;type:varchar;size:64;default:default.jpg;" json:"profile_pic"`
 	PassHash     string    `gorm:"column:passHash;type:varchar;size:255;" json:"-"`
 	TotpSecret   string    `gorm:"column:totpSecret;type:varchar;size:255;" json:"-"`
-	VkID         int64     `gorm:"column:vk_id;type:bigint;default:0;" json:"vk_id"`
+	VkID         string    `gorm:"column:vk_id;type:bigint;default:0;" json:"vk_id"`
 	VkToken      string    `gorm:"column:vk_token;type:varchar;size:255;" json:"-"`
-	DiscordID    int64     `gorm:"column:discord_id;type:bigint;default:0;" json:"discord_id"`
+	DiscordID    string    `gorm:"column:discord_id;type:bigint;default:0;" json:"discord_id"`
 	DiscordToken string    `gorm:"column:discord_token;type:varchar;size:255;" json:"-"`
 	Balance      float64   `gorm:"column:balance;type:double;default:0.00;" json:"balance"`
 	BalanceHash  string    `gorm:"column:balanceHash;type:varchar;size:255;" json:"-"`

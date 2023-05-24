@@ -7,7 +7,7 @@ import (
 
 type ServerGd struct {
 	ID               int            `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"-"`
-	Srvid            string         `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
+	SrvID            string         `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
 	SrvName          string         `gorm:"column:srvName;type:varchar;size:32;" json:"srv_name"`
 	Plan             int            `gorm:"column:plan;type:tinyint;" json:"plan"`
 	OwnerID          int            `gorm:"column:owner_id;type:int;" json:"owner_id"`
@@ -39,4 +39,35 @@ type ServerGd struct {
 
 func (s *ServerGd) TableName() string {
 	return "servers_gd"
+}
+
+type ServerGdSmall struct {
+	ID         int    `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"-"`
+	SrvID      string `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
+	SrvName    string `gorm:"column:srvName;type:varchar;size:32;" json:"srv_name"`
+	Plan       int    `gorm:"column:plan;type:tinyint;" json:"plan"`
+	OwnerID    int    `gorm:"column:owner_id;type:int;" json:"owner_id"`
+	UserCount  int    `gorm:"column:userCount;type:int;default:0;" json:"user_count"`
+	LevelCount int    `gorm:"column:levelCount;type:int;default:0;" json:"level_count"`
+	Icon       string `gorm:"column:icon;type:varchar;size:16;default:gd_default.png;" json:"icon"`
+}
+
+type ServerGdReduced struct {
+	ID               int    `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"-"`
+	SrvID            string `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
+	SrvName          string `gorm:"column:srvName;type:varchar;size:32;" json:"srv_name"`
+	Owner            string `gorm:"type:varchar;" json:"owner_id"`
+	UserCount        int    `gorm:"column:userCount;type:int;default:0;" json:"user_count"`
+	LevelCount       int    `gorm:"column:levelCount;type:int;default:0;" json:"level_count"`
+	ClientAndroidURL string `gorm:"column:clientAndroidURL;type:varchar;size:255;" json:"client_android_url"`
+	ClientIOSURL     string `gorm:"column:clientIOSURL;type:varchar;size:255;" json:"client_ios_url"`
+	ClientWindowsURL string `gorm:"column:clientWindowsURL;type:varchar;size:255;" json:"client_windows_url"`
+	ClientMacOSURL   string `gorm:"column:clientMacOSURL;type:varchar;size:255;" json:"client_macos_url"`
+	Icon             string `gorm:"column:icon;type:varchar;size:16;default:gd_default.png;" json:"icon"`
+	Description      string `gorm:"column:description;type:varchar;size:1000;default:Welcome to my GDPS!;" json:"description"`
+	TextAlign        int    `gorm:"column:textAlign;type:tinyint;default:0;" json:"text_align"`
+	Discord          string `gorm:"column:discord;type:varchar;size:128;" json:"discord"`
+	Vk               string `gorm:"column:vk;type:varchar;size:128;" json:"vk"`
+	Is22             bool   `gorm:"column:is22;type:tinyint;default:0;" json:"is_22"`
+	IsCustomTextures bool   `gorm:"column:isCustomTextures;type:tinyint;default:0;" json:"is_custom_textures"`
 }

@@ -185,21 +185,22 @@ func Should(err error) error {
 	return err
 }
 
-func GetDBStructColumn(model interface{}, field string) string {
-	f, ok := reflect.TypeOf(model).FieldByName(field)
-	if !ok {
-		return ""
-	}
-	val, ok := f.Tag.Lookup("gorm")
-	if !ok {
-		return ""
-	}
-	keys := strings.Split(val, ";")
-	for _, key := range keys {
-		kv := strings.Split(key, ":")
-		if kv[0] == "column" && len(kv) > 1 {
-			return kv[1]
+func HideField(model interface{}, field string) []string {
+	var fields []string
+	m := reflect.TypeOf(model)
+	for i := 0; i < m.NumField(); i++ {
+		f := m.Field(i)
+		val := f.Tag.Get("gorm")
+		keys := strings.Split(val, ";")
+		for _, key := range keys {
+			kv := strings.Split(key, ":")
+			if kv[0] == "column" && len(kv) > 1 {
+				if f.Name != field {
+					fields = append(fields, kv[1])
+				}
+			}
 		}
 	}
-	return ""
+
+	return fields
 }

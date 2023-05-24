@@ -1,10 +1,9 @@
 package providers
 
 import (
+	"github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/db"
-	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 //region NotificationProvider
@@ -21,7 +20,7 @@ func (np *NotificationProvider) GetNotificationsForUID(uid int) []db.Notificatio
 	var notifications []db.Notification
 	np.db.Where(
 		np.db.Where(db.Notification{TargetUID: uid}).Or(db.Notification{TargetUID: 0}),
-	).Where(utils.GetDBStructColumn(db.Notification{}, "ExpireDate") + ">CURRENT_TIMESTAMP").Find(&notifications)
+	).Where(gorm.Column(db.Notification{}, "ExpireDate") + ">CURRENT_TIMESTAMP").Find(&notifications)
 	return notifications
 }
 
@@ -36,7 +35,7 @@ func (np *NotificationProvider) MarkAsRead(notification db.Notification) {
 
 func (np *NotificationProvider) CleanExpired() {
 	np.db.Where(
-		utils.GetDBStructColumn(db.Notification{}, "ExpireDate") + ">CURRENT_TIMESTAMP",
+		gorm.Column(db.Notification{}, "ExpireDate") + ">CURRENT_TIMESTAMP",
 	).Delete(db.Notification{})
 }
 

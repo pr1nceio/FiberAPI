@@ -2,9 +2,8 @@ package providers
 
 import (
 	"fmt"
+	"github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/db"
-	"github.com/fruitspace/FiberAPI/utils"
-	"gorm.io/gorm"
 )
 
 //region ShopProvider
@@ -19,7 +18,7 @@ func NewShopProvider(db *gorm.DB) *ShopProvider {
 
 func (sp *ShopProvider) GetUserShopsBalance(uid int) (sum float64) {
 	sp.db.Where(db.Shop{OwnerID: uid}).Select(
-		fmt.Sprintf("SUM(%s)", utils.GetDBStructColumn(db.Shop{}, "Balance")),
+		fmt.Sprintf("SUM(%s)", gorm.Column(db.Shop{}, "Balance")),
 	).First(&sum)
 	return sum
 }

@@ -2,8 +2,8 @@ package providers
 
 import (
 	"errors"
+	"github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/db"
-	"gorm.io/gorm"
 	"math"
 	"strings"
 	"time"

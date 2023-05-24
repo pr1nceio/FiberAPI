@@ -1,9 +1,11 @@
 module github.com/fruitspace/FiberAPI
 
-go 1.20
+go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.264
+	github.com/cradio/gorm_mysql v0.0.0-20230522150626-7133a0060a10
+	github.com/cradio/gormx v1.25.5
 	github.com/getsentry/sentry-go v0.21.0
 	github.com/go-co-op/gocron v1.27.1
 	github.com/go-redis/redis/v8 v8.11.5
@@ -11,9 +13,9 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul/api v1.20.0
 	github.com/oliamb/cutter v0.2.2
+	github.com/pquerna/otp v1.4.0
 	github.com/xhit/go-simple-mail/v2 v2.13.0
-	gorm.io/driver/mysql v1.5.0
-	gorm.io/gorm v1.25.1
+
 )
 
 require (
@@ -41,7 +43,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
-	github.com/pquerna/otp v1.4.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect

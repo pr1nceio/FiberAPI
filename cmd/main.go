@@ -1,11 +1,11 @@
-package fiberapi
+package cmd
 
 import (
 	"database/sql"
-	"embed"
 	"fmt"
 	"github.com/cradio/gorm_mysql"
 	"github.com/cradio/gormx"
+	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
@@ -16,26 +16,7 @@ import (
 var (
 	DB    *gorm.DB
 	Redis *utils.MultiRedis
-
-	KEYS      = utils.GetKVEnv("KEYS")      //key_enc=,key_void=
-	CONFIG    = utils.GetKVEnv("CONFIG")    //ipinfo_key=,email=,email_pass=,email_host=,hCaptchaToken=
-	S3_CONFIG = utils.GetKVEnv("S3_CONFIG") //access_key=,secret=,region=,bucket=,endpoint=,cdn=
-
-	DB_HOST = utils.GetEnv("DB_HOST", "localhost:3306")
-	DB_NAME = utils.GetEnv("DB_NAME", "default_db")
-	DB_USER = utils.GetEnv("DB_USER", "root")
-	DB_PASS = utils.GetEnv("DB_PASS", "root")
-
-	REDIS_HOST = utils.GetEnv("REDIS_HOST", "localhost:6379")
-	REDIS_PASS = utils.GetEnv("REDIS_PASS", "")
-
-	PAYMENTS_HOST = utils.GetEnv("PAYMENTS_HOST", "http://localhost:8000")
-
-	ADDR = utils.GetEnv("ADDR", "localhost:8080")
 )
-
-//go:embed assets
-var assets embed.FS
 
 func main() {
 	sentry.Init(sentry.ClientOptions{
@@ -45,9 +26,10 @@ func main() {
 
 	// Bind Databases
 	var err error
-	DB, err = gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s", DB_USER, DB_PASS, DB_HOST, DB_NAME)))
+	DB, err = gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s",
+		fiberapi.DB_USER, fiberapi.DB_PASS, fiberapi.DB_HOST, fiberapi.DB_NAME)))
 	if err != nil {
-		log.Println("Error while connecting to " + DB_USER + "@" + DB_HOST + ": " + err.Error())
+		log.Println("Error while connecting to " + fiberapi.DB_USER + "@" + fiberapi.DB_HOST + ": " + err.Error())
 		//CachedKV.Close()
 		time.Sleep(10 * time.Second)
 		main()
@@ -70,7 +52,7 @@ func main() {
 	//PrepareElection()
 	//defer StepDown()
 
-	xrdb, _ := sql.Open("mysql", DB_USER+":"+DB_PASS+"@tcp("+DB_HOST+")/default_db")
+	xrdb, _ := sql.Open("mysql", fiberapi.DB_USER+":"+fiberapi.DB_PASS+"@tcp("+fiberapi.DB_HOST+")/default_db")
 	xs := providers.NewServerGDProvider(DB, utils.NewMultiSQL(xrdb), nil).New()
 
 	r1, r2, r3 := xs.GetLogs(-1, 0)

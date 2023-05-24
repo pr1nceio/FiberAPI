@@ -9,3 +9,9 @@ type MusicResponse struct {
 	Size   json.Number `json:"size"`
 	Url    string      `json:"url"`
 }
+
+type PaymentResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Url     string `json:"url"`
+}

@@ -21,7 +21,9 @@ func NewPromocodeProvider(db *gorm.DB) *PromocodeProvider {
 
 func (pp *PromocodeProvider) Get(code string) *Promocode {
 	var p db.Promocode
-	pp.db.Where(db.Promocode{Code: code}).First(&p)
+	if pp.db.Where(db.Promocode{Code: code}).First(&p).Error != nil {
+		return nil
+	}
 	return &Promocode{p: pp, promocode: &p}
 }
 

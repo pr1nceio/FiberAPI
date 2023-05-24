@@ -3,13 +3,16 @@ package providers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
+	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -55,14 +58,14 @@ func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 
 //endregion
 
-//region ServerGD
-
 type ServerGD struct {
 	srv        *db.ServerGd
 	coreConfig *structs.GDPSConfig
 	tariff     *structs.GDTariff
 	p          *ServerGDProvider
 }
+
+//region Getters
 
 func (s *ServerGD) GetReducedServer(srvid string) (srv db.ServerGdReduced) {
 	// Empty db.User for convenience
@@ -111,6 +114,10 @@ func (s *ServerGD) GetTextures() string {
 		return "gdps_textures.zip"
 	}
 }
+
+//endregion
+
+//region Settings
 
 func (s *ServerGD) ResetDBPassword() error {
 
@@ -178,9 +185,14 @@ func (s *ServerGD) UpdateChests(chests structs.ChestConfig) error {
 	return err
 }
 
-func (s *ServerGD) GetLogs(xtype int, page int) ([]gdps_db.Action, int, error) {
+//endregion
+
+//region Logs
+
+func (s *ServerGD) GetLogs(xtype int, page int) ([]*gdps_db.Action, int, error) {
 
 	qdb, err := s.p.mdb.OpenMutated("gdps", s.srv.SrvID)
+	defer s.p.mdb.DisposeMutated("gdps", s.srv.SrvID)
 	if utils.Should(err) != nil {
 		log.Println(err)
 		return nil, 0, err
@@ -207,7 +219,7 @@ func (s *ServerGD) GetLogs(xtype int, page int) ([]gdps_db.Action, int, error) {
 		END
 	) as data`)).Limit(50).Offset(page * 50)
 
-	var results []gdps_db.Action
+	var results []*gdps_db.Action
 
 	if xtype >= 0 {
 		rqdb = rqdb.Where(gdps_db.Action{Type: xtype})
@@ -233,33 +245,143 @@ func (s *ServerGD) GetLogs(xtype int, page int) ([]gdps_db.Action, int, error) {
 	return results, int(cnt), err
 }
 
-//func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]byte, error) {
-//	pack, err := json.Marshal(struct {
-//		Page  int    `json:"page"`
-//		Query string `json:"query"`
-//		Mode  string `json:"mode"`
-//	}{page, query, mode})
-//	r, err := http.Post(SCHEDULER_HOST+"/gd/"+srv.SrvId+"/get_music", "text/json", bytes.NewReader(pack))
-//	if err != nil {
-//		return nil, err
-//	}
-//	resp, _ := io.ReadAll(r.Body)
-//	return resp, err
-//}
+//endregion
 
-//func (srv *GDServer) AddSong(xtype string, url string) ([]byte, error) {
-//	pack, err := json.Marshal(struct {
-//		Type string `json:"type"`
-//		Url  string `json:"url"`
-//	}{xtype, url})
-//	r, err := http.Post(SCHEDULER_HOST+"/gd/"+srv.SrvId+"/add_music", "text/json", bytes.NewReader(pack))
-//	if err != nil {
-//		return nil, err
-//	}
-//	resp, _ := io.ReadAll(r.Body)
-//	return resp, err
-//}
-//
+//region Songs
+
+func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]*gdps_db.Song, int, error) {
+	a := gdps_db.Song{}
+	mus := services.InitMusic(s.p.redis)
+
+	qdb, err := s.p.mdb.OpenMutated("gdps", s.srv.SrvID)
+	defer s.p.mdb.DisposeMutated("gdps", s.srv.SrvID)
+	if utils.Should(err) != nil {
+		log.Println(err)
+		return nil, 0, err
+	}
+
+	qdb = s.p.mdb.UTable(qdb, a.TableName())
+
+	var songs []*gdps_db.Song
+
+	orderBy := "downloads DESC"
+	if mode == "id" {
+		orderBy = "id ASC"
+	}
+	if mode == "alpha" {
+		orderBy = "name ASC"
+	}
+
+	if query != "" {
+		qdb = qdb.Where("name LIKE ?", fmt.Sprintf("%%%s%%", query)).
+			Or("artist LIKE ?", fmt.Sprintf("%%%s%%", query)).
+			Or("id=?", query)
+	}
+
+	err = qdb.Order(orderBy).Limit(10).Offset(page * 10).Find(&songs).Error
+	if utils.Should(err) != nil {
+		log.Println(err)
+		return nil, 0, err
+	}
+
+	for _, song := range songs {
+		// Transform HAL resource
+		if strings.HasPrefix(song.URL, "hal:") {
+			xmus, err := mus.TransformHalResource(song.URL)
+			if err != nil {
+				continue
+			}
+			song.URL = xmus.Url
+		}
+		if strings.Contains(song.URL, "mediapool.halhost.cc") {
+			song.URL = strings.ReplaceAll(song.URL, "mediapool.halhost.cc", "mus.fruitspace.one")
+		}
+	}
+
+	return songs, s.getSongCount(qdb), nil
+}
+
+func (s *ServerGD) getSongCount(gdb *gorm.DB) int {
+	var cnt int64
+	gdb.Count(&cnt)
+	return int(cnt)
+}
+
+func (s *ServerGD) AddSong(xtype string, url string) (*gdps_db.Song, error) {
+	a := gdps_db.Song{}
+	mus := services.InitMusic(s.p.redis)
+
+	qdb, err := s.p.mdb.OpenMutated("gdps", s.srv.SrvID)
+	defer s.p.mdb.DisposeMutated("gdps", s.srv.SrvID)
+	if utils.Should(err) != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	qdb = s.p.mdb.UTable(qdb, a.TableName())
+
+	var resp *structs.MusicResponse
+	var rid string
+	switch xtype {
+	case "ng":
+		rid, resp, err = mus.GetNG(url)
+	case "yt":
+		rid, resp, err = mus.GetYT(url)
+	case "dz":
+		rid, resp, err = mus.GetDZ(url)
+	case "vk":
+		rid, resp, err = mus.GetVK(url)
+	case "db":
+		resp = &structs.MusicResponse{
+			Status: "ok",
+			Name:   "Dropbox (Rename in DB)",
+			Artist: "Dropbox",
+			Size:   "5.00",
+			Url:    url,
+		}
+	default:
+		err = errors.New("unknown type")
+	}
+	if err != nil {
+		return nil, err
+	}
+	id := s.PushSong(qdb, resp, xtype, rid)
+	if id == 0 {
+		return nil, errors.New("failed to upload song")
+	}
+	return &gdps_db.Song{
+		ID:        id,
+		Name:      resp.Name,
+		AuthorID:  0,
+		Artist:    resp.Artist,
+		Size:      5.00,
+		URL:       resp.Url,
+		Downloads: 0,
+		IsBanned:  false,
+	}, nil
+}
+
+func (s *ServerGD) PushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype string, rid string) int {
+	if f, _ := regexp.MatchString(`[^0-9\.]`, response.Size.String()); f || response.Size == "" {
+		response.Size = "5.00"
+	}
+
+	sz, _ := response.Size.Float64()
+	song := gdps_db.Song{
+		Name:   response.Name,
+		Artist: response.Artist,
+		Size:   sz,
+		URL:    fmt.Sprintf("hal:%s:%s", xtype, rid),
+	}
+	if err := utils.Should(qdb.Create(&song).Error); err != nil {
+		log.Println(err)
+		return 0
+	}
+	return song.ID
+}
+
+//endregion
+
 //func (srv *GDServer) UpgradeServer(uid int64, srvid string, tariffid int, duration string, promocode string) error {
 //	preg := regexp.MustCompile("^[a-zA-Z0-9]+$")
 //	if !preg.MatchString(srvid) || !srv.Exists(srvid) {

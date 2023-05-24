@@ -7,7 +7,7 @@ type Song struct {
 	Artist    string  `gorm:"column:artist;type:varchar;size:128;default:Unknown;" json:"artist"`
 	Size      float64 `gorm:"column:size;type:float;" json:"size"`
 	URL       string  `gorm:"column:url;type:varchar;size:1024;" json:"url"`
-	IsBanned  int     `gorm:"column:isBanned;type:tinyint;default:0;" json:"is_banned"`
+	IsBanned  bool    `gorm:"column:isBanned;type:tinyint;default:0;" json:"is_banned"`
 	Downloads int     `gorm:"column:downloads;type:int;default:0;" json:"downloads"`
 }
 

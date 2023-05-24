@@ -21,16 +21,17 @@ type ChestConfig struct {
 }
 
 type ServerConfig struct {
-	SrvID         string          `json:"-"`
-	SrvKey        string          `json:"-"`
-	MaxUsers      int             `json:"MaxUsers"`
-	MaxLevels     int             `json:"MaxLevels"`
-	MaxComments   int             `json:"MaxComments"`
-	MaxPosts      int             `json:"MaxPosts"`
-	HalMusic      bool            `json:"-"`
-	Locked        bool            `json:"-"`
-	TopSize       int             `json:"TopSize"`
-	EnableModules map[string]bool `json:"EnableModules"`
+	SrvID         string                           `json:"-"`
+	SrvKey        string                           `json:"-"`
+	MaxUsers      int                              `json:"MaxUsers"`
+	MaxLevels     int                              `json:"MaxLevels"`
+	MaxComments   int                              `json:"MaxComments"`
+	MaxPosts      int                              `json:"MaxPosts"`
+	HalMusic      bool                             `json:"-"`
+	Locked        bool                             `json:"-"`
+	TopSize       int                              `json:"TopSize"`
+	EnableModules map[string]bool                  `json:"EnableModules"`
+	Modules       map[string](map[string]([]byte)) `json:"Modules"` //str_module: {str_key:b_value}
 }
 
 type SecurityConfig struct {
@@ -61,4 +62,60 @@ type GDPSConfig struct {
 	ChestConfig    ChestConfig    `json:"ChestConfig"`
 	ServerConfig   ServerConfig   `json:"ServerConfig"`
 	SecurityConfig SecurityConfig `json:"SecurityConfig"`
+}
+
+func GenNewGhostConfig(srvId string, DBPass string, SrvKey string, MaxUsers int, MaxLevels int, MaxPosts int, MaxComments int) GDPSConfig {
+	return GDPSConfig{
+		DBConfig: DBConfig{
+			Host:     "localhost",
+			Port:     3306,
+			User:     "halgd_" + srvId,
+			Password: DBPass,
+			DBName:   "gdps_" + srvId,
+		},
+		LogConfig: LogConfig{
+			LogEnable:    true,
+			LogDB:        false,
+			LogEndpoints: false,
+			LogRequests:  false,
+		},
+		ChestConfig: ChestConfig{
+			ChestSmallOrbsMin:     200,
+			ChestSmallOrbsMax:     400,
+			ChestSmallDiamondsMin: 2,
+			ChestSmallDiamondsMax: 10,
+			ChestSmallShards:      []int{1, 2, 3, 4, 5, 6},
+			ChestSmallKeysMin:     1,
+			ChestSmallKeysMax:     6,
+			ChestSmallWait:        3600,
+
+			ChestBigOrbsMin:     2000,
+			ChestBigOrbsMax:     4000,
+			ChestBigDiamondsMin: 20,
+			ChestBigDiamondsMax: 100,
+			ChestBigShards:      []int{1, 2, 3, 4, 5, 6},
+			ChestBigKeysMin:     1,
+			ChestBigKeysMax:     6,
+			ChestBigWait:        14400,
+		},
+		ServerConfig: ServerConfig{
+			SrvID:         srvId,
+			SrvKey:        SrvKey,
+			MaxUsers:      MaxUsers,
+			MaxLevels:     MaxLevels,
+			MaxComments:   MaxComments,
+			MaxPosts:      MaxPosts,
+			HalMusic:      false,
+			Locked:        false,
+			TopSize:       100,
+			EnableModules: map[string]bool{},
+			Modules:       map[string]map[string][]byte{},
+		},
+		SecurityConfig: SecurityConfig{
+			DisableProtection: false,
+			AutoActivate:      false,
+			NoLevelLimits:     false,
+			BannedIPs:         []string{},
+		},
+	}
 }

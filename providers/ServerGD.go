@@ -1,10 +1,16 @@
 package providers
 
 import (
+	"bytes"
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/cradio/gormx"
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/db"
@@ -12,6 +18,9 @@ import (
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
+	"image"
+	"image/png"
+	"io"
 	"log"
 	"regexp"
 	"strconv"
@@ -22,13 +31,15 @@ import (
 //region ServerGDProvider
 
 type ServerGDProvider struct {
-	db       *gorm.DB
-	mdb      *utils.MultiSQL
-	redis    *utils.MultiRedis
-	payments *PaymentProvider
-	keys     map[string]string
-	config   map[string]string
-	s3config map[string]string
+	db          *gorm.DB
+	mdb         *utils.MultiSQL
+	redis       *utils.MultiRedis
+	payments    *PaymentProvider
+	assets      *embed.FS
+	keys        map[string]string
+	config      map[string]string
+	s3config    map[string]string
+	minioconfig map[string]string
 }
 
 func NewServerGDProvider(db *gorm.DB, mdb *utils.MultiSQL, redis *utils.MultiRedis) *ServerGDProvider {
@@ -38,15 +49,21 @@ func NewServerGDProvider(db *gorm.DB, mdb *utils.MultiSQL, redis *utils.MultiRed
 	return &ServerGDProvider{db: db, mdb: mdb, redis: redis}
 }
 
-func (sgp *ServerGDProvider) WithKeys(keys, config, s3config map[string]string) *ServerGDProvider {
+func (sgp *ServerGDProvider) WithKeys(keys, config, s3config, minioconfig map[string]string) *ServerGDProvider {
 	sgp.keys = keys
 	sgp.config = config
 	sgp.s3config = s3config
+	sgp.minioconfig = minioconfig
 	return sgp
 }
 
 func (sgp *ServerGDProvider) WithPaymentsProvider(pm *PaymentProvider) *ServerGDProvider {
 	sgp.payments = pm
+	return sgp
+}
+
+func (sgp *ServerGDProvider) WithAssets(assets *embed.FS) *ServerGDProvider {
+	sgp.assets = assets
 	return sgp
 }
 
@@ -468,201 +485,186 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 
 }
 
-//func (srv *GDServer) CreateServer(uid int64, name string, tariffid int, duration string, promocode string) error {
-//	preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
-//	if !preg.MatchString(name) {
-//		return errors.New("Invalid name |name")
-//	}
-//	if tariffid < 1 || tariffid > len(Structures.ProductGDTariffs) {
-//		return errors.New("Invalid tariff |tariff")
-//	}
-//	tariff := Structures.ProductGDTariffs[strconv.Itoa(tariffid)]
-//	when := time.Now()
-//	switch duration {
-//	case "all":
-//		when = time.Date(2050, 1, 2, 0, 0, 0, 0, time.UTC)
-//	case "yr":
-//		when = when.AddDate(1, 0, 0)
-//	default:
-//		when = when.AddDate(0, 1, 0)
-//	}
-//
-//	whenText := when.Format("2006/01/02")
-//
-//	req := struct {
-//		Uid       int64  `json:"uid"`
-//		Plan      int    `json:"plan"`
-//		Name      string `json:"name"`
-//		Expire    string `json:"expire"`
-//		Is22      bool   `json:"is22"`
-//		MaxUsers  int    `json:"maxUsers"`
-//		MaxLevels int    `json:"maxLevels"`
-//	}{uid, tariffid, name, whenText, false, tariff.Players, tariff.Levels}
-//	pack, _ := json.Marshal(req)
-//
-//	if tariffid == 1 {
-//		var cnt int
-//		DB.Get(&cnt, "SELECT COUNT(*) FROM servers_gd WHERE owner_id=? AND plan=1", uid)
-//		if cnt != 0 {
-//			return errors.New("You already have FREE server")
-//		}
-//	}
-//
-//	if tariff.PriceRUB != 0 {
-//		price := float64(tariff.PriceRUB)
-//		if duration == "yr" {
-//			price *= 10
-//		}
-//		if duration == "all" {
-//			price *= 30 // 3*10
-//		}
-//
-//		if promocode != "" {
-//			promo := GetPromocode(promocode)
-//			if promo.Id == 0 {
-//				return errors.New("Invalid promocode |promo_invalid")
-//			}
-//			prc, err := promo.Use(price, "gd", strconv.Itoa(tariffid))
-//			if err != nil {
-//				return err
-//			}
-//			price = prc
-//		}
-//
-//		price--
-//
-//		resp := CTransaction{}.SpendMoney(uid, price)
-//		if resp.Status != "ok" {
-//			return errors.New(resp.Message)
-//		}
-//	}
-//
-//	r, err := http.Post(SCHEDULER_HOST+"/gd/new", "text/json", bytes.NewReader(pack))
-//	if err != nil {
-//		return err
-//	}
-//	resp := struct {
-//		Status string `json:"status"`
-//		SrvId  string `json:"srvId"`
-//	}{}
-//	json.NewDecoder(r.Body).Decode(&resp)
-//	if resp.Status != "ok" || len(resp.SrvId) != 4 {
-//		return errors.New("Internal creation error |internal")
-//	}
-//	return nil
-//}
-//
-//func (srv *GDServer) UpdateLogo(img []byte) error {
-//	theImg, _, _ := image.Decode(bytes.NewReader(img))
-//	cropImg := lib.CropSquareImage(theImg)
-//	var buf bytes.Buffer
-//	if err := Logger.Should(png.Encode(&buf, cropImg)); err != nil {
-//		return err
-//	}
-//	newImg, _ := io.ReadAll(&buf)
-//
-//	creds := credentials.NewStaticCredentials(S3_CONFIG["access_key"], S3_CONFIG["secret"], "")
-//	cfg := aws.NewConfig().WithEndpoint(S3_CONFIG["endpoint"]).WithRegion(S3_CONFIG["region"]).WithCredentials(creds)
-//	sess, err := session.NewSession()
-//	if Logger.Should(err) != nil {
-//		return err
-//	}
-//	svc := s3.New(sess, cfg)
-//	srv.Icon = "gd_" + srv.SrvId + ".png"
-//
-//	params := &s3.PutObjectInput{
-//		Bucket:        aws.String(S3_CONFIG["bucket"]),
-//		Key:           aws.String("server_icons/" + srv.Icon),
-//		Body:          bytes.NewReader(newImg),
-//		ContentLength: aws.Int64(int64(len(newImg))),
-//		ContentType:   aws.String("image/png"),
-//	}
-//	_, err = svc.PutObject(params)
-//	if Logger.Should(err) != nil {
-//		return err
-//	}
-//	_, err = DB.Exec("UPDATE servers_gd SET icon=? WHERE id=?", srv.Icon, srv.Id)
-//	return err
-//}
-//
-//func (srv *GDServer) UploadTextures(inp io.Reader) error {
-//
-//	buf := bytes.NewBuffer(nil)
-//	go func() {
-//		_, _ = io.Copy(buf, inp)
-//	}()
-//
-//	creds := credentials.NewStaticCredentials(S3_CONFIG["access_key"], S3_CONFIG["secret"], "")
-//	cfg := aws.NewConfig().WithEndpoint(S3_CONFIG["endpoint"]).WithRegion(S3_CONFIG["region"]).WithCredentials(creds)
-//	sess, err := session.NewSession()
-//	if Logger.Should(err) != nil {
-//		return err
-//	}
-//	svc := s3.New(sess, cfg)
-//	srv.Icon = "gd_" + srv.SrvId + ".png"
-//
-//	params := &s3.PutObjectInput{
-//		Bucket: aws.String(S3_CONFIG["bucket"]),
-//		Key:    aws.String("server_icons/" + srv.Icon),
-//		Body:   bytes.NewReader(buf.Bytes()),
-//		//ContentLength: aws.Int64(int64(len(newImg))),
-//		ContentType: aws.String("application/zip"),
-//	}
-//	_, err = svc.PutObject(params)
-//	if Logger.Should(err) != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
-//
-//func (srv *GDServer) ExecuteBuildLab(conf BuildLabSettings) error {
-//	if conf.SrvName != "" {
-//		preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
-//		if !preg.MatchString(conf.SrvName) {
-//			return errors.New("Invalid name |name")
-//		}
-//		srv.SrvName = conf.SrvName
-//	} else {
-//		conf.SrvName = srv.SrvName
-//	}
-//	if conf.Version != "2.2" {
-//		conf.Version = "2.1"
-//	}
-//	if conf.Icon != "custom" {
-//		conf.Icon = "gd_default.png"
-//	}
-//	//!Ignore textures
-//	_, err := DB.Exec("UPDATE servers_gd SET srvName=? WHERE id=?", srv.SrvName, srv.Id)
-//	if err != nil {
-//		return err
-//	}
-//	pack, _ := json.Marshal(conf)
-//	r, err := http.Post(SCHEDULER_HOST+"/gd/"+srv.SrvId+"/build", "text/json", bytes.NewReader(pack))
-//	if err != nil {
-//		return err
-//	}
-//	resp := struct {
-//		Status string `json:"status"`
-//	}{}
-//	json.NewDecoder(r.Body).Decode(&resp)
-//	if resp.Status != "ok" {
-//		return errors.New("Internal build error |internal")
-//	}
-//	return nil
-//}
-//
-//func (srv *GDServer) DeleteServer() error {
-//	resp := make(map[string]string)
-//	r, err := http.Get(SCHEDULER_HOST + "/gd/" + srv.SrvId + "/delete")
-//	err = json.NewDecoder(r.Body).Decode(&resp)
-//	if err != nil {
-//		return err
-//	}
-//	if resp["status"] != "ok" {
-//		return errors.New(resp["error"])
-//	}
-//	return err
-//}
+func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration string, promocode string) (string, error) {
+	pm := NewPromocodeProvider(s.p.db)
+	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
+		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
+
+	preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
+	if !preg.MatchString(name) {
+		return "", errors.New("Invalid name |name")
+	}
+	if tariffid < 1 || tariffid > len(fiberapi.ProductGDTariffs) {
+		return "", errors.New("Invalid tariff |tariff")
+	}
+	tariff := fiberapi.ProductGDTariffs[strconv.Itoa(tariffid)]
+	when := time.Now()
+	switch duration {
+	case "all":
+		when = time.Date(2050, 1, 2, 0, 0, 0, 0, time.UTC)
+	case "yr":
+		when = when.AddDate(1, 0, 0)
+	default:
+		when = when.AddDate(0, 1, 0)
+	}
+
+	if tariffid == 1 {
+		var cnt int64
+		s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid, Plan: 1}).Count(&cnt)
+		if cnt != 0 {
+			return "", errors.New("You already have FREE server")
+		}
+	}
+
+	if tariff.PriceRUB != 0 {
+		price := float64(tariff.PriceRUB)
+		if duration == "yr" {
+			price *= 10
+		}
+		if duration == "all" {
+			price *= 30 // 3*10
+		}
+
+		if promocode != "" {
+			promo := pm.Get(promocode)
+			if promo == nil {
+				return "", errors.New("Invalid promocode |promo_invalid")
+			}
+			prc, err := promo.Use(price, "gd", strconv.Itoa(tariffid))
+			if err != nil {
+				return "", err
+			}
+			price = prc
+		}
+
+		price--
+
+		resp := s.p.payments.SpendMoney(uid, price)
+		if resp.Status != "ok" {
+			return "", errors.New(resp.Message)
+		}
+	}
+
+	cs := db.ServerGd{
+		SrvID:      cbs.CheckAvail("0001"),
+		OwnerID:    uid,
+		Plan:       tariffid,
+		SrvName:    name,
+		ExpireDate: when,
+	}
+	DbPass, SrvKey, err := cbs.InstallServer(cs.SrvID, tariff.Players, tariff.Levels, -1, -1)
+	if err != nil {
+		return "", err
+	}
+	cs.DbPassword = DbPass
+	cs.SrvKey = SrvKey
+
+	err = s.p.db.Model(db.ServerGd{}).Create(&cs).Error
+	err = cbs.PushBuildQueue(cs.SrvID, cs.SrvName, "gd_default.png", "2.1", 1, true, false, false,
+		"default", "ru", cs.Plan < 2)
+
+	return cs.SrvID, err
+}
+
+func (s *ServerGD) UpdateLogo(img []byte) error {
+	theImg, _, _ := image.Decode(bytes.NewReader(img))
+	cropImg := utils.CropSquareImage(theImg)
+	var buf bytes.Buffer
+	if err := utils.Should(png.Encode(&buf, cropImg)); err != nil {
+		return err
+	}
+	newImg, _ := io.ReadAll(&buf)
+
+	creds := credentials.NewStaticCredentials(s.p.s3config["access_key"], s.p.s3config["secret"], "")
+	cfg := aws.NewConfig().WithEndpoint(s.p.s3config["endpoint"]).WithRegion(s.p.s3config["region"]).WithCredentials(creds)
+	sess, err := session.NewSession()
+	if utils.Should(err) != nil {
+		return err
+	}
+	svc := s3.New(sess, cfg)
+	s.srv.Icon = "gd_" + s.srv.SrvID + ".png"
+
+	params := &s3.PutObjectInput{
+		Bucket:        aws.String(s.p.s3config["bucket"]),
+		Key:           aws.String("server_icons/" + s.srv.Icon),
+		Body:          bytes.NewReader(newImg),
+		ContentLength: aws.Int64(int64(len(newImg))),
+		ContentType:   aws.String("image/png"),
+	}
+	_, err = svc.PutObject(params)
+	if utils.Should(err) != nil {
+		return err
+	}
+	return s.p.db.Model(s.srv).Updates(db.ServerGd{Icon: s.srv.Icon}).Error
+}
+
+func (s *ServerGD) UploadTextures(inp io.Reader) error {
+
+	buf := bytes.NewBuffer(nil)
+	go func() {
+		_, _ = io.Copy(buf, inp)
+	}()
+
+	creds := credentials.NewStaticCredentials(s.p.s3config["access_key"], s.p.s3config["secret"], "")
+	cfg := aws.NewConfig().WithEndpoint(s.p.s3config["endpoint"]).WithRegion(s.p.s3config["region"]).WithCredentials(creds)
+	sess, err := session.NewSession()
+	if utils.Should(err) != nil {
+		return err
+	}
+	svc := s3.New(sess, cfg)
+	s.srv.Icon = "gd_" + s.srv.SrvID + ".png"
+
+	params := &s3.PutObjectInput{
+		Bucket:      aws.String(s.p.s3config["bucket"]),
+		Key:         aws.String("server_icons/" + s.srv.Icon),
+		Body:        bytes.NewReader(buf.Bytes()),
+		ContentType: aws.String("application/zip"),
+	}
+	_, err = svc.PutObject(params)
+	if utils.Should(err) != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
+	if conf.SrvName != "" {
+		preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
+		if !preg.MatchString(conf.SrvName) {
+			return errors.New("Invalid name |name")
+		}
+		s.srv.SrvName = conf.SrvName
+	} else {
+		conf.SrvName = s.srv.SrvName
+	}
+	if conf.Version != "2.2" {
+		conf.Version = "2.1"
+	}
+	if conf.Icon != "custom" {
+		conf.Icon = "gd_default.png"
+	}
+	//!Ignore textures
+	if err := utils.Should(s.p.db.Model(s.srv).Updates(db.ServerGd{SrvName: s.srv.SrvName}).Error); err != nil {
+		return err
+	}
+
+	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
+		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
+
+	andro := 0
+	if conf.Android {
+		andro = 1
+	}
+	return cbs.PushBuildQueue(s.srv.SrvID, conf.SrvName, s.srv.Icon, conf.Version, andro, conf.Windows, conf.IOS, conf.MacOS,
+		"default", "ru", s.srv.Plan < 2) //! Default textures
+}
+
+func (s *ServerGD) DeleteServer() error {
+	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
+		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
+
+	return cbs.DeleteServer(s.srv.SrvID, s.srv.SrvName, s.srv.Plan < 2)
+}
 
 //endregion

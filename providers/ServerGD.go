@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cradio/gormx"
+	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
@@ -15,6 +16,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //region ServerGDProvider
@@ -23,6 +25,7 @@ type ServerGDProvider struct {
 	db       *gorm.DB
 	mdb      *utils.MultiSQL
 	redis    *utils.MultiRedis
+	payments *PaymentProvider
 	keys     map[string]string
 	config   map[string]string
 	s3config map[string]string
@@ -39,6 +42,11 @@ func (sgp *ServerGDProvider) WithKeys(keys, config, s3config map[string]string) 
 	sgp.keys = keys
 	sgp.config = config
 	sgp.s3config = s3config
+	return sgp
+}
+
+func (sgp *ServerGDProvider) WithPaymentsProvider(pm *PaymentProvider) *ServerGDProvider {
+	sgp.payments = pm
 	return sgp
 }
 
@@ -382,100 +390,84 @@ func (s *ServerGD) PushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype
 
 //endregion
 
-//func (srv *GDServer) UpgradeServer(uid int64, srvid string, tariffid int, duration string, promocode string) error {
-//	preg := regexp.MustCompile("^[a-zA-Z0-9]+$")
-//	if !preg.MatchString(srvid) || !srv.Exists(srvid) {
-//		return errors.New("Invalid srvid |srvid")
-//	}
-//	srv.SrvId = srvid
-//	srv.LoadAll()
-//	if uid != srv.OwnerId && uid != 1 {
-//		return errors.New("Invalid owner")
-//	}
-//
-//	if tariffid < srv.Plan || tariffid > len(Structures.ProductGDTariffs) {
-//		return errors.New("Invalid tariff |tariff")
-//	}
-//	tariff := Structures.ProductGDTariffs[strconv.Itoa(tariffid)]
-//
-//	when, err := time.Parse("2006-01-02 15:04:05", srv.ExpireDate)
-//	if err != nil {
-//		return err
-//	}
-//	if srv.Plan < 2 {
-//		when = time.Now()
-//	}
-//	if when.Year() > 2040 && duration != "all" {
-//		return errors.New("Invalid duration |dur")
-//	}
-//	switch duration {
-//	case "all":
-//		when = time.Date(2050, 1, 2, 0, 0, 0, 0, time.UTC)
-//	case "yr":
-//		when = when.AddDate(1, 0, 0)
-//	default:
-//		when = when.AddDate(0, 1, 0)
-//	}
-//	whenText := when.Format("2006/01/02")
-//	req := struct {
-//		Players  int  `json:"players"`
-//		Levels   int  `json:"levels"`
-//		Posts    int  `json:"posts"`
-//		Comments int  `json:"comments"`
-//		Locked   bool `json:"locked"`
-//	}{tariff.Players, tariff.Levels, tariff.Posts, tariff.Comments, false}
-//	pack, _ := json.Marshal(req)
-//
-//	if tariff.PriceRUB != 0 {
-//		price := float64(tariff.PriceRUB)
-//		if duration == "yr" {
-//			price *= 10
-//		}
-//		if duration == "all" {
-//			price *= 30 // 3*10
-//		}
-//
-//		if promocode != "" {
-//			promo := GetPromocode(promocode)
-//			if promo.Id == 0 {
-//				return errors.New("Invalid promocode |promo_invalid")
-//			}
-//			prc, err := promo.Use(price, "gd", strconv.Itoa(tariffid))
-//			if err != nil {
-//				return err
-//			}
-//			price = prc
-//		}
-//
-//		price--
-//
-//		resp := CTransaction{}.SpendMoney(uid, price)
-//		if resp.Status != "ok" {
-//			return errors.New(resp.Message)
-//		}
-//	}
-//
-//	_, err = DB.Exec("UPDATE servers_gd SET expireDate=?,plan=? WHERE BINARY srvid=?", whenText, tariffid, srvid)
-//	if err != nil {
-//		log.Println(err.Error())
-//		return errors.New("DATABASE ERROR. REPORT IMMEDIATELY")
-//	}
-//
-//	r, err := http.Post(SCHEDULER_HOST+"/gd/"+srvid+"/set_limits", "text/json", bytes.NewReader(pack))
-//	if err != nil {
-//		return err
-//	}
-//	resp := struct {
-//		Status string `json:"status"`
-//	}{}
-//	json.NewDecoder(r.Body).Decode(&resp)
-//	if resp.Status != "ok" {
-//		return errors.New("Internal creation error |internal")
-//	}
-//	return nil
-//
-//}
-//
+func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration string, promocode string) error {
+	pm := NewPromocodeProvider(s.p.db)
+
+	preg := regexp.MustCompile("^[a-zA-Z0-9]+$")
+	if !preg.MatchString(srvid) || !s.Exists(srvid) {
+		return errors.New("Invalid srvid |srvid")
+	}
+	s.GetServerBySrvID(srvid)
+	if uid != s.srv.OwnerID && uid != 1 {
+		return errors.New("Invalid owner")
+	}
+
+	if tariffid < s.srv.Plan || tariffid > len(fiberapi.ProductGDTariffs) {
+		return errors.New("Invalid tariff |tariff")
+	}
+	tariff := fiberapi.ProductGDTariffs[strconv.Itoa(tariffid)]
+
+	when := time.Now()
+	// Select which is latter (only non-free tariffs)
+	if when.Compare(s.srv.ExpireDate) > 0 && s.srv.Plan > 1 {
+		when = s.srv.ExpireDate
+	}
+	if when.Year() > 2040 && duration != "all" {
+		return errors.New("Invalid duration |dur")
+	}
+	switch duration {
+	case "all":
+		when = time.Date(2050, 1, 2, 0, 0, 0, 0, time.UTC)
+	case "yr":
+		when = when.AddDate(1, 0, 0)
+	default:
+		when = when.AddDate(0, 1, 0)
+	}
+
+	if tariff.PriceRUB != 0 {
+		price := float64(tariff.PriceRUB)
+		if duration == "yr" {
+			price *= 10
+		}
+		if duration == "all" {
+			price *= 30 // 3*10
+		}
+
+		if promocode != "" {
+			promo := pm.Get(promocode)
+			if promo == nil {
+				return errors.New("Invalid promocode |promo_invalid")
+			}
+			prc, err := promo.Use(price, "gd", strconv.Itoa(tariffid))
+			if err != nil {
+				return err
+			}
+			price = prc
+		}
+
+		price--
+
+		resp := s.p.payments.SpendMoney(uid, price)
+		if resp.Status != "ok" {
+			return errors.New(resp.Message)
+		}
+	}
+
+	if err := s.p.db.Model(&s.srv).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(db.ServerGd{ExpireDate: when, Plan: tariffid}); err != nil {
+		log.Println(err)
+		return errors.New("DATABASE ERROR. REPORT IMMEDIATELY")
+	}
+	s.coreConfig.ServerConfig.MaxUsers = tariff.Players
+	s.coreConfig.ServerConfig.MaxLevels = tariff.Levels
+	s.coreConfig.ServerConfig.MaxPosts = tariff.Posts
+	s.coreConfig.ServerConfig.MaxComments = tariff.Comments
+	s.coreConfig.ServerConfig.Locked = false
+
+	vdata, _ := json.Marshal(s.coreConfig)
+	return utils.Should(s.p.redis.Get("gdps").Set(context.Background(), srvid, string(vdata), 0).Err())
+
+}
+
 //func (srv *GDServer) CreateServer(uid int64, name string, tariffid int, duration string, promocode string) error {
 //	preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
 //	if !preg.MatchString(name) {

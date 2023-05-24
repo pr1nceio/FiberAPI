@@ -1,12 +1,14 @@
-package main
+package fiberapi
 
 import (
+	"database/sql"
 	"embed"
 	"fmt"
+	"github.com/cradio/gorm_mysql"
+	"github.com/cradio/gormx"
+	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"log"
 	"time"
 )
@@ -52,20 +54,26 @@ func main() {
 	}
 
 	//Bind Redis
-	Redis = utils.NewMultiRedis().WithDefault(REDIS_HOST, REDIS_PASS).
-		Add("sessions", 5).
-		Add("gdps", 7).
-		Add("music", 8)
-	if errs := Redis.Errors(); len(errs) > 0 {
-		for _, err := range errs {
-			log.Println(err)
-		}
-		time.Sleep(10 * time.Second)
-		main()
-	}
+	//Redis = utils.NewMultiRedis().WithDefault(REDIS_HOST, REDIS_PASS).
+	//	Add("sessions", 5).
+	//	Add("gdps", 7).
+	//	Add("music", 8)
+	//if errs := Redis.Errors(); len(errs) > 0 {
+	//	for _, err := range errs {
+	//		log.Println(err)
+	//	}
+	//	time.Sleep(10 * time.Second)
+	//	main()
+	//}
 
 	// Consul leadership stuff
-	PrepareElection()
-	defer StepDown()
+	//PrepareElection()
+	//defer StepDown()
+
+	xrdb, _ := sql.Open("mysql", DB_USER+":"+DB_PASS+"@tcp("+DB_HOST+")/default_db")
+	xs := providers.NewServerGDProvider(DB, utils.NewMultiSQL(xrdb), nil).New()
+
+	r1, r2, r3 := xs.GetLogs(-1, 0)
+	log.Printf("%+v, %d, %+v", r1, r2, r3)
 
 }

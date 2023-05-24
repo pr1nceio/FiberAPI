@@ -1,4 +1,4 @@
-package main
+package fiberapi
 
 import (
 	"github.com/fruitspace/FiberAPI/utils"

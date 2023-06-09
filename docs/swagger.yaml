@@ -1,0 +1,141 @@
+basePath: /
+definitions:
+  structs.APIBasicSuccess:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  structs.APIError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  structs.AuthLoginRequest:
+    properties:
+      hCaptchaToken:
+        type: string
+      password:
+        type: string
+      uname:
+        type: string
+    type: object
+  structs.AuthLoginResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+      token:
+        type: string
+    type: object
+  structs.AuthRecoverRequest:
+    properties:
+      email:
+        type: string
+      hCaptchaToken:
+        type: string
+      lang:
+        type: string
+    type: object
+  structs.AuthRegisterRequest:
+    properties:
+      email:
+        type: string
+      hCaptchaToken:
+        type: string
+      lang:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      surname:
+        type: string
+      uname:
+        type: string
+    type: object
+info:
+  contact: {}
+  title: FruitSpace FiberAPI
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.AuthLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.AuthLoginResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Logs in by provided credentials and returns session
+  /auth/recover:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.AuthRecoverRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Sends email with randomly generated password
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.AuthRegisterRequest'
+      - description: affiliate=code
+        in: header
+        name: Cookie
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Registers new FruitSpace user
+swagger: "2.0"

@@ -1,12 +1,10 @@
-package cmd
+package main
 
 import (
-	"database/sql"
-	"fmt"
-	"github.com/cradio/gorm_mysql"
 	"github.com/cradio/gormx"
 	fiberapi "github.com/fruitspace/FiberAPI"
-	"github.com/fruitspace/FiberAPI/providers"
+	"github.com/fruitspace/FiberAPI/api"
+	_ "github.com/fruitspace/FiberAPI/docs"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
 	"log"
@@ -18,6 +16,9 @@ var (
 	Redis *utils.MultiRedis
 )
 
+// @title		FruitSpace FiberAPI
+// @version	1.0
+// @BasePath	/
 func main() {
 	sentry.Init(sentry.ClientOptions{
 		Dsn: "https://ef8c6a708a684aa78fdfc0be5a85115b@o1404863.ingest.sentry.io/4504374313222144",
@@ -26,8 +27,8 @@ func main() {
 
 	// Bind Databases
 	var err error
-	DB, err = gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s",
-		fiberapi.DB_USER, fiberapi.DB_PASS, fiberapi.DB_HOST, fiberapi.DB_NAME)))
+	//DB, err = gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s",
+	//	fiberapi.DB_USER, fiberapi.DB_PASS, fiberapi.DB_HOST, fiberapi.DB_NAME)))
 	if err != nil {
 		log.Println("Error while connecting to " + fiberapi.DB_USER + "@" + fiberapi.DB_HOST + ": " + err.Error())
 		//CachedKV.Close()
@@ -51,11 +52,13 @@ func main() {
 	// Consul leadership stuff
 	//PrepareElection()
 	//defer StepDown()
+	//
+	//xrdb, _ := sql.Open("mysql", fiberapi.DB_USER+":"+fiberapi.DB_PASS+"@tcp("+fiberapi.DB_HOST+")/default_db")
+	//xs := providers.NewServerGDProvider(DB, utils.NewMultiSQL(xrdb), nil).New()
+	//
+	//r1, r2, r3 := xs.GetLogs(-1, 0)
+	//log.Printf("%+v, %d, %+v", r1, r2, r3)
 
-	xrdb, _ := sql.Open("mysql", fiberapi.DB_USER+":"+fiberapi.DB_PASS+"@tcp("+fiberapi.DB_HOST+")/default_db")
-	xs := providers.NewServerGDProvider(DB, utils.NewMultiSQL(xrdb), nil).New()
-
-	r1, r2, r3 := xs.GetLogs(-1, 0)
-	log.Printf("%+v, %d, %+v", r1, r2, r3)
+	api.StartServer(api.API{Host: ":8080"})
 
 }

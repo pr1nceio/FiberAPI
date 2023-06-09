@@ -295,7 +295,7 @@ func (a *Account) SendEmailRecovery(password string, lang string) error {
 	return eml.Send(client)
 }
 
-// VerifyEmail accepts input token
+// VerifyEmail sets account state to activated
 func (a *Account) VerifyEmail() error {
 	if a.user.IsActivated {
 		return errors.New("Account is already activated")

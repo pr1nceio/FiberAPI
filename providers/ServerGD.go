@@ -81,6 +81,12 @@ func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 	return srvs
 }
 
+func (sgp *ServerGDProvider) CountServers() int {
+	var cnt int64
+	sgp.db.Model(db.ServerGd{}).Count(&cnt)
+	return int(cnt)
+}
+
 //endregion
 
 type ServerGD struct {

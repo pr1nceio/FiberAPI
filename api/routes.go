@@ -49,7 +49,7 @@ func StartServer(api API) error {
 	//region Fetch
 	fetch := app.Group("/fetch")
 	fetch.Get("/stats")
-	fetch.Get("/gd/tariffs")
+	fetch.Get("/gd/tariffs", api.FetchGDTariffs)
 	fetch.Get("/gd/info/:srvid") // get public gdps download card
 	//endregion
 

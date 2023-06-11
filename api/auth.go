@@ -9,6 +9,7 @@ import (
 )
 
 // AuthRegister registers new FruitSpace user
+// @Tags Authentication
 // @Summary Registers new FruitSpace user
 // @Accept json
 // @Produce json
@@ -33,6 +34,7 @@ func (api *API) AuthRegister(c *fiber.Ctx) error {
 }
 
 // AuthLogin logs in new FruitSpace user
+// @Tags Authentication
 // @Summary Logs in by provided credentials and returns session
 // @Accept json
 // @Produce json
@@ -73,6 +75,7 @@ func (api *API) AuthConfirmEmail(c *fiber.Ctx) error {
 }
 
 // AuthRecoverPassword sends email to user with randomly generated password
+// @Tags Authentication
 // @Summary Sends email with randomly generated password
 // @Accept json
 // @Produce json

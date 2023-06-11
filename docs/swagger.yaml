@@ -1,5 +1,57 @@
 basePath: /
 definitions:
+  db.Notification:
+    properties:
+      expire_date:
+        type: string
+      send_date:
+        type: string
+      target_uid:
+        type: integer
+      text:
+        type: string
+      title:
+        type: string
+      user_read:
+        type: boolean
+      uuid:
+        type: string
+    type: object
+  db.ServerGdReduced:
+    properties:
+      client_android_url:
+        type: string
+      client_ios_url:
+        type: string
+      client_macos_url:
+        type: string
+      client_windows_url:
+        type: string
+      description:
+        type: string
+      discord:
+        type: string
+      icon:
+        type: string
+      is_22:
+        type: boolean
+      is_custom_textures:
+        type: boolean
+      level_count:
+        type: integer
+      owner_id:
+        type: string
+      srv_name:
+        type: string
+      srvid:
+        type: string
+      text_align:
+        type: integer
+      user_count:
+        type: integer
+      vk:
+        type: string
+    type: object
   structs.APIBasicSuccess:
     properties:
       message:
@@ -14,6 +66,53 @@ definitions:
       message:
         type: string
       status:
+        type: string
+    type: object
+  structs.APIUserSSO:
+    properties:
+      bal:
+        type: number
+      is_admin:
+        type: boolean
+      is2fa:
+        type: boolean
+      name:
+        type: string
+      notifications:
+        items:
+          $ref: '#/definitions/db.Notification'
+        type: array
+      profile_pic:
+        type: string
+      reflink:
+        type: string
+      servers:
+        additionalProperties:
+          type: integer
+        type: object
+      shop_bal:
+        type: number
+      status:
+        type: string
+      surname:
+        type: string
+      top_servers:
+        additionalProperties: true
+        type: object
+      uname:
+        type: string
+    type: object
+  structs.APIUserUpdateRequest:
+    properties:
+      name:
+        type: string
+      new_password:
+        type: string
+      password:
+        type: string
+      surname:
+        type: string
+      totp:
         type: string
     type: object
   structs.AuthLoginRequest:
@@ -60,6 +159,26 @@ definitions:
       uname:
         type: string
     type: object
+  structs.UserAvatarResponse:
+    properties:
+      message:
+        type: string
+      profile_pic:
+        type: string
+      status:
+        type: string
+    type: object
+  structs.UserUpdateResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+      totp_image:
+        type: string
+      totp_secret:
+        type: string
+    type: object
 info:
   contact: {}
   title: FruitSpace FiberAPI
@@ -88,6 +207,8 @@ paths:
           schema:
             $ref: '#/definitions/structs.APIError'
       summary: Logs in by provided credentials and returns session
+      tags:
+      - Authentication
   /auth/recover:
     post:
       consumes:
@@ -111,6 +232,8 @@ paths:
           schema:
             $ref: '#/definitions/structs.APIError'
       summary: Sends email with randomly generated password
+      tags:
+      - Authentication
   /auth/register:
     post:
       consumes:
@@ -138,4 +261,112 @@ paths:
           schema:
             $ref: '#/definitions/structs.APIError'
       summary: Registers new FruitSpace user
+      tags:
+      - Authentication
+  /fetch/gd/info/{srvid}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.ServerGdReduced'
+      summary: Returns
+      tags:
+      - Public stats fetching
+  /user:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIUserSSO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Returns base user information
+      tags:
+      - User Management
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Only non-empty fields are updated
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIUserUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.UserUpdateResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Update username, password and 2FA
+      tags:
+      - User Management
+  /user/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Should profile pic be reset
+        in: formData
+        name: reset
+        type: string
+      - description: Profile pic itself
+        in: formData
+        name: profile_pic
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.UserAvatarResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Update user profile pic
+      tags:
+      - User Management
 swagger: "2.0"

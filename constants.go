@@ -29,3 +29,8 @@ var (
 
 //go:embed assets
 var AssetsDir embed.FS
+
+var ValidImageTypes = []string{
+	"image/jpeg",
+	"image/png",
+}

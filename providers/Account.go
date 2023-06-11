@@ -88,6 +88,8 @@ func (a *Account) GetUserBySession(session string) bool {
 	u := db.User{}
 	if v, err := a.p.redis.Get("sessions").Get(context.Background(), session).Result(); err == nil {
 		u.UID, _ = strconv.Atoi(v)
+	} else {
+		return false
 	}
 	return a.p.db.First(&a.user).Error == nil
 }

@@ -37,20 +37,20 @@ func StartServer(api API) error {
 	app.Post("/auth/recover", api.AuthRecoverPassword)
 	//endregion
 
-	////region User
-	//app.Get("/user")         //sso, top_server
-	//app.Patch("/user")       //change name, password, totp
-	//app.Post("/user/avatar") //avatar
-	//
-	//app.Get("/payments")  // get payments
-	//app.Post("/payments") //create payment
-	////endregion
+	//region User
+	app.Get("/user", api.UserSSO)                  //sso, top_server
+	app.Patch("/user", api.UserUpdate)             //change name, password, totp
+	app.Post("/user/avatar", api.UserAvatarUpdate) //avatar
+
+	app.Get("/payments")  // get payments
+	app.Post("/payments") //create payment
+	//endregion
 
 	//region Fetch
 	fetch := app.Group("/fetch")
-	fetch.Get("/stats")
+	fetch.Get("/stats", api.FetchStats)
 	fetch.Get("/gd/tariffs", api.FetchGDTariffs)
-	fetch.Get("/gd/info/:srvid") // get public gdps download card
+	fetch.Get("/gd/info/:srvid", api.FetchGDServerInfo) // get public gdps download card
 	//endregion
 
 	//servers := app.Group("/servers")
@@ -87,4 +87,15 @@ func getIP(ctx *fiber.Ctx) string {
 		IPAddr = strings.Split(ctx.IP(), ":")[0]
 	}
 	return IPAddr
+}
+
+func (api *API) performAuth(c *fiber.Ctx, acc *providers.Account) bool {
+	token := c.Get("Authorization")
+	if token == "" || acc.GetUserBySession(token) {
+		return false
+	}
+	if !acc.Data().IsActivated || acc.Data().IsBanned {
+		return false
+	}
+	return true
 }

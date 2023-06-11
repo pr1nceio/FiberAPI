@@ -24,6 +24,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Authentication"
+                ],
                 "summary": "Logs in by provided credentials and returns session",
                 "parameters": [
                     {
@@ -59,6 +62,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Authentication"
                 ],
                 "summary": "Sends email with randomly generated password",
                 "parameters": [
@@ -96,6 +102,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Authentication"
+                ],
                 "summary": "Registers new FruitSpace user",
                 "parameters": [
                     {
@@ -129,9 +138,250 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/fetch/gd/info/{srvid}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Public stats fetching"
+                ],
+                "summary": "Returns",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/db.ServerGdReduced"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Returns base user information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIUserSSO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Update username, password and 2FA",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Only non-empty fields are updated",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIUserUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.UserUpdateResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/avatar": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Management"
+                ],
+                "summary": "Update user profile pic",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Should profile pic be reset",
+                        "name": "reset",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Profile pic itself",
+                        "name": "profile_pic",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.UserAvatarResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "db.Notification": {
+            "type": "object",
+            "properties": {
+                "expire_date": {
+                    "type": "string"
+                },
+                "send_date": {
+                    "type": "string"
+                },
+                "target_uid": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_read": {
+                    "type": "boolean"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "db.ServerGdReduced": {
+            "type": "object",
+            "properties": {
+                "client_android_url": {
+                    "type": "string"
+                },
+                "client_ios_url": {
+                    "type": "string"
+                },
+                "client_macos_url": {
+                    "type": "string"
+                },
+                "client_windows_url": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "discord": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "is_22": {
+                    "type": "boolean"
+                },
+                "is_custom_textures": {
+                    "type": "boolean"
+                },
+                "level_count": {
+                    "type": "integer"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "srv_name": {
+                    "type": "string"
+                },
+                "srvid": {
+                    "type": "string"
+                },
+                "text_align": {
+                    "type": "integer"
+                },
+                "user_count": {
+                    "type": "integer"
+                },
+                "vk": {
+                    "type": "string"
+                }
+            }
+        },
         "structs.APIBasicSuccess": {
             "type": "object",
             "properties": {
@@ -153,6 +403,77 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIUserSSO": {
+            "type": "object",
+            "properties": {
+                "bal": {
+                    "type": "number"
+                },
+                "is2fa": {
+                    "type": "boolean"
+                },
+                "is_admin": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "notifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.Notification"
+                    }
+                },
+                "profile_pic": {
+                    "type": "string"
+                },
+                "reflink": {
+                    "type": "string"
+                },
+                "servers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "shop_bal": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "top_servers": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "uname": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIUserUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "totp": {
                     "type": "string"
                 }
             }
@@ -221,6 +542,37 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uname": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.UserAvatarResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "profile_pic": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.UserUpdateResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totp_image": {
+                    "type": "string"
+                },
+                "totp_secret": {
                     "type": "string"
                 }
             }

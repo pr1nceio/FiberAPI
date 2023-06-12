@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"strings"
 )
@@ -27,6 +28,7 @@ func StartServer(api API) error {
 	})
 
 	app.Use(logger.New())
+	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{AllowCredentials: true}))
 	app.Get("/antiswagger/*", swagger.HandlerDefault) //Swag
 
@@ -42,7 +44,7 @@ func StartServer(api API) error {
 	app.Patch("/user", api.UserUpdate)             //change name, password, totp
 	app.Post("/user/avatar", api.UserAvatarUpdate) //avatar
 
-	app.Get("/payments")                      // get payments
+	app.Get("/payments", api.PaymentsGet)     // get payments
 	app.Post("/payments", api.PaymentsCreate) //create payment
 	//endregion
 

@@ -25,6 +25,8 @@ var (
 	REDIS_PASS = utils.GetEnv("REDIS_PASS", "")
 
 	PAYMENTS_HOST = utils.GetEnv("PAYMENTS_HOST", "http://localhost:8000")
+
+	ADDR = utils.GetEnv("ADDR", ":8080")
 )
 
 //go:embed assets

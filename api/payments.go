@@ -45,7 +45,7 @@ func (api *API) PaymentsCreate(c *fiber.Ctx) error {
 
 // PaymentsGet returns list of user payments
 // @Tags Payments
-// @Summary Creates invoice for specified merchant
+// @Summary Returns list of user payments
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "User token"

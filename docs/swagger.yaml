@@ -52,6 +52,25 @@ definitions:
       vk:
         type: string
     type: object
+  db.Transaction:
+    properties:
+      amount:
+        type: number
+      date:
+        type: string
+      go_pay_url:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      method:
+        type: string
+      pay_id:
+        type: string
+      uid:
+        type: integer
+    type: object
   structs.APIBasicSuccess:
     properties:
       message:
@@ -64,6 +83,33 @@ definitions:
       code:
         type: string
       message:
+        type: string
+      status:
+        type: string
+    type: object
+  structs.APIPaymentListResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+      transactions:
+        items:
+          $ref: '#/definitions/db.Transaction'
+        type: array
+    type: object
+  structs.APIPaymentRequest:
+    properties:
+      amount:
+        type: number
+      merchant:
+        type: string
+    type: object
+  structs.APIPaymentResponse:
+    properties:
+      message:
+        type: string
+      pay_url:
         type: string
       status:
         type: string
@@ -283,6 +329,67 @@ paths:
       summary: Returns
       tags:
       - Public stats fetching
+  /payments:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIPaymentListResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Creates invoice for specified merchant
+      tags:
+      - Payments
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIPaymentResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Creates invoice for specified merchant
+      tags:
+      - Payments
   /user:
     get:
       consumes:
@@ -300,6 +407,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/structs.APIUserSSO'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
         "500":
           description: Internal Server Error
           schema:
@@ -329,6 +440,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/structs.UserUpdateResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
         "500":
           description: Internal Server Error
           schema:
@@ -362,6 +477,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/structs.UserAvatarResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
         "500":
           description: Internal Server Error
           schema:

@@ -42,8 +42,8 @@ func StartServer(api API) error {
 	app.Patch("/user", api.UserUpdate)             //change name, password, totp
 	app.Post("/user/avatar", api.UserAvatarUpdate) //avatar
 
-	app.Get("/payments")  // get payments
-	app.Post("/payments") //create payment
+	app.Get("/payments")                      // get payments
+	app.Post("/payments", api.PaymentsCreate) //create payment
 	//endregion
 
 	//region Fetch

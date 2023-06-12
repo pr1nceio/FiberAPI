@@ -17,12 +17,13 @@ import (
 // @Produce json
 // @Param Authorization header string true "User token"
 // @Success 200 {object} structs.APIUserSSO
+// @Failure 403 {object} structs.APIError
 // @Failure 500 {object} structs.APIError
 // @Router /user [get]
 func (api *API) UserSSO(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	if !api.performAuth(c, acc) {
-		return c.Status(500).JSON(structs.NewAPIError("Unauthorized"))
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	aData := acc.Data()
 	return c.JSON(structs.APIUserSSO{
@@ -52,12 +53,13 @@ func (api *API) UserSSO(c *fiber.Ctx) error {
 // @Param Authorization header string true "User token"
 // @Param data body structs.APIUserUpdateRequest true "Only non-empty fields are updated"
 // @Success 200 {object} structs.UserUpdateResponse
+// @Failure 403 {object} structs.APIError
 // @Failure 500 {object} structs.APIError
 // @Router /user [patch]
 func (api *API) UserUpdate(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	if !api.performAuth(c, acc) {
-		return c.Status(500).JSON(structs.NewAPIError("Unauthorized"))
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	var data structs.APIUserUpdateRequest
 	if c.BodyParser(&data) != nil {
@@ -106,12 +108,13 @@ func (api *API) UserUpdate(c *fiber.Ctx) error {
 // @Param reset formData string false "Should profile pic be reset"
 // @Param profile_pic formData file true "Profile pic itself"
 // @Success 200 {object} structs.UserAvatarResponse
+// @Failure 403 {object} structs.APIError
 // @Failure 500 {object} structs.APIError
 // @Router /user/avatar [post]
 func (api *API) UserAvatarUpdate(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	if !api.performAuth(c, acc) {
-		return c.Status(500).JSON(structs.NewAPIError("Unauthorized"))
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	mpfd, err := c.MultipartForm()
 	if err != nil {

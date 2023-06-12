@@ -111,6 +111,16 @@ type APIUserUpdateRequest struct {
 }
 
 type APIPaymentRequest struct {
-	Amount   string `json:"amount"`
-	Merchant string `json:"merchant"`
+	Amount   float64 `json:"amount"`
+	Merchant string  `json:"merchant"`
+}
+
+type APIPaymentResponse struct {
+	APIBasicSuccess
+	Url string `json:"pay_url"`
+}
+
+type APIPaymentListResponse struct {
+	APIBasicSuccess
+	Transactions []*db.Transaction `json:"transactions"`
 }

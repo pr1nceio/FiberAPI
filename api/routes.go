@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -31,6 +32,8 @@ func StartServer(api API) error {
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{AllowCredentials: true}))
 	app.Get("/antiswagger/*", swagger.HandlerDefault) //Swag
+
+	app.All("/", shield)
 
 	//region Auth
 	app.Post("/auth/login", api.AuthLogin)
@@ -100,4 +103,8 @@ func (api *API) performAuth(c *fiber.Ctx, acc *providers.Account) bool {
 		return false
 	}
 	return true
+}
+
+func shield(c *fiber.Ctx) error {
+	return c.Status(200).JSON(structs.NewAPIBasicResponse("FiberAPI is alive"))
 }

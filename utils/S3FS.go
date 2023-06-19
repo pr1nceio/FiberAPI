@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"io"
 )
 
 type S3FS struct {
@@ -52,6 +53,26 @@ func (s3fs *S3FS) PutFile(path string, data []byte) error {
 		Bucket: aws.String(s3fs.Bucket),
 		Key:    aws.String(path),
 		Body:   bytes.NewReader(data),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s3fs *S3FS) PutFileStream(path string, data io.ReadCloser) error {
+	creds := credentials.NewStaticCredentials(s3fs.AccessKey, s3fs.SecretKey, "")
+	cfg := aws.NewConfig().WithEndpoint(s3fs.Endpoint).WithRegion(s3fs.Region).WithCredentials(creds).WithS3ForcePathStyle(true)
+	sess, err := session.NewSession(cfg)
+	if err != nil {
+		return err
+	}
+	svc := s3manager.NewUploader(sess)
+
+	_, err = svc.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(s3fs.Bucket),
+		Key:    aws.String(path),
+		Body:   data,
 	})
 	if err != nil {
 		return err

@@ -10,6 +10,7 @@ import (
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/go-redis/redis/v8"
 	"log"
+	"net/http"
 	"strings"
 )
 
@@ -180,6 +181,16 @@ func (b *BuildService) GetBuildQueue(Worker string) BuilderConfig {
 func (b *BuildService) PushBuildQueue(srvId string, srvName string, icon string, version string,
 	bAndroid int, bWindows bool, bIOS bool, bMacOS bool, textures string, region string, alterBucket bool) error {
 	srvId = srvId[:4]
+
+	if textures != "default" {
+		bAndroid = 2
+		go func() {
+			S3 := utils.NewS3FS(b.s3config)
+			S3.DeleteFile("gdps_textures/" + srvId + ".zip")
+			h, _ := http.Get(textures)
+			log.Println(S3.PutFileStream("gdps_textures/"+srvId+".zip", h.Body))
+		}()
+	}
 
 	tPack := TexturePackConfig{
 		Enabled:  textures != "default",

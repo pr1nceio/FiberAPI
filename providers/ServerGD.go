@@ -22,6 +22,7 @@ import (
 	"image/png"
 	"io"
 	"log"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -68,7 +69,7 @@ func (sgp *ServerGDProvider) WithAssets(assets *embed.FS) *ServerGDProvider {
 }
 
 func (sgp *ServerGDProvider) New() *ServerGD {
-	return &ServerGD{srv: &db.ServerGd{}, p: sgp}
+	return &ServerGD{Srv: &db.ServerGd{}, p: sgp}
 }
 
 func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
@@ -90,9 +91,9 @@ func (sgp *ServerGDProvider) CountServers() int {
 //endregion
 
 type ServerGD struct {
-	srv        *db.ServerGd
-	coreConfig *structs.GDPSConfig
-	tariff     *structs.GDTariff
+	Srv        *db.ServerGd
+	CoreConfig *structs.GDPSConfig
+	Tariff     *structs.GDTariff
 	p          *ServerGDProvider
 }
 
@@ -123,24 +124,29 @@ func (s *ServerGD) GetTopUserServer(uid int) (srv db.ServerGdSmall) {
 
 func (s *ServerGD) Exists(srvid string) bool {
 	var cnt int64
-	s.p.db.Model(s.srv).WhereBinary(db.ServerGd{SrvID: srvid}).Count(&cnt)
+	s.p.db.Model(s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Count(&cnt)
 	return cnt > 0
 }
 
 func (s *ServerGD) GetServerBySrvID(srvid string) bool {
-	return s.p.db.WhereBinary(db.ServerGd{SrvID: srvid}).First(&s.srv).Error == nil
+	return s.p.db.WhereBinary(db.ServerGd{SrvID: srvid}).First(&s.Srv).Error == nil
 }
 
 func (s *ServerGD) LoadCoreConfig() (err error) {
-	if v, err := s.p.redis.Get("gdps").Get(context.Background(), s.srv.SrvID).Result(); err == nil {
-		return json.Unmarshal([]byte(v), &s.coreConfig)
+	if v, err := s.p.redis.Get("gdps").Get(context.Background(), s.Srv.SrvID).Result(); err == nil {
+		return json.Unmarshal([]byte(v), &s.CoreConfig)
 	}
 	return err
 }
 
+func (s *ServerGD) LoadTariff() {
+	t := fiberapi.ProductGDTariffs[strconv.Itoa(s.Srv.Plan)]
+	s.Tariff = &t
+}
+
 func (s *ServerGD) GetTextures() string {
-	if s.srv.IsCustomTextures {
-		return s.srv.SrvID + ".zip"
+	if s.Srv.IsCustomTextures {
+		return s.Srv.SrvID + ".zip"
 	} else {
 		return "gdps_textures.zip"
 	}
@@ -153,42 +159,42 @@ func (s *ServerGD) GetTextures() string {
 func (s *ServerGD) ResetDBPassword() error {
 
 	pwd := utils.GenString(12) + "*"
-	s.coreConfig.DBConfig.Password = pwd
-	s.srv.DbPassword = pwd
+	s.CoreConfig.DBConfig.Password = pwd
+	s.Srv.DbPassword = pwd
 
 	tx, err := s.p.mdb.Raw().BeginTx(context.Background(), nil)
-	tx.Exec(fmt.Sprintf("ALTER USER halgd_%s@localhost IDENTIFIED BY ?", s.srv.SrvID), pwd)
-	tx.Exec(fmt.Sprintf("ALTER USER halgd_%s@'%%' IDENTIFIED BY ?", s.srv.SrvID), pwd)
+	tx.Exec(fmt.Sprintf("ALTER USER halgd_%s@localhost IDENTIFIED BY ?", s.Srv.SrvID), pwd)
+	tx.Exec(fmt.Sprintf("ALTER USER halgd_%s@'%%' IDENTIFIED BY ?", s.Srv.SrvID), pwd)
 	err = tx.Commit()
 	if utils.Should(err) != nil {
 		log.Println(err)
 	} else {
-		updated, err := json.Marshal(s.coreConfig)
-		err = s.p.redis.Get("gdps").Set(context.Background(), s.srv.SrvID, string(updated), 0).Err()
+		updated, err := json.Marshal(s.CoreConfig)
+		err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 		if utils.Should(err) != nil {
 			log.Println(err)
 		} else {
-			err = s.p.db.Model(&s.srv).WhereBinary(db.ServerGd{SrvID: s.srv.SrvID}).Updates(db.ServerGd{DbPassword: pwd}).Error
+			err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{DbPassword: pwd}).Error
 		}
 	}
 	return err
 }
 
 func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
-	s.srv.Description = settings.Description.Text
-	s.srv.TextAlign = settings.Description.Align
+	s.Srv.Description = settings.Description.Text
+	s.Srv.TextAlign = settings.Description.Align
 	ds := strings.Split(settings.Description.Discord, "/")
-	s.srv.Discord = ds[len(ds)-1]
+	s.Srv.Discord = ds[len(ds)-1]
 	vk := strings.Split(settings.Description.Vk, "/")
-	s.srv.Vk = vk[len(vk)-1]
+	s.Srv.Vk = vk[len(vk)-1]
 
-	if s.srv.IsSpaceMusic == false {
-		s.srv.IsSpaceMusic = settings.SpaceMusic
+	if s.Srv.IsSpaceMusic == false {
+		s.Srv.IsSpaceMusic = settings.SpaceMusic
 		//If enabled -> update core config
-		if s.srv.IsSpaceMusic == true {
-			s.coreConfig.ServerConfig.HalMusic = true
-			updated, err := json.Marshal(s.coreConfig)
-			err = s.p.redis.Get("gdps").Set(context.Background(), s.srv.SrvID, string(updated), 0).Err()
+		if s.Srv.IsSpaceMusic == true {
+			s.CoreConfig.ServerConfig.HalMusic = true
+			updated, err := json.Marshal(s.CoreConfig)
+			err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 			if utils.Should(err) != nil {
 				log.Println(err)
 				return err
@@ -196,20 +202,20 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 		}
 	}
 
-	return s.p.db.Model(&s.srv).WhereBinary(db.ServerGd{SrvID: s.srv.SrvID}).Updates(db.ServerGd{
-		Description:  s.srv.Description,
-		TextAlign:    s.srv.TextAlign,
-		Discord:      s.srv.Discord,
-		Vk:           s.srv.Vk,
-		IsSpaceMusic: s.srv.IsSpaceMusic,
+	return s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{
+		Description:  s.Srv.Description,
+		TextAlign:    s.Srv.TextAlign,
+		Discord:      s.Srv.Discord,
+		Vk:           s.Srv.Vk,
+		IsSpaceMusic: s.Srv.IsSpaceMusic,
 	}).Error
 }
 
 func (s *ServerGD) UpdateChests(chests structs.ChestConfig) error {
-	s.coreConfig.ChestConfig = chests
+	s.CoreConfig.ChestConfig = chests
 	updated, err := json.Marshal(chests)
 
-	err = s.p.redis.Get("gdps").Set(context.Background(), s.srv.SrvID, string(updated), 0).Err()
+	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 	if utils.Should(err) != nil {
 		log.Println(err)
 	}
@@ -222,8 +228,8 @@ func (s *ServerGD) UpdateChests(chests structs.ChestConfig) error {
 
 func (s *ServerGD) GetLogs(xtype int, page int) ([]*gdps_db.Action, int, error) {
 
-	qdb, err := s.p.mdb.OpenMutated("gdps", s.srv.SrvID)
-	defer s.p.mdb.DisposeMutated("gdps", s.srv.SrvID)
+	qdb, err := s.p.mdb.OpenMutated("gdps", s.Srv.SrvID)
+	defer s.p.mdb.DisposeMutated("gdps", s.Srv.SrvID)
 	if utils.Should(err) != nil {
 		log.Println(err)
 		return nil, 0, err
@@ -284,8 +290,8 @@ func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]*gdps_db.
 	a := gdps_db.Song{}
 	mus := services.InitMusic(s.p.redis)
 
-	qdb, err := s.p.mdb.OpenMutated("gdps", s.srv.SrvID)
-	defer s.p.mdb.DisposeMutated("gdps", s.srv.SrvID)
+	qdb, err := s.p.mdb.OpenMutated("gdps", s.Srv.SrvID)
+	defer s.p.mdb.DisposeMutated("gdps", s.Srv.SrvID)
 	if utils.Should(err) != nil {
 		log.Println(err)
 		return nil, 0, err
@@ -342,8 +348,8 @@ func (s *ServerGD) AddSong(xtype string, url string) (*gdps_db.Song, error) {
 	a := gdps_db.Song{}
 	mus := services.InitMusic(s.p.redis)
 
-	qdb, err := s.p.mdb.OpenMutated("gdps", s.srv.SrvID)
-	defer s.p.mdb.DisposeMutated("gdps", s.srv.SrvID)
+	qdb, err := s.p.mdb.OpenMutated("gdps", s.Srv.SrvID)
+	defer s.p.mdb.DisposeMutated("gdps", s.Srv.SrvID)
 	if utils.Should(err) != nil {
 		log.Println(err)
 		return nil, err
@@ -376,7 +382,7 @@ func (s *ServerGD) AddSong(xtype string, url string) (*gdps_db.Song, error) {
 	if err != nil {
 		return nil, err
 	}
-	id := s.PushSong(qdb, resp, xtype, rid)
+	id := s.pushSong(qdb, resp, xtype, rid)
 	if id == 0 {
 		return nil, errors.New("failed to upload song")
 	}
@@ -392,7 +398,7 @@ func (s *ServerGD) AddSong(xtype string, url string) (*gdps_db.Song, error) {
 	}, nil
 }
 
-func (s *ServerGD) PushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype string, rid string) int {
+func (s *ServerGD) pushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype string, rid string) int {
 	if f, _ := regexp.MatchString(`[^0-9\.]`, response.Size.String()); f || response.Size == "" {
 		response.Size = "5.00"
 	}
@@ -421,19 +427,19 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 		return errors.New("Invalid srvid |srvid")
 	}
 	s.GetServerBySrvID(srvid)
-	if uid != s.srv.OwnerID && uid != 1 {
+	if uid != s.Srv.OwnerID && uid != 1 {
 		return errors.New("Invalid owner")
 	}
 
-	if tariffid < s.srv.Plan || tariffid > len(fiberapi.ProductGDTariffs) {
-		return errors.New("Invalid tariff |tariff")
+	if tariffid < s.Srv.Plan || tariffid > len(fiberapi.ProductGDTariffs) {
+		return errors.New("Invalid Tariff |Tariff")
 	}
 	tariff := fiberapi.ProductGDTariffs[strconv.Itoa(tariffid)]
 
 	when := time.Now()
 	// Select which is latter (only non-free tariffs)
-	if when.Compare(s.srv.ExpireDate) > 0 && s.srv.Plan > 1 {
-		when = s.srv.ExpireDate
+	if when.Compare(s.Srv.ExpireDate) > 0 && s.Srv.Plan > 1 {
+		when = s.Srv.ExpireDate
 	}
 	if when.Year() > 2040 && duration != "all" {
 		return errors.New("Invalid duration |dur")
@@ -476,17 +482,17 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 		}
 	}
 
-	if err := s.p.db.Model(&s.srv).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(db.ServerGd{ExpireDate: when, Plan: tariffid}); err != nil {
+	if err := s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(db.ServerGd{ExpireDate: when, Plan: tariffid}); err != nil {
 		log.Println(err)
 		return errors.New("DATABASE ERROR. REPORT IMMEDIATELY")
 	}
-	s.coreConfig.ServerConfig.MaxUsers = tariff.Players
-	s.coreConfig.ServerConfig.MaxLevels = tariff.Levels
-	s.coreConfig.ServerConfig.MaxPosts = tariff.Posts
-	s.coreConfig.ServerConfig.MaxComments = tariff.Comments
-	s.coreConfig.ServerConfig.Locked = false
+	s.CoreConfig.ServerConfig.MaxUsers = tariff.Players
+	s.CoreConfig.ServerConfig.MaxLevels = tariff.Levels
+	s.CoreConfig.ServerConfig.MaxPosts = tariff.Posts
+	s.CoreConfig.ServerConfig.MaxComments = tariff.Comments
+	s.CoreConfig.ServerConfig.Locked = false
 
-	vdata, _ := json.Marshal(s.coreConfig)
+	vdata, _ := json.Marshal(s.CoreConfig)
 	return utils.Should(s.p.redis.Get("gdps").Set(context.Background(), srvid, string(vdata), 0).Err())
 
 }
@@ -501,7 +507,7 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 		return "", errors.New("Invalid name |name")
 	}
 	if tariffid < 1 || tariffid > len(fiberapi.ProductGDTariffs) {
-		return "", errors.New("Invalid tariff |tariff")
+		return "", errors.New("Invalid Tariff |Tariff")
 	}
 	tariff := fiberapi.ProductGDTariffs[strconv.Itoa(tariffid)]
 	when := time.Now()
@@ -588,11 +594,11 @@ func (s *ServerGD) UpdateLogo(img []byte) error {
 		return err
 	}
 	svc := s3.New(sess, cfg)
-	s.srv.Icon = "gd_" + s.srv.SrvID + ".png"
+	s.Srv.Icon = "gd_" + s.Srv.SrvID + ".png"
 
 	params := &s3.PutObjectInput{
 		Bucket:        aws.String(s.p.s3config["bucket"]),
-		Key:           aws.String("server_icons/" + s.srv.Icon),
+		Key:           aws.String("server_icons/" + s.Srv.Icon),
 		Body:          bytes.NewReader(newImg),
 		ContentLength: aws.Int64(int64(len(newImg))),
 		ContentType:   aws.String("image/png"),
@@ -601,7 +607,7 @@ func (s *ServerGD) UpdateLogo(img []byte) error {
 	if utils.Should(err) != nil {
 		return err
 	}
-	return s.p.db.Model(s.srv).Updates(db.ServerGd{Icon: s.srv.Icon}).Error
+	return s.p.db.Model(s.Srv).Updates(db.ServerGd{Icon: s.Srv.Icon}).Error
 }
 
 func (s *ServerGD) UploadTextures(inp io.Reader) error {
@@ -618,11 +624,11 @@ func (s *ServerGD) UploadTextures(inp io.Reader) error {
 		return err
 	}
 	svc := s3.New(sess, cfg)
-	s.srv.Icon = "gd_" + s.srv.SrvID + ".png"
+	s.Srv.Icon = "gd_" + s.Srv.SrvID + ".png"
 
 	params := &s3.PutObjectInput{
 		Bucket:      aws.String(s.p.s3config["bucket"]),
-		Key:         aws.String("server_icons/" + s.srv.Icon),
+		Key:         aws.String("server_icons/" + s.Srv.Icon),
 		Body:        bytes.NewReader(buf.Bytes()),
 		ContentType: aws.String("application/zip"),
 	}
@@ -640,9 +646,9 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 		if !preg.MatchString(conf.SrvName) {
 			return errors.New("Invalid name |name")
 		}
-		s.srv.SrvName = conf.SrvName
+		s.Srv.SrvName = conf.SrvName
 	} else {
-		conf.SrvName = s.srv.SrvName
+		conf.SrvName = s.Srv.SrvName
 	}
 	if conf.Version != "2.2" {
 		conf.Version = "2.1"
@@ -650,8 +656,20 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	if conf.Icon != "custom" {
 		conf.Icon = "gd_default.png"
 	}
-	//!Ignore textures
-	if err := utils.Should(s.p.db.Model(s.srv).Updates(db.ServerGd{SrvName: s.srv.SrvName}).Error); err != nil {
+	if conf.Textures == "default" {
+		s.Srv.IsCustomTextures = false
+		s.p.db.Model(s.Srv).Updates(db.ServerGd{IsCustomTextures: false})
+	} else {
+		r, err := http.Head(conf.Textures)
+		if err != nil || r.StatusCode != 200 {
+			merr := ""
+			if err != nil {
+				merr = err.Error()
+			}
+			return errors.New("Invalid textures URL:" + conf.Textures + "----" + merr + "==")
+		}
+	}
+	if err := utils.Should(s.p.db.Model(s.Srv).Updates(db.ServerGd{SrvName: s.Srv.SrvName}).Error); err != nil {
 		return err
 	}
 
@@ -662,15 +680,15 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	if conf.Android {
 		andro = 1
 	}
-	return cbs.PushBuildQueue(s.srv.SrvID, conf.SrvName, s.srv.Icon, conf.Version, andro, conf.Windows, conf.IOS, conf.MacOS,
-		"default", "ru", s.srv.Plan < 2) //! Default textures
+	return cbs.PushBuildQueue(s.Srv.SrvID, conf.SrvName, s.Srv.Icon, conf.Version, andro, conf.Windows, conf.IOS, conf.MacOS,
+		conf.Textures, "ru", s.Srv.Plan < 2) //! Default textures
 }
 
 func (s *ServerGD) DeleteServer() error {
 	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
 		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
 
-	return cbs.DeleteServer(s.srv.SrvID, s.srv.SrvName, s.srv.Plan < 2)
+	return cbs.DeleteServer(s.Srv.SrvID, s.Srv.SrvName, s.Srv.Plan < 2)
 }
 
 //endregion

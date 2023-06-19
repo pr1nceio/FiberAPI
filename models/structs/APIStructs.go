@@ -3,6 +3,7 @@ package structs
 import (
 	"encoding/json"
 	"github.com/fruitspace/FiberAPI/models/db"
+	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"strings"
 )
 
@@ -123,4 +124,53 @@ type APIPaymentResponse struct {
 type APIPaymentListResponse struct {
 	APIBasicSuccess
 	Transactions []*db.Transaction `json:"transactions"`
+}
+
+type APIServerListResponse struct {
+	APIBasicSuccess
+	GD  []*db.ServerGdSmall `json:"gd"`
+	MC  []string            `json:"mc"`
+	GTA []string            `json:"gta"`
+	CS  []string            `json:"cs"`
+}
+
+type APIServerGDCreateRequest struct {
+	Name      string `json:"name"`
+	SrvId     string `json:"srvid"`
+	Tariff    int    `json:"tariff"`
+	Duration  string `json:"duration"`
+	Promocode string `json:"promocode"`
+}
+
+type APIManageGDLogsRequest struct {
+	Page int `json:"page"`
+	Type int `json:"type"`
+}
+
+type APIManageGDLogsResponse struct {
+	APIBasicSuccess
+	Count   int               `json:"count"`
+	Results []*gdps_db.Action `json:"results"`
+}
+
+type APIManageGDMusicRequest struct {
+	Query string `json:"query"`
+	Page  int    `json:"page"`
+	Mode  string `json:"mode"`
+}
+
+type APIManageGDMusicResponse struct {
+	APIBasicSuccess
+	Music []*gdps_db.Song `json:"music"`
+	Count int             `json:"count"`
+}
+
+type APIManageGDMusicAddRequest struct {
+	Url  string `json:"url"`
+	Type string `json:"type"`
+}
+
+type APIManageGDMusicAddResponse struct {
+	APIBasicSuccess
+	Music *gdps_db.Song `json:"music"`
 }

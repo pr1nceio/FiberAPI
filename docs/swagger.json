@@ -172,7 +172,7 @@
                 "tags": [
                     "Payments"
                 ],
-                "summary": "Creates invoice for specified merchant",
+                "summary": "Returns list of user payments",
                 "parameters": [
                     {
                         "type": "string",
@@ -237,6 +237,600 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/structs.APIPaymentResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server Management"
+                ],
+                "summary": "Returns list of user servers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIServerListResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Server Management"
+                ],
+                "summary": "Creates or updates existing GDPS",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Name is used for new server creation, while srv_id is used for upgrading existing servers",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIServerListResponse"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Returns GDPS configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/providers.ServerGD"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Deletes existing GDPS",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/buildlab": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Manages GDPS installers and mods",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "All fields are required",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.BuildLabSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/chests": {
+            "post": {
+                "description": "-1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans, 4=level actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Retrieves GDPS logs by filter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "All fields are required",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDLogsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDLogsResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/dbreset": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Resets GDPS database password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/icon": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Changes GDPS icon",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Profile pic itself",
+                        "name": "profile_pic",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/music": {
+            "put": {
+                "description": "Types: ng (newgrounds), yt (youtube), vk (vkontakte), dz (deezer), db (dropbox/direct links)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Uploads music to GDPS",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "All fields are required",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDMusicAddRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDMusicAddResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Modes: id (asc), alpha (asc), downloads (desc)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Retrieves GDPS music by filter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "All fields are required",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDMusicRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDMusicResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/settings": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Changes GDPS settings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "All fields are required",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.GDSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
                         }
                     },
                     "403": {
@@ -431,6 +1025,95 @@
                 }
             }
         },
+        "db.ServerGd": {
+            "type": "object",
+            "properties": {
+                "auto_pay": {
+                    "type": "integer"
+                },
+                "backups": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "client_android_url": {
+                    "type": "string"
+                },
+                "client_ios_url": {
+                    "type": "string"
+                },
+                "client_macos_url": {
+                    "type": "string"
+                },
+                "client_windows_url": {
+                    "type": "string"
+                },
+                "comment_count": {
+                    "type": "integer"
+                },
+                "creation_date": {
+                    "type": "string"
+                },
+                "db_password": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "discord": {
+                    "type": "string"
+                },
+                "expire_date": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "is_22": {
+                    "type": "boolean"
+                },
+                "is_custom_textures": {
+                    "type": "boolean"
+                },
+                "is_space_music": {
+                    "type": "boolean"
+                },
+                "level_count": {
+                    "type": "integer"
+                },
+                "m_stat_history": {
+                    "$ref": "#/definitions/sql.NullString"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "plan": {
+                    "type": "integer"
+                },
+                "post_count": {
+                    "type": "integer"
+                },
+                "srv_key": {
+                    "type": "string"
+                },
+                "srv_name": {
+                    "type": "string"
+                },
+                "srvid": {
+                    "type": "string"
+                },
+                "text_align": {
+                    "type": "integer"
+                },
+                "user_count": {
+                    "type": "integer"
+                },
+                "visits": {
+                    "type": "integer"
+                },
+                "vk": {
+                    "type": "string"
+                }
+            }
+        },
         "db.ServerGdReduced": {
             "type": "object",
             "properties": {
@@ -484,6 +1167,32 @@
                 }
             }
         },
+        "db.ServerGdSmall": {
+            "type": "object",
+            "properties": {
+                "icon": {
+                    "type": "string"
+                },
+                "level_count": {
+                    "type": "integer"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "plan": {
+                    "type": "integer"
+                },
+                "srv_name": {
+                    "type": "string"
+                },
+                "srvid": {
+                    "type": "string"
+                },
+                "user_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "db.Transaction": {
             "type": "object",
             "properties": {
@@ -513,6 +1222,91 @@
                 }
             }
         },
+        "gdps_db.Action": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.JSONMap"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_mod": {
+                    "type": "integer"
+                },
+                "target_id": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "uid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "gdps_db.Song": {
+            "type": "object",
+            "properties": {
+                "artist": {
+                    "type": "string"
+                },
+                "author_id": {
+                    "type": "integer"
+                },
+                "downloads": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_banned": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "number"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.JSONMap": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "providers.ServerGD": {
+            "type": "object",
+            "properties": {
+                "coreConfig": {
+                    "$ref": "#/definitions/structs.GDPSConfig"
+                },
+                "srv": {
+                    "$ref": "#/definitions/db.ServerGd"
+                },
+                "tariff": {
+                    "$ref": "#/definitions/structs.GDTariff"
+                }
+            }
+        },
+        "sql.NullString": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
         "structs.APIBasicSuccess": {
             "type": "object",
             "properties": {
@@ -532,6 +1326,96 @@
                 },
                 "message": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIManageGDLogsRequest": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "structs.APIManageGDLogsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gdps_db.Action"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIManageGDMusicAddRequest": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIManageGDMusicAddResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "music": {
+                    "$ref": "#/definitions/gdps_db.Song"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIManageGDMusicRequest": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIManageGDMusicResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "music": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gdps_db.Song"
+                    }
                 },
                 "status": {
                     "type": "string"
@@ -573,6 +1457,41 @@
                     "type": "string"
                 },
                 "pay_url": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.APIServerListResponse": {
+            "type": "object",
+            "properties": {
+                "cs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "gd": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.ServerGdSmall"
+                    }
+                },
+                "gta": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mc": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
                     "type": "string"
                 },
                 "status": {
@@ -716,6 +1635,360 @@
                 },
                 "uname": {
                     "type": "string"
+                }
+            }
+        },
+        "structs.BuildLabSettings": {
+            "type": "object",
+            "properties": {
+                "android": {
+                    "type": "boolean"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ios": {
+                    "type": "boolean"
+                },
+                "macos": {
+                    "type": "boolean"
+                },
+                "srvName": {
+                    "type": "string"
+                },
+                "textures": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "windows": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "structs.ChestConfig": {
+            "type": "object",
+            "properties": {
+                "ChestBigDiamondsMax": {
+                    "type": "integer"
+                },
+                "ChestBigDiamondsMin": {
+                    "type": "integer"
+                },
+                "ChestBigKeysMax": {
+                    "type": "integer"
+                },
+                "ChestBigKeysMin": {
+                    "type": "integer"
+                },
+                "ChestBigOrbsMax": {
+                    "type": "integer"
+                },
+                "ChestBigOrbsMin": {
+                    "type": "integer"
+                },
+                "ChestBigShards": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "ChestBigWait": {
+                    "type": "integer"
+                },
+                "ChestSmallDiamondsMax": {
+                    "type": "integer"
+                },
+                "ChestSmallDiamondsMin": {
+                    "type": "integer"
+                },
+                "ChestSmallKeysMax": {
+                    "type": "integer"
+                },
+                "ChestSmallKeysMin": {
+                    "type": "integer"
+                },
+                "ChestSmallOrbsMax": {
+                    "type": "integer"
+                },
+                "ChestSmallOrbsMin": {
+                    "type": "integer"
+                },
+                "ChestSmallShards": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "ChestSmallWait": {
+                    "type": "integer"
+                }
+            }
+        },
+        "structs.DBConfig": {
+            "type": "object",
+            "properties": {
+                "DBName": {
+                    "type": "string"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "Password": {
+                    "type": "string"
+                },
+                "Port": {
+                    "type": "integer"
+                },
+                "User": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.GDPSConfig": {
+            "type": "object",
+            "properties": {
+                "ChestConfig": {
+                    "$ref": "#/definitions/structs.ChestConfig"
+                },
+                "DBConfig": {
+                    "$ref": "#/definitions/structs.DBConfig"
+                },
+                "LogConfig": {
+                    "$ref": "#/definitions/structs.LogConfig"
+                },
+                "SecurityConfig": {
+                    "$ref": "#/definitions/structs.SecurityConfig"
+                },
+                "ServerConfig": {
+                    "$ref": "#/definitions/structs.ServerConfig"
+                }
+            }
+        },
+        "structs.GDSettings": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "object",
+                    "properties": {
+                        "align": {
+                            "type": "integer"
+                        },
+                        "discord": {
+                            "type": "string"
+                        },
+                        "text": {
+                            "type": "string"
+                        },
+                        "vk": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "modules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "security": {
+                    "type": "object",
+                    "properties": {
+                        "autoActivate": {
+                            "type": "boolean"
+                        },
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "levelLimit": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "spaceMusic": {
+                    "type": "boolean"
+                },
+                "topSize": {
+                    "type": "integer"
+                }
+            }
+        },
+        "structs.GDTariff": {
+            "type": "object",
+            "properties": {
+                "acl": {
+                    "type": "boolean"
+                },
+                "backups": {
+                    "type": "boolean"
+                },
+                "comments": {
+                    "type": "integer"
+                },
+                "customChests": {
+                    "type": "boolean"
+                },
+                "customMusic": {
+                    "type": "boolean"
+                },
+                "gdlab": {
+                    "$ref": "#/definitions/structs.GDTariffBuildlab"
+                },
+                "levelpacks": {
+                    "type": "boolean"
+                },
+                "levels": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "boolean"
+                },
+                "modules": {
+                    "type": "boolean"
+                },
+                "music": {
+                    "$ref": "#/definitions/structs.GDTariffMusic"
+                },
+                "players": {
+                    "type": "integer"
+                },
+                "posts": {
+                    "type": "integer"
+                },
+                "priceRUB": {
+                    "type": "integer"
+                },
+                "priceUSD": {
+                    "type": "number"
+                },
+                "quests": {
+                    "type": "boolean"
+                },
+                "roles": {
+                    "type": "boolean"
+                },
+                "shops": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "structs.GDTariffBuildlab": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "icons": {
+                    "type": "boolean"
+                },
+                "ios": {
+                    "type": "boolean"
+                },
+                "macOS": {
+                    "type": "boolean"
+                },
+                "textures": {
+                    "type": "boolean"
+                },
+                "v22": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "structs.GDTariffMusic": {
+            "type": "object",
+            "properties": {
+                "deezer": {
+                    "type": "boolean"
+                },
+                "files": {
+                    "type": "boolean"
+                },
+                "vk": {
+                    "type": "boolean"
+                },
+                "youTube": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "structs.LogConfig": {
+            "type": "object",
+            "properties": {
+                "LogDB": {
+                    "type": "boolean"
+                },
+                "LogEnable": {
+                    "type": "boolean"
+                },
+                "LogEndpoints": {
+                    "type": "boolean"
+                },
+                "LogRequests": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "structs.SecurityConfig": {
+            "type": "object",
+            "properties": {
+                "AutoActivate": {
+                    "type": "boolean"
+                },
+                "BannedIPs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "DisableProtection": {
+                    "type": "boolean"
+                },
+                "NoLevelLimits": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "structs.ServerConfig": {
+            "type": "object",
+            "properties": {
+                "EnableModules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "MaxComments": {
+                    "type": "integer"
+                },
+                "MaxLevels": {
+                    "type": "integer"
+                },
+                "MaxPosts": {
+                    "type": "integer"
+                },
+                "MaxUsers": {
+                    "type": "integer"
+                },
+                "Modules": {
+                    "description": "str_module: {str_key:b_value}",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object"
+                    }
+                },
+                "TopSize": {
+                    "type": "integer"
                 }
             }
         },

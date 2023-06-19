@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	KEYS   = utils.GetKVEnv("KEYS")   //key_enc=,key_void=
-	CONFIG = utils.GetKVEnv("CONFIG") //ipinfo_key=,email=,email_pass=,email_host=,hCaptchaToken=
+	KEYS           = utils.GetKVEnv("KEYS")           //key_enc=,key_void=
+	CONFIG         = utils.GetKVEnv("CONFIG")         //ipinfo_key=,email=,email_pass=,email_host=,hCaptchaToken=
+	DISCORD_CONFIG = utils.GetKVEnv("DISCORD_CONFIG") //appid=,secret=,url=
 
 	S3_CONFIG    = utils.GetKVEnv("S3_CONFIG") //access_key=,secret=,region=,bucket=,endpoint=,cdn=
 	MINIO_CONFIG = utils.GetKVEnv("MINIO_CONFIG")

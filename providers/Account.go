@@ -11,7 +11,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/cradio/gormx"
+	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/db"
+	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/google/uuid"
 	"github.com/pquerna/otp/totp"
@@ -82,6 +84,10 @@ func (a *Account) Data() *db.User {
 
 func (a *Account) GetUserByUID(uid int) bool {
 	return a.p.db.First(&a.user, uid).Error == nil
+}
+
+func (a *Account) GetUserByDiscord(discord_id string) bool {
+	return a.p.db.Where(db.User{DiscordID: discord_id}).First(&a.user).Error == nil
 }
 
 func (a *Account) GetUserBySession(session string) bool {
@@ -462,6 +468,31 @@ func (a *Account) CreateTOTP(verify string) (string, string) {
 		return a.user.TotpSecret, ""
 	} else {
 		return "", ""
+	}
+}
+
+// AuthDiscord authenticates user by discord code
+func (a *Account) AuthDiscord(code, session string) error {
+	//https://discord.com/oauth2/authorize?client_id=1119240313605734410&response_type=code&scope=identify%20guilds%20guilds.join&state=<SESSION>
+	ds := services.NewDiscordService(fiberapi.DISCORD_CONFIG)
+	data, err := ds.AuthByCode(code)
+	if err != nil {
+		return err
+	}
+	if len(session) == 0 {
+		//Find by discord id
+		if a.GetUserByDiscord(data.ClientID) {
+			return nil
+		}
+		return errors.New("No linked user")
+	} else {
+		if a.GetUserBySession(session) {
+			return a.p.db.Model(&a.user).Updates(db.User{
+				DiscordID:    data.ClientID,
+				DiscordToken: data.Token + ";" + data.RefreshToken,
+			}).Error
+		}
+		return errors.New("Unauthorized")
 	}
 }
 

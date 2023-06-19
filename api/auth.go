@@ -97,3 +97,19 @@ func (api *API) AuthRecoverPassword(c *fiber.Ctx) error {
 	}
 	return c.JSON(structs.NewAPIBasicResponse("New password sent to your email inbox"))
 }
+
+func (api *API) AuthDiscord(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	err := acc.AuthDiscord(c.Query("code"), c.Query("state"))
+	if utils.Should(err) != nil {
+		return c.Status(500).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	var token string
+	if len(c.Query("state")) == 0 {
+		token=acc.NewSession(acc.Data().UID)
+	} else {
+		token=c.Query("state")
+	}
+	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
+	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token)))
+}

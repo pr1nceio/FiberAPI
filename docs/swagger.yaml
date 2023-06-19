@@ -17,6 +17,65 @@ definitions:
       uuid:
         type: string
     type: object
+  db.ServerGd:
+    properties:
+      auto_pay:
+        type: integer
+      backups:
+        $ref: '#/definitions/sql.NullString'
+      client_android_url:
+        type: string
+      client_ios_url:
+        type: string
+      client_macos_url:
+        type: string
+      client_windows_url:
+        type: string
+      comment_count:
+        type: integer
+      creation_date:
+        type: string
+      db_password:
+        type: string
+      description:
+        type: string
+      discord:
+        type: string
+      expire_date:
+        type: string
+      icon:
+        type: string
+      is_22:
+        type: boolean
+      is_custom_textures:
+        type: boolean
+      is_space_music:
+        type: boolean
+      level_count:
+        type: integer
+      m_stat_history:
+        $ref: '#/definitions/sql.NullString'
+      owner_id:
+        type: integer
+      plan:
+        type: integer
+      post_count:
+        type: integer
+      srv_key:
+        type: string
+      srv_name:
+        type: string
+      srvid:
+        type: string
+      text_align:
+        type: integer
+      user_count:
+        type: integer
+      visits:
+        type: integer
+      vk:
+        type: string
+    type: object
   db.ServerGdReduced:
     properties:
       client_android_url:
@@ -52,6 +111,23 @@ definitions:
       vk:
         type: string
     type: object
+  db.ServerGdSmall:
+    properties:
+      icon:
+        type: string
+      level_count:
+        type: integer
+      owner_id:
+        type: integer
+      plan:
+        type: integer
+      srv_name:
+        type: string
+      srvid:
+        type: string
+      user_count:
+        type: integer
+    type: object
   db.Transaction:
     properties:
       amount:
@@ -71,6 +147,62 @@ definitions:
       uid:
         type: integer
     type: object
+  gdps_db.Action:
+    properties:
+      data:
+        $ref: '#/definitions/models.JSONMap'
+      date:
+        type: string
+      id:
+        type: integer
+      is_mod:
+        type: integer
+      target_id:
+        type: integer
+      type:
+        type: integer
+      uid:
+        type: integer
+    type: object
+  gdps_db.Song:
+    properties:
+      artist:
+        type: string
+      author_id:
+        type: integer
+      downloads:
+        type: integer
+      id:
+        type: integer
+      is_banned:
+        type: boolean
+      name:
+        type: string
+      size:
+        type: number
+      url:
+        type: string
+    type: object
+  models.JSONMap:
+    additionalProperties: true
+    type: object
+  providers.ServerGD:
+    properties:
+      coreConfig:
+        $ref: '#/definitions/structs.GDPSConfig'
+      srv:
+        $ref: '#/definitions/db.ServerGd'
+      tariff:
+        $ref: '#/definitions/structs.GDTariff'
+    type: object
+  sql.NullString:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
+        type: boolean
+    type: object
   structs.APIBasicSuccess:
     properties:
       message:
@@ -84,6 +216,64 @@ definitions:
         type: string
       message:
         type: string
+      status:
+        type: string
+    type: object
+  structs.APIManageGDLogsRequest:
+    properties:
+      page:
+        type: integer
+      type:
+        type: integer
+    type: object
+  structs.APIManageGDLogsResponse:
+    properties:
+      count:
+        type: integer
+      message:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/gdps_db.Action'
+        type: array
+      status:
+        type: string
+    type: object
+  structs.APIManageGDMusicAddRequest:
+    properties:
+      type:
+        type: string
+      url:
+        type: string
+    type: object
+  structs.APIManageGDMusicAddResponse:
+    properties:
+      message:
+        type: string
+      music:
+        $ref: '#/definitions/gdps_db.Song'
+      status:
+        type: string
+    type: object
+  structs.APIManageGDMusicRequest:
+    properties:
+      mode:
+        type: string
+      page:
+        type: integer
+      query:
+        type: string
+    type: object
+  structs.APIManageGDMusicResponse:
+    properties:
+      count:
+        type: integer
+      message:
+        type: string
+      music:
+        items:
+          $ref: '#/definitions/gdps_db.Song'
+        type: array
       status:
         type: string
     type: object
@@ -110,6 +300,29 @@ definitions:
       message:
         type: string
       pay_url:
+        type: string
+      status:
+        type: string
+    type: object
+  structs.APIServerListResponse:
+    properties:
+      cs:
+        items:
+          type: string
+        type: array
+      gd:
+        items:
+          $ref: '#/definitions/db.ServerGdSmall'
+        type: array
+      gta:
+        items:
+          type: string
+        type: array
+      mc:
+        items:
+          type: string
+        type: array
+      message:
         type: string
       status:
         type: string
@@ -204,6 +417,238 @@ definitions:
         type: string
       uname:
         type: string
+    type: object
+  structs.BuildLabSettings:
+    properties:
+      android:
+        type: boolean
+      icon:
+        type: string
+      id:
+        type: string
+      ios:
+        type: boolean
+      macos:
+        type: boolean
+      srvName:
+        type: string
+      textures:
+        type: string
+      version:
+        type: string
+      windows:
+        type: boolean
+    type: object
+  structs.ChestConfig:
+    properties:
+      ChestBigDiamondsMax:
+        type: integer
+      ChestBigDiamondsMin:
+        type: integer
+      ChestBigKeysMax:
+        type: integer
+      ChestBigKeysMin:
+        type: integer
+      ChestBigOrbsMax:
+        type: integer
+      ChestBigOrbsMin:
+        type: integer
+      ChestBigShards:
+        items:
+          type: integer
+        type: array
+      ChestBigWait:
+        type: integer
+      ChestSmallDiamondsMax:
+        type: integer
+      ChestSmallDiamondsMin:
+        type: integer
+      ChestSmallKeysMax:
+        type: integer
+      ChestSmallKeysMin:
+        type: integer
+      ChestSmallOrbsMax:
+        type: integer
+      ChestSmallOrbsMin:
+        type: integer
+      ChestSmallShards:
+        items:
+          type: integer
+        type: array
+      ChestSmallWait:
+        type: integer
+    type: object
+  structs.DBConfig:
+    properties:
+      DBName:
+        type: string
+      Host:
+        type: string
+      Password:
+        type: string
+      Port:
+        type: integer
+      User:
+        type: string
+    type: object
+  structs.GDPSConfig:
+    properties:
+      ChestConfig:
+        $ref: '#/definitions/structs.ChestConfig'
+      DBConfig:
+        $ref: '#/definitions/structs.DBConfig'
+      LogConfig:
+        $ref: '#/definitions/structs.LogConfig'
+      SecurityConfig:
+        $ref: '#/definitions/structs.SecurityConfig'
+      ServerConfig:
+        $ref: '#/definitions/structs.ServerConfig'
+    type: object
+  structs.GDSettings:
+    properties:
+      description:
+        properties:
+          align:
+            type: integer
+          discord:
+            type: string
+          text:
+            type: string
+          vk:
+            type: string
+        type: object
+      id:
+        type: string
+      modules:
+        additionalProperties:
+          type: boolean
+        type: object
+      security:
+        properties:
+          autoActivate:
+            type: boolean
+          enabled:
+            type: boolean
+          levelLimit:
+            type: boolean
+        type: object
+      spaceMusic:
+        type: boolean
+      topSize:
+        type: integer
+    type: object
+  structs.GDTariff:
+    properties:
+      acl:
+        type: boolean
+      backups:
+        type: boolean
+      comments:
+        type: integer
+      customChests:
+        type: boolean
+      customMusic:
+        type: boolean
+      gdlab:
+        $ref: '#/definitions/structs.GDTariffBuildlab'
+      levelpacks:
+        type: boolean
+      levels:
+        type: integer
+      logs:
+        type: boolean
+      modules:
+        type: boolean
+      music:
+        $ref: '#/definitions/structs.GDTariffMusic'
+      players:
+        type: integer
+      posts:
+        type: integer
+      priceRUB:
+        type: integer
+      priceUSD:
+        type: number
+      quests:
+        type: boolean
+      roles:
+        type: boolean
+      shops:
+        type: boolean
+      title:
+        type: string
+    type: object
+  structs.GDTariffBuildlab:
+    properties:
+      enabled:
+        type: boolean
+      icons:
+        type: boolean
+      ios:
+        type: boolean
+      macOS:
+        type: boolean
+      textures:
+        type: boolean
+      v22:
+        type: boolean
+    type: object
+  structs.GDTariffMusic:
+    properties:
+      deezer:
+        type: boolean
+      files:
+        type: boolean
+      vk:
+        type: boolean
+      youTube:
+        type: boolean
+    type: object
+  structs.LogConfig:
+    properties:
+      LogDB:
+        type: boolean
+      LogEnable:
+        type: boolean
+      LogEndpoints:
+        type: boolean
+      LogRequests:
+        type: boolean
+    type: object
+  structs.SecurityConfig:
+    properties:
+      AutoActivate:
+        type: boolean
+      BannedIPs:
+        items:
+          type: string
+        type: array
+      DisableProtection:
+        type: boolean
+      NoLevelLimits:
+        type: boolean
+    type: object
+  structs.ServerConfig:
+    properties:
+      EnableModules:
+        additionalProperties:
+          type: boolean
+        type: object
+      MaxComments:
+        type: integer
+      MaxLevels:
+        type: integer
+      MaxPosts:
+        type: integer
+      MaxUsers:
+        type: integer
+      Modules:
+        additionalProperties:
+          type: object
+        description: 'str_module: {str_key:b_value}'
+        type: object
+      TopSize:
+        type: integer
     type: object
   structs.UserAvatarResponse:
     properties:
@@ -354,7 +799,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/structs.APIError'
-      summary: Creates invoice for specified merchant
+      summary: Returns list of user payments
       tags:
       - Payments
     post:
@@ -390,6 +835,403 @@ paths:
       summary: Creates invoice for specified merchant
       tags:
       - Payments
+  /servers:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIServerListResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Returns list of user servers
+      tags:
+      - Server Management
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Name is used for new server creation, while srv_id is used for
+          upgrading existing servers
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIServerListResponse'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Creates or updates existing GDPS
+      tags:
+      - Server Management
+  /servers/gd/{srvid}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Deletes existing GDPS
+      tags:
+      - GDPS Management
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/providers.ServerGD'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Returns GDPS configuration
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/buildlab:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.BuildLabSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Manages GDPS installers and mods
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/chests:
+    post:
+      consumes:
+      - application/json
+      description: -1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans,
+        4=level actions
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIManageGDLogsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIManageGDLogsResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Retrieves GDPS logs by filter
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/dbreset:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Resets GDPS database password
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/icon:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: Profile pic itself
+        in: formData
+        name: profile_pic
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Changes GDPS icon
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/music:
+    post:
+      consumes:
+      - application/json
+      description: 'Modes: id (asc), alpha (asc), downloads (desc)'
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIManageGDMusicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIManageGDMusicResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Retrieves GDPS music by filter
+      tags:
+      - GDPS Management
+    put:
+      consumes:
+      - application/json
+      description: 'Types: ng (newgrounds), yt (youtube), vk (vkontakte), dz (deezer),
+        db (dropbox/direct links)'
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIManageGDMusicAddRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIManageGDMusicAddResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Uploads music to GDPS
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/settings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.GDSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIBasicSuccess'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Changes GDPS settings
+      tags:
+      - GDPS Management
   /user:
     get:
       consumes:

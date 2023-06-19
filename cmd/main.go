@@ -48,25 +48,23 @@ func main() {
 	}
 
 	//Bind Redis
-	//Redis := utils.NewMultiRedis().WithDefault(fiberapi.REDIS_HOST, fiberapi.REDIS_PASS).
-	//	Add("sessions", 5).
-	//	Add("gdps", 7).
-	//	Add("music", 8)
-	//if errs := Redis.Errors(); len(errs) > 0 {
-	//	for _, err := range errs {
-	//		log.Println(err)
-	//	}
-	//	time.Sleep(10 * time.Second)
-	//	main()
-	//}
-	var Redis *utils.MultiRedis
+	Redis := utils.NewMultiRedis().WithDefault(fiberapi.REDIS_HOST, fiberapi.REDIS_PASS).
+		Add("sessions", 5).
+		Add("gdps", 7).
+		Add("music", 8)
+	if errs := Redis.Errors(); len(errs) > 0 {
+		for _, err := range errs {
+			log.Println(err)
+		}
+		time.Sleep(10 * time.Second)
+		main()
+	}
 
 	//Consul leadership stuff
 	fiberapi.PrepareElection()
 	defer fiberapi.StepDown()
 
-	var GDPS_DB *sql.DB
-	//GDPS_DB, _ := sql.Open("mysql", fiberapi.DB_USER+":"+fiberapi.DB_PASS+"@tcp("+fiberapi.DB_HOST+")/default_db")
+	GDPS_DB, _ := sql.Open("mysql", fiberapi.GDPSDB_USER+":"+fiberapi.GDPSDB_PASS+"@tcp("+fiberapi.GDPSDB_HOST+")/default_db?parseTime=true")
 
 	//providers
 	accProvider := providers.NewAccountProvider(DB, Redis).

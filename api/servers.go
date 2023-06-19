@@ -1,0 +1,65 @@
+package api
+
+import (
+	"github.com/fruitspace/FiberAPI/models/structs"
+	"github.com/gofiber/fiber/v2"
+)
+
+// ServersList returns list of user servers
+// @Tags Server Management
+// @Summary Returns list of user servers
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "User token"
+// @Success 200 {object} structs.APIServerListResponse
+// @Failure 500 {object} structs.APIError
+// @Failure 403 {object} structs.APIError
+// @Router /servers [get]
+func (api *API) ServersList(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	return c.JSON(structs.APIServerListResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		GD:              api.ServerGDProvider.GetUserServers(acc.Data().UID),
+		MC:              nil,
+		GTA:             nil,
+		CS:              nil,
+	})
+}
+
+// ServersCreateGD returns list of user servers
+// @Tags Server Management
+// @Summary Creates or updates existing GDPS
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "User token"
+// @Param data body structs.APIServerListResponse true "Name is used for new server creation, while srv_id is used for upgrading existing servers"
+// @Success 200 {object} structs.APIBasicSuccess
+// @Failure 500 {object} structs.APIError
+// @Failure 403 {object} structs.APIError
+// @Router /servers [post]
+func (api *API) ServersCreateGD(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	var data structs.APIServerGDCreateRequest
+	if c.BodyParser(&data) != nil {
+		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
+	}
+
+	var err error
+	var srvid string
+	srv := api.ServerGDProvider.New()
+	if len(data.SrvId) == 4 {
+		err = srv.UpgradeServer(acc.Data().UID, data.SrvId, data.Tariff, data.Duration, data.Promocode)
+	} else {
+		srvid, err = srv.CreateServer(acc.Data().UID, data.Name, data.Tariff, data.Duration, data.Promocode)
+	}
+	if err != nil {
+		return c.JSON(structs.NewDecoupleAPIError(err))
+	}
+	return c.JSON(structs.NewAPIBasicResponse(srvid))
+}

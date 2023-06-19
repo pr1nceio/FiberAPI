@@ -40,6 +40,7 @@ func StartServer(api API) error {
 	app.Post("/auth/register", api.AuthRegister)
 	app.All("/auth/confirm_email", api.AuthConfirmEmail)
 	app.Post("/auth/recover", api.AuthRecoverPassword)
+	app.Post("/auth/discord", api.AuthDiscord)
 	//endregion
 
 	//region User
@@ -58,26 +59,25 @@ func StartServer(api API) error {
 	fetch.Get("/gd/info/:srvid", api.FetchGDServerInfo) // get public gdps download card
 	//endregion
 
-	//servers := app.Group("/servers")
-	//servers.Get("/") // list servers
-	//
-	////region GDPS
-	//servers.Post("/gd") // create
-	//gdps := servers.Group("/gd/:srvid")
-	//gdps.Get("/")    // get server
-	//gdps.Delete("/") //delete
-	//
-	//gdps.Post("/settings") //change settings
-	//gdps.Post("/icon")     //icon
-	//gdps.Get("/dbreset")   //reset DB Password
-	//gdps.Get("/chests")
-	//gdps.Post("/chests")
-	//gdps.Get("/logs")
-	//gdps.Get("/music")
-	//gdps.Post("/music")
-	//
+	servers := app.Group("/servers")
+	servers.Get("/", api.ServersList) // list servers
+
+	//region GDPS
+	servers.Post("/gd", api.ServersCreateGD) // create
+	gdps := servers.Group("/gd/:srvid")
+	gdps.Get("/", api.ManageGDPSGet)       // get server
+	gdps.Delete("/", api.ManageGDPSDelete) //delete
+
+	gdps.Post("/settings", api.ManageGDPSChangeSettings) //change settings
+	gdps.Post("/icon", api.ManageGDPSChangeIcon)         //icon
+	gdps.Get("/dbreset", api.ManageGDPSResetDBPassword)  //reset DB Password
+	gdps.Post("/chests", api.ManageGDPSUpdateChests)     //update chests
+	gdps.Get("/logs", api.ManageGDPSGetLogs)             //get logs by filter
+	gdps.Post("/music", api.ManageGDPSGetMusic)          //get songs by filter
+	gdps.Put("/music", api.ManageGDPSAddMusic)           //put songs
+
 	//gdps.Get("/buildlab")
-	//gdps.Post("/buildlab")
+	gdps.Post("/buildlab", api.ManageGDPSBuildLabPush)
 	//endregion
 
 	return app.Listen(api.Host)

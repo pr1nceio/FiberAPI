@@ -106,10 +106,10 @@ func (api *API) AuthDiscord(c *fiber.Ctx) error {
 	}
 	var token string
 	if len(c.Query("state")) == 0 {
-		token=acc.NewSession(acc.Data().UID)
+		token = acc.NewSession(acc.Data().UID)
 	} else {
-		token=c.Query("state")
+		token = c.Query("state")
 	}
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
-	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token)))
+	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token))
 }

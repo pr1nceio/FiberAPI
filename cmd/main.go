@@ -60,10 +60,6 @@ func main() {
 		main()
 	}
 
-	//Consul leadership stuff
-	fiberapi.PrepareElection()
-	defer fiberapi.StepDown()
-
 	GDPS_DB, _ := sql.Open("mysql", fiberapi.GDPSDB_USER+":"+fiberapi.GDPSDB_PASS+"@tcp("+fiberapi.GDPSDB_HOST+")/default_db?parseTime=true")
 
 	//providers
@@ -88,6 +84,10 @@ func main() {
 		ServerGDProvider:     srvGDProvider,
 		Host:                 fiberapi.ADDR,
 	}
+
+	//Consul leadership stuff
+	PrepareElection(&API)
+	defer StepDown()
 
 	log.Fatalln(api.StartServer(API))
 }

@@ -1,6 +1,7 @@
-package fiberapi
+package main
 
 import (
+	"github.com/fruitspace/FiberAPI/api"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/go-co-op/gocron"
 	"log"
@@ -8,14 +9,18 @@ import (
 import consul "github.com/hashicorp/consul/api"
 
 var ucron = gocron.NewScheduler(utils.Loc)
+var conn *api.API
 
 var LEADER = false
 var SessionID string
 var KvEngine *consul.KV
 
-func MaintainTasks() {}
+func MaintainTasksDaily() {
+	// Check paid GDPS servers expiry
+}
 
-func PrepareElection() {
+func PrepareElection(iconn *api.API) {
+	conn = iconn
 	consulConf := consul.DefaultConfig()
 	consulConf.Address = utils.GetEnv("CONSUL_ADDR", "127.0.0.1")
 	consulConf.Token = utils.GetEnv("CONSUL_TOKEN", "")
@@ -44,7 +49,7 @@ func PrepareElection() {
 			}
 		}
 	}
-	_, err = ucron.Every(1).Day().At("00:00").Do(MaintainTasks)
+	_, err = ucron.Every(1).Day().At("00:00").Do(MaintainTasksDaily)
 	if err != nil {
 		log.Println("CANNOT LAUNCH TASKS")
 	}
@@ -65,13 +70,15 @@ func AquireLeadership() {
 		} else {
 			log.Println("Lock was successfully acquired. NOW LEADER")
 			LEADER = true
+			_, _ = ucron.Every(1).Day().At("00:00").Do(MaintainTasksDaily)
 		}
 	} else {
 		if LEADER {
 			log.Println("Couldn't acquire leadership. Stepped down by force.")
 			LEADER = false
+			ucron.Remove(MaintainTasksDaily)
 		} else {
-			log.Println("Couldn't aquire leadership. Still follower")
+			log.Println("Couldn't acquire leadership. Still follower")
 		}
 	}
 

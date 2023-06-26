@@ -97,7 +97,7 @@ func (a *Account) GetUserBySession(session string) bool {
 	} else {
 		return false
 	}
-	return a.p.db.First(&a.user).Error == nil
+	return a.p.db.Where(u).First(&a.user).Error == nil
 }
 
 func (a *Account) GetUIDByReflink(reflink string) int {

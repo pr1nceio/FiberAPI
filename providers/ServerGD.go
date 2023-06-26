@@ -88,6 +88,32 @@ func (sgp *ServerGDProvider) CountServers() int {
 	return int(cnt)
 }
 
+func (sgp *ServerGDProvider) GetUnpaidServers() []string {
+	var srvs []*db.ServerGdSmall
+	var srvids []string
+	sgp.db.Model(db.ServerGd{}).Where(fmt.Sprintf("%s<NOW()", gorm.Column(db.ServerGd{}, "ExpireDate"))).Find(&srvs)
+	for _, srv := range srvs {
+		srvids = append(srvids, srv.SrvID)
+	}
+	return srvids
+}
+
+func (sgp *ServerGDProvider) GetInactiveServers(maxUsers int, free bool) []string {
+	var srvs []*db.ServerGdSmall
+	var srvids []string
+	tx := sgp.db.Model(db.ServerGd{}).
+		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 7 DAY)", gorm.Column(db.ServerGd{}, "CreationDate"))).
+		Where(fmt.Sprintf("%s<=%d", gorm.Column(db.ServerGd{}, "UserCount"), maxUsers))
+	if free {
+		tx = tx.Where(db.ServerGd{Plan: 1})
+	}
+	tx.Find(&srvs)
+	for _, srv := range srvs {
+		srvids = append(srvids, srv.SrvID)
+	}
+	return srvids
+}
+
 //endregion
 
 type ServerGD struct {
@@ -689,6 +715,15 @@ func (s *ServerGD) DeleteServer() error {
 		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
 
 	return cbs.DeleteServer(s.Srv.SrvID, s.Srv.SrvName, s.Srv.Plan < 2)
+}
+
+func (s *ServerGD) FreezeServer() {
+	if s.LoadCoreConfig() != nil {
+		return
+	}
+	s.CoreConfig.ServerConfig.Locked = true
+	vdata, _ := json.Marshal(s.CoreConfig)
+	utils.Should(s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(vdata), 0).Err())
 }
 
 //endregion

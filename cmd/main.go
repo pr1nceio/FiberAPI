@@ -19,7 +19,7 @@ import (
 
 // @title		FruitSpace FiberAPI
 // @version	1.0
-// @BasePath	/
+// @BasePath	/v2/
 func main() {
 	sentry.Init(sentry.ClientOptions{
 		Dsn: "https://ef8c6a708a684aa78fdfc0be5a85115b@o1404863.ingest.sentry.io/4504374313222144",

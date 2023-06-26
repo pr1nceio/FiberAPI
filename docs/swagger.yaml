@@ -1,4 +1,4 @@
-basePath: /
+basePath: /v2/
 definitions:
   db.Notification:
     properties:

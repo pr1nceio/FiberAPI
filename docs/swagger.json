@@ -5,7 +5,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "basePath": "/",
+    "basePath": "/v2/",
     "paths": {
         "/auth/login": {
             "post": {

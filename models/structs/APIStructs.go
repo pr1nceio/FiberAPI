@@ -59,7 +59,7 @@ func NewAPIError(err string, code ...string) APIError {
 
 func NewDecoupleAPIError(err error) APIError {
 	dc := strings.Split(err.Error(), "|")
-	return NewAPIError(dc[0], dc[1:]...)
+	return NewAPIError(strings.TrimSpace(dc[0]), dc[1:]...)
 }
 
 type APIBasicSuccess struct {

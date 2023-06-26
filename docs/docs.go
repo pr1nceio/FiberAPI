@@ -2039,7 +2039,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "/",
+	BasePath:         "/v2/",
 	Schemes:          []string{},
 	Title:            "FruitSpace FiberAPI",
 	Description:      "",

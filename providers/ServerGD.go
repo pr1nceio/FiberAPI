@@ -143,7 +143,7 @@ func (s *ServerGD) GetReducedServer(srvid string) (srv db.ServerGdReduced) {
 }
 
 func (s *ServerGD) GetTopUserServer(uid int) (srv db.ServerGdSmall) {
-	s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Find(&srv)
+	s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).Find(&srv)
 	srv.Icon = "https://" + s.p.s3config["cdn"] + "/server_icons/" + srv.Icon
 	return srv
 }

@@ -217,7 +217,7 @@ func (a *Account) UpdateIP(ip string, fetchGeo bool) {
 // ! TO TRANSFER TO ServerGD as GetCountFor(UID int)
 func (a *Account) GetServersCount() map[string]int {
 	var cnt int64
-	a.p.db.Where(db.ServerGd{OwnerID: a.user.UID}).Count(&cnt)
+	a.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: a.user.UID}).Count(&cnt)
 	count := map[string]int{
 		"gd":  int(cnt),
 		"mc":  0,

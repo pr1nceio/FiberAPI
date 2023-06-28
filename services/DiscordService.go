@@ -1,11 +1,15 @@
 package services
 
 import (
-	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/fruitspace/FiberAPI/utils"
 	"io"
+	"log"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type DiscordService struct {
@@ -17,16 +21,15 @@ func NewDiscordService(conf map[string]string) *DiscordService {
 }
 
 func (d *DiscordService) AuthByCode(code string) (*DiscordAuthResponse, error) {
-	params, _ := json.Marshal(map[string]string{
-		"client_id":     d.config["appid"],
-		"client_secret": d.config["secret"],
-		"redirect_uri":  d.config["url"],
-		"grant_type":    "authorization_code",
-		"code":          code,
-	})
+	lo := url.Values{}
+	lo.Add("client_id", d.config["appid"])
+	lo.Add("client_secret", d.config["secret"])
+	lo.Add("redirect_uri", d.config["url"])
+	lo.Add("grant_type", "authorization_code")
+	lo.Add("code", code)
 	var data map[string]interface{}
 
-	resp, err := http.Post("https://discord.com/api/oauth2/token", "application/json", bytes.NewBuffer(params))
+	resp, err := http.Post("https://discord.com/api/oauth2/token", "application/x-www-form-urlencoded", strings.NewReader(lo.Encode()))
 	if utils.Should(err) != nil {
 		return nil, err
 	}
@@ -35,8 +38,12 @@ func (d *DiscordService) AuthByCode(code string) (*DiscordAuthResponse, error) {
 		return nil, err
 	}
 	err = json.Unmarshal(body, &data)
+	log.Println(string(body))
 	if err != nil {
 		return nil, err
+	}
+	if serr, ok := data["error"].(string); ok {
+		return nil, errors.New(fmt.Sprintf("%s: %s", serr, data["error_description"].(string)))
 	}
 	mt := DiscordAuthResponse{
 		Token:        data["access_token"].(string),

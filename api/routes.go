@@ -40,7 +40,7 @@ func StartServer(api API) error {
 	app.Post("/auth/register", api.AuthRegister)
 	app.All("/auth/confirm_email", api.AuthConfirmEmail)
 	app.Post("/auth/recover", api.AuthRecoverPassword)
-	app.Post("/auth/discord", api.AuthDiscord)
+	app.All("/auth/discord", api.AuthDiscord)
 	//endregion
 
 	//region User
@@ -96,7 +96,7 @@ func getIP(ctx *fiber.Ctx) string {
 
 func (api *API) performAuth(c *fiber.Ctx, acc *providers.Account) bool {
 	token := c.Get("Authorization")
-	if token == "" || acc.GetUserBySession(token) {
+	if token == "" || !acc.GetUserBySession(token) {
 		return false
 	}
 	if !acc.Data().IsActivated || acc.Data().IsBanned {

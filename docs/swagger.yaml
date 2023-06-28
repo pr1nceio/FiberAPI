@@ -329,11 +329,15 @@ definitions:
     type: object
   structs.APIUserSSO:
     properties:
-      bal:
+      balance:
         type: number
+      discord_id:
+        type: string
+      is_2fa:
+        type: boolean
       is_admin:
         type: boolean
-      is2fa:
+      is_partner:
         type: boolean
       name:
         type: string
@@ -349,7 +353,7 @@ definitions:
         additionalProperties:
           type: integer
         type: object
-      shop_bal:
+      shop_balance:
         type: number
       status:
         type: string
@@ -359,6 +363,8 @@ definitions:
         additionalProperties: true
         type: object
       uname:
+        type: string
+      vk_id:
         type: string
     type: object
   structs.APIUserUpdateRequest:

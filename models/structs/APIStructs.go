@@ -93,10 +93,13 @@ type APIUserSSO struct {
 	Name          string                 `json:"name"`
 	Surname       string                 `json:"surname"`
 	ProfilePic    string                 `json:"profile_pic"`
-	Bal           float64                `json:"bal"`
-	ShopBal       float64                `json:"shop_bal"`
-	Is2FA         bool                   `json:"is2fa"`
+	VkId          string                 `json:"vk_id"`
+	DiscordId     string                 `json:"discord_id"`
+	Balance       float64                `json:"balance"`
+	ShopBalance   float64                `json:"shop_balance"`
+	Is2FA         bool                   `json:"is_2fa"`
 	IsAdmin       bool                   `json:"is_admin"`
+	IsPartner     bool                   `json:"is_partner"`
 	Reflink       string                 `json:"reflink"`
 	Notifications []db.Notification      `json:"notifications"`
 	Servers       map[string]int         `json:"servers"`

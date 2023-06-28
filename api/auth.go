@@ -110,6 +110,7 @@ func (api *API) AuthDiscord(c *fiber.Ctx) error {
 	} else {
 		token = c.Query("state")
 	}
-	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
+	r, _ := fiberapi.AssetsDir.ReadFile("assets/DiscordConfirmationIndex.html")
+	c.Set("Content-Type", "text/html")
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token))
 }

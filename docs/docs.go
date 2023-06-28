@@ -1511,13 +1511,19 @@ const docTemplate = `{
         "structs.APIUserSSO": {
             "type": "object",
             "properties": {
-                "bal": {
+                "balance": {
                     "type": "number"
                 },
-                "is2fa": {
+                "discord_id": {
+                    "type": "string"
+                },
+                "is_2fa": {
                     "type": "boolean"
                 },
                 "is_admin": {
+                    "type": "boolean"
+                },
+                "is_partner": {
                     "type": "boolean"
                 },
                 "name": {
@@ -1541,7 +1547,7 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "shop_bal": {
+                "shop_balance": {
                     "type": "number"
                 },
                 "status": {
@@ -1555,6 +1561,9 @@ const docTemplate = `{
                     "additionalProperties": true
                 },
                 "uname": {
+                    "type": "string"
+                },
+                "vk_id": {
                     "type": "string"
                 }
             }

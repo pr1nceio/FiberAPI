@@ -177,3 +177,18 @@ type APIManageGDMusicAddResponse struct {
 	APIBasicSuccess
 	Music *gdps_db.Song `json:"music"`
 }
+
+type APIFetchDiscordUser struct {
+	APIBasicSuccess
+	UID     int                 `json:"uid"`
+	Uname   string              `json:"uname"`
+	Avatar  string              `json:"avatar"`
+	Active  string              `json:"active"`
+	Balance int                 `json:"balance"`
+	Servers []*db.ServerGdSmall `json:"servers"`
+}
+
+type APITopGDServers struct {
+	APIBasicSuccess
+	Servers []*db.ServerGdSmall `json:"servers"`
+}

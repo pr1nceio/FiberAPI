@@ -55,7 +55,10 @@ func StartServer(api API) error {
 	//region Fetch
 	fetch := app.Group("/fetch")
 	fetch.Get("/stats", api.FetchStats)
+	fetch.Get("/bot_discord", api.FetchDiscordUsers)
+	fetch.Get("/bot_discord_info", api.FetchDiscordUserInfo)
 	fetch.Get("/gd/tariffs", api.FetchGDTariffs)
+	fetch.Get("/gd/top", api.FetchGDTopServers)
 	fetch.Get("/gd/info/:srvid", api.FetchGDServerInfo) // get public gdps download card
 	//endregion
 

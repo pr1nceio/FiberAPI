@@ -82,6 +82,20 @@ func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 	return srvs
 }
 
+func (sgp *ServerGDProvider) GetTopServers(offset int) []*db.ServerGdSmall {
+	var srvs []*db.ServerGdSmall
+	sgp.db.Model(db.ServerGd{}).Where(fmt.Sprintf("%s>1", gorm.Column(db.ServerGd{}, "Plan"))).
+		Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).
+		Limit(10).Offset(offset).Find(&srvs)
+	for _, srv := range srvs {
+		srv.Icon = "https://" + sgp.s3config["cdn"] + "/server_icons/" + srv.Icon
+		srv.ExpireDate = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+		srv.Plan = 0
+	}
+
+	return srvs
+}
+
 func (sgp *ServerGDProvider) CountServers() int {
 	var cnt int64
 	sgp.db.Model(db.ServerGd{}).Count(&cnt)

@@ -113,6 +113,8 @@ definitions:
     type: object
   db.ServerGdSmall:
     properties:
+      expire_date:
+        type: string
       icon:
         type: string
       level_count:

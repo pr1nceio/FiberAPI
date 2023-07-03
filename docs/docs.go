@@ -1179,6 +1179,9 @@ const docTemplate = `{
         "db.ServerGdSmall": {
             "type": "object",
             "properties": {
+                "expire_date": {
+                    "type": "string"
+                },
                 "icon": {
                     "type": "string"
                 },

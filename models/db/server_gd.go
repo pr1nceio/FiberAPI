@@ -42,14 +42,15 @@ func (s *ServerGd) TableName() string {
 }
 
 type ServerGdSmall struct {
-	ID         int    `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"-"`
-	SrvID      string `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
-	SrvName    string `gorm:"column:srvName;type:varchar;size:32;" json:"srv_name"`
-	Plan       int    `gorm:"column:plan;type:tinyint;" json:"plan"`
-	OwnerID    int    `gorm:"column:owner_id;type:int;" json:"owner_id"`
-	UserCount  int    `gorm:"column:userCount;type:int;default:0;" json:"user_count"`
-	LevelCount int    `gorm:"column:levelCount;type:int;default:0;" json:"level_count"`
-	Icon       string `gorm:"column:icon;type:varchar;size:16;default:gd_default.png;" json:"icon"`
+	ID         int       `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"-"`
+	SrvID      string    `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
+	SrvName    string    `gorm:"column:srvName;type:varchar;size:32;" json:"srv_name"`
+	Plan       int       `gorm:"column:plan;type:tinyint;" json:"plan"`
+	OwnerID    int       `gorm:"column:owner_id;type:int;" json:"owner_id"`
+	UserCount  int       `gorm:"column:userCount;type:int;default:0;" json:"user_count"`
+	LevelCount int       `gorm:"column:levelCount;type:int;default:0;" json:"level_count"`
+	Icon       string    `gorm:"column:icon;type:varchar;size:16;default:gd_default.png;" json:"icon"`
+	ExpireDate time.Time `gorm:"column:expireDate;type:datetime;default:CURRENT_TIMESTAMP;" json:"expire_date"`
 }
 
 type ServerGdReduced struct {

@@ -6,6 +6,7 @@ import (
 	"embed"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -61,6 +62,26 @@ func (ap *AccountProvider) New() *Account {
 		user: &db.User{},
 		p:    ap,
 	}
+}
+
+func (ap *AccountProvider) GetDiscordIntegrations(onlyClients bool) []string {
+	var ids []string
+	var users []db.User
+	sgd := db.ServerGd{}
+	mc := ap.db.Model(db.User{}).Where(fmt.Sprintf("%s!=0", gorm.Column(db.User{}, "DiscordID")))
+	if onlyClients {
+		// SELECT count(*) from servers_gd WHERE owner_id=uid AND plan>1)
+		mc = mc.Where("(?)",
+			ap.db.Model(sgd).Select("count(*)").
+				Where(fmt.Sprintf("%s=%s", gorm.Column(sgd, "OwnerID"), gorm.Column(db.User{}, "UID"))).
+				Where(fmt.Sprintf("%s>1", gorm.Column(sgd, "Plan"))),
+		)
+	}
+	mc.SelectFields(db.User{}, "DiscordID").Find(&users)
+	for _, u := range users {
+		ids = append(ids, u.DiscordID)
+	}
+	return ids
 }
 
 //endregion

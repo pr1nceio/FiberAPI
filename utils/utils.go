@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/json"
 	"fmt"
 	"github.com/getsentry/sentry-go"
@@ -60,6 +61,12 @@ func MD5(str string) string {
 
 func SHA256(str string) string {
 	sha := sha256.New()
+	sha.Write([]byte(str))
+	return fmt.Sprintf("%x", sha.Sum(nil))
+}
+
+func SHA512(str string) string {
+	sha := sha512.New()
 	sha.Write([]byte(str))
 	return fmt.Sprintf("%x", sha.Sum(nil))
 }
@@ -168,7 +175,7 @@ func SendMessageDiscord(text string) {
 
 	content := bytes.NewReader(b)
 
-	http.Post("https://discord.com/api/webhooks/1040954033210413066/1uFkSmxjZ4gkG6A_QtSDjoNZRfMHnwgLOTW9iEtVbq40UI_Ez5ODFZVNuBjIP5xuoRIk",
+	http.Post("https://discord.com/api/webhooks/1126137382715015268/5zptTfBeT_rkkkeBHVzKsoTuTFHmNVXmynAjI2HieQL7ASxLo-FU5VfG_0yD_E75l7uG",
 		"application/json", content)
 }
 

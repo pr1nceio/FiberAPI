@@ -85,6 +85,7 @@ func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 func (sgp *ServerGDProvider) GetTopServers(offset int) []*db.ServerGdSmall {
 	var srvs []*db.ServerGdSmall
 	sgp.db.Model(db.ServerGd{}).Where(fmt.Sprintf("%s>1", gorm.Column(db.ServerGd{}, "Plan"))).
+		Where(fmt.Sprintf("%s>NOW()", gorm.Column(db.ServerGd{}, "ExpireDate"))).
 		Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).
 		Limit(10).Offset(offset).Find(&srvs)
 	for _, srv := range srvs {
@@ -165,6 +166,9 @@ func (s *ServerGD) GetTopUserServer(uid int) (srv db.ServerGdSmall) {
 func (s *ServerGD) Exists(srvid string) bool {
 	var cnt int64
 	s.p.db.Model(s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Count(&cnt)
+	if cnt > 0 {
+		s.Srv.SrvID = srvid
+	}
 	return cnt > 0
 }
 
@@ -738,6 +742,17 @@ func (s *ServerGD) FreezeServer() {
 	s.CoreConfig.ServerConfig.Locked = true
 	vdata, _ := json.Marshal(s.CoreConfig)
 	utils.Should(s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(vdata), 0).Err())
+}
+
+func (s *ServerGD) DeleteInstallers() error {
+	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
+		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
+
+	return cbs.DeleteInstallers(s.Srv.SrvID, s.Srv.SrvName, s.Srv.Plan < 2)
+}
+
+func (s *ServerGD) NewGDPSUser() *ServerGDUser {
+	return NewServerGDUserSession(s.p, s.Srv.SrvID)
 }
 
 //endregion

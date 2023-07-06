@@ -62,6 +62,11 @@ func StartServer(api API) error {
 	fetch.Get("/gd/info/:srvid", api.FetchGDServerInfo) // get public gdps download card
 	//endregion
 
+	//region Admin
+	admin := app.Group("/admin")
+	admin.Get("/bot_clear", api.AdminCleanUnpaidInstallers)
+	//endregion
+
 	servers := app.Group("/servers")
 	servers.Get("/", api.ServersList) // list servers
 
@@ -81,6 +86,12 @@ func StartServer(api API) error {
 
 	//gdps.Get("/buildlab")
 	gdps.Post("/buildlab", api.ManageGDPSBuildLabPush)
+
+	gdps_user := gdps.Group("/u")
+	gdps_user.Post("/login", api.AuxiliaryGDPSLogin)
+	gdps_user.Get("/", api.AuxiliaryGDPSAuth)
+	gdps_user.Post("/music", api.AuxiliaryGDPSGetMusic)
+	gdps_user.Put("/music", api.AuxiliaryGDPSAddMusic)
 	//endregion
 
 	return app.Listen(api.Host)

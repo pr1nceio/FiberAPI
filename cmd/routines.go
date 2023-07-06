@@ -25,8 +25,15 @@ func MaintainTasksDaily() {
 		if !srv.GetServerBySrvID(gdps) {
 			continue
 		}
+		if srv.CoreConfig.ServerConfig.Locked {
+			continue
+		}
 		srv.FreezeServer()
 		freezeReport += fmt.Sprintf("\n❄️ %s is frozen", gdps)
+		if len(freezeReport) > 500 {
+			utils.SendMessageDiscord(freezeReport)
+			freezeReport = ""
+		}
 	}
 	utils.SendMessageDiscord(freezeReport)
 }

@@ -7,6 +7,7 @@ import (
 	gorm "github.com/cradio/gormx"
 )
 
+// MultiSQL allows to store multiple raw *sql.DB connections and create *gorm.DB instances out of them
 type MultiSQL struct {
 	db       *sql.DB
 	conns    map[string]*gorm.DB
@@ -17,6 +18,13 @@ func NewMultiSQL(db *sql.DB) *MultiSQL {
 	return &MultiSQL{db: db, conns: make(map[string]*gorm.DB), mutators: make(map[string]func(db string) string)}
 }
 
+// AddMutator adds database name mutator function with specified name
+//
+// Mutator example:
+//
+//	func(db string) string {
+//	   return db+"_backup"
+//	}
 func (m *MultiSQL) AddMutator(name string, f func(db string) string) {
 	m.mutators[name] = f
 }

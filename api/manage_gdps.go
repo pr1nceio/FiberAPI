@@ -133,7 +133,7 @@ func (api *API) ManageGDPSUpdateChests(c *fiber.Ctx) error {
 // @Success 200 {object} structs.APIManageGDLogsResponse
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
-// @Router /servers/gd/{srvid}/chests [post]
+// @Router /servers/gd/{srvid}/logs [post]
 func (api *API) ManageGDPSGetLogs(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()

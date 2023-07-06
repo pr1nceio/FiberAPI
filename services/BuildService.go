@@ -162,6 +162,42 @@ func (b *BuildService) DeleteServer(srvId, srvName string, alterBucket bool) err
 	return err
 }
 
+func (b *BuildService) DeleteInstallers(srvId, srvName string, alterBucket bool) error {
+
+	S3 := utils.NewS3FS(b.s3config)
+	MINIO := utils.NewS3FS(b.minioconfig)
+
+	srvId = srvId[:4]
+	// Delete from S3
+	log.Println("Deleting Installers: " + srvId)
+
+	InstallersS3 := S3
+	if alterBucket {
+		InstallersS3 = MINIO
+		log.Println("Used alternative bucket")
+	}
+	Folders, err := InstallersS3.ListFolder("gdps_installers/")
+	if err != nil {
+		log.Println(err)
+		InstallersS3.DeleteFile("gdps_installers/" + srvId + "_" + srvName + ".ipa")
+		InstallersS3.DeleteFile("gdps_installers/" + srvId + "_" + srvName + ".exe")
+		InstallersS3.DeleteFile("gdps_installers/" + srvId + "_" + srvName + ".apk")
+	} else {
+		for _, v := range Folders {
+			if strings.Contains(v, srvId+"_") {
+				log.Println("Deleting " + v)
+				err = InstallersS3.DeleteFile(v)
+				if err != nil {
+					log.Println(err)
+					err = nil
+				}
+			}
+		}
+	}
+	// Delete Queue
+	return err
+}
+
 func (b *BuildService) GetBuildQueue(Worker string) BuilderConfig {
 	var job db.Queue
 	if b.db.Model(db.Queue{}).Where(db.Queue{Type: "gd"}).Where("worker=''").First(&job).Error != nil {

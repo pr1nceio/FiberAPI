@@ -304,7 +304,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/servers/gd": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -325,12 +327,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Name is used for new server creation, while srv_id is used for upgrading existing servers",
+                        "description": "Name is used for new server creation, while srvid is used for upgrading existing servers",
                         "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/structs.APIServerListResponse"
+                            "$ref": "#/definitions/structs.APIServerGDCreateRequest"
                         }
                     }
                 ],
@@ -515,7 +517,6 @@ const docTemplate = `{
         },
         "/servers/gd/{srvid}/chests": {
             "post": {
-                "description": "-1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans, 4=level actions",
                 "consumes": [
                     "application/json"
                 ],
@@ -525,7 +526,7 @@ const docTemplate = `{
                 "tags": [
                     "GDPS Management"
                 ],
-                "summary": "Retrieves GDPS logs by filter",
+                "summary": "Updates GDPS chest settings",
                 "parameters": [
                     {
                         "type": "string",
@@ -547,7 +548,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/structs.APIManageGDLogsRequest"
+                            "$ref": "#/definitions/structs.ChestConfig"
                         }
                     }
                 ],
@@ -555,7 +556,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/structs.APIManageGDLogsResponse"
+                            "$ref": "#/definitions/structs.APIBasicSuccess"
                         }
                     },
                     "403": {
@@ -663,6 +664,66 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/structs.APIBasicSuccess"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/servers/gd/{srvid}/logs": {
+            "post": {
+                "description": "-1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans, 4=level actions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GDPS Management"
+                ],
+                "summary": "Retrieves GDPS logs by filter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "GDPS Server ID",
+                        "name": "srvid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "All fields are required",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDLogsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.APIManageGDLogsResponse"
                         }
                     },
                     "403": {
@@ -1476,6 +1537,26 @@ const docTemplate = `{
                 }
             }
         },
+        "structs.APIServerGDCreateRequest": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "promocode": {
+                    "type": "string"
+                },
+                "srvid": {
+                    "type": "string"
+                },
+                "tariff": {
+                    "type": "integer"
+                }
+            }
+        },
         "structs.APIServerListResponse": {
             "type": "object",
             "properties": {
@@ -1598,6 +1679,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "totp": {
                     "type": "string"
                 },
                 "uname": {

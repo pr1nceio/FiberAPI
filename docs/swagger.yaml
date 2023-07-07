@@ -306,6 +306,19 @@ definitions:
       status:
         type: string
     type: object
+  structs.APIServerGDCreateRequest:
+    properties:
+      duration:
+        type: string
+      name:
+        type: string
+      promocode:
+        type: string
+      srvid:
+        type: string
+      tariff:
+        type: integer
+    type: object
   structs.APIServerListResponse:
     properties:
       cs:
@@ -387,6 +400,8 @@ definitions:
       hCaptchaToken:
         type: string
       password:
+        type: string
+      totp:
         type: string
       uname:
         type: string
@@ -871,6 +886,7 @@ paths:
       summary: Returns list of user servers
       tags:
       - Server Management
+  /servers/gd:
     post:
       consumes:
       - application/json
@@ -880,13 +896,13 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: Name is used for new server creation, while srv_id is used for
+      - description: Name is used for new server creation, while srvid is used for
           upgrading existing servers
         in: body
         name: data
         required: true
         schema:
-          $ref: '#/definitions/structs.APIServerListResponse'
+          $ref: '#/definitions/structs.APIServerGDCreateRequest'
       produces:
       - application/json
       responses:
@@ -1013,8 +1029,6 @@ paths:
     post:
       consumes:
       - application/json
-      description: -1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans,
-        4=level actions
       parameters:
       - description: User token
         in: header
@@ -1031,14 +1045,14 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/structs.APIManageGDLogsRequest'
+          $ref: '#/definitions/structs.ChestConfig'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/structs.APIManageGDLogsResponse'
+            $ref: '#/definitions/structs.APIBasicSuccess'
         "403":
           description: Forbidden
           schema:
@@ -1047,7 +1061,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/structs.APIError'
-      summary: Retrieves GDPS logs by filter
+      summary: Updates GDPS chest settings
       tags:
       - GDPS Management
   /servers/gd/{srvid}/dbreset:
@@ -1119,6 +1133,47 @@ paths:
           schema:
             $ref: '#/definitions/structs.APIError'
       summary: Changes GDPS icon
+      tags:
+      - GDPS Management
+  /servers/gd/{srvid}/logs:
+    post:
+      consumes:
+      - application/json
+      description: -1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans,
+        4=level actions
+      parameters:
+      - description: User token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: GDPS Server ID
+        in: path
+        name: srvid
+        required: true
+        type: string
+      - description: All fields are required
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/structs.APIManageGDLogsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.APIManageGDLogsResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/structs.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.APIError'
+      summary: Retrieves GDPS logs by filter
       tags:
       - GDPS Management
   /servers/gd/{srvid}/music:

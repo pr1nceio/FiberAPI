@@ -34,6 +34,7 @@ type AuthRegisterRequest struct {
 type AuthLoginRequest struct {
 	Uname         string `json:"uname"`
 	Password      string `json:"password"`
+	TOTP          string `json:"totp"`
 	HCaptchaToken string `json:"hCaptchaToken"`
 }
 

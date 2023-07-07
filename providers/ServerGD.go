@@ -546,6 +546,7 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
 		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
 
+	name = strings.TrimSpace(name)
 	preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
 	if !preg.MatchString(name) {
 		return "", errors.New("Invalid name |name")
@@ -686,6 +687,7 @@ func (s *ServerGD) UploadTextures(inp io.Reader) error {
 
 func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	if conf.SrvName != "" {
+		conf.SrvName = strings.TrimSpace(conf.SrvName)
 		preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
 		if !preg.MatchString(conf.SrvName) {
 			return errors.New("Invalid name |name")

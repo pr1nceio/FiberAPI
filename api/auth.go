@@ -43,17 +43,27 @@ func (api *API) AuthRegister(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Router /auth/login [post]
 func (api *API) AuthLogin(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
 	var data structs.AuthLoginRequest
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
-	if !utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"]) {
-		return c.Status(500).JSON(structs.NewAPIError("Captcha failed", "captcha"))
-	}
-	acc := api.AccountProvider.New()
 	if err := acc.Login(data.Uname, data.Password, getIP(c)); err != nil {
 		return c.Status(500).JSON(structs.NewDecoupleAPIError(err))
 	}
+	if acc.Data().Is2FA {
+		if len(data.TOTP) == 0 {
+			return c.JSON(structs.NewAPIError("TOTP code is required", "2fa_req"))
+		}
+		secret, _ := acc.CreateTOTP(data.TOTP)
+		if len(secret) == 0 {
+			return c.Status(500).JSON(structs.NewAPIError("Invalid 2FA Code", "2fa"))
+		}
+	}
+	if !utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"]) {
+		return c.Status(500).JSON(structs.NewAPIError("Captcha failed", "captcha"))
+	}
+
 	return c.JSON(structs.AuthLoginResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("Logged in"),
 		Token:           acc.NewSession(acc.Data().UID),

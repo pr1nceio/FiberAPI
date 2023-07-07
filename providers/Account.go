@@ -467,9 +467,12 @@ func (a *Account) RecoverPassword(email string, lang string) error {
 	return err
 }
 
-// ! NOT WORKING
+// CreateTOTP accepts "regen" or valid 2FA Code. Returns secret and base64 image
 func (a *Account) CreateTOTP(verify string) (string, string) {
 	if a.user.Is2FA {
+		if totp.Validate(verify, a.user.TotpSecret) {
+			return a.user.TotpSecret, ""
+		}
 		return "", ""
 	}
 	if a.user.TotpSecret == "" || verify == "regen" {
@@ -478,6 +481,7 @@ func (a *Account) CreateTOTP(verify string) (string, string) {
 			AccountName: a.user.Uname,
 		})
 		a.user.TotpSecret = key.Secret()
+		a.p.db.Model(&a.user).Updates(db.User{TotpSecret: a.user.TotpSecret})
 		l, _ := key.Image(200, 200)
 		var img bytes.Buffer
 		png.Encode(&img, l)

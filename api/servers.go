@@ -35,11 +35,11 @@ func (api *API) ServersList(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "User token"
-// @Param data body structs.APIServerListResponse true "Name is used for new server creation, while srv_id is used for upgrading existing servers"
+// @Param data body structs.APIServerGDCreateRequest true "Name is used for new server creation, while srvid is used for upgrading existing servers"
 // @Success 200 {object} structs.APIBasicSuccess
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
-// @Router /servers [post]
+// @Router /servers/gd [post]
 func (api *API) ServersCreateGD(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	if !api.performAuth(c, acc) {

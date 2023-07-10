@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"github.com/fruitspace/FiberAPI/models"
 	"time"
 )
 
@@ -25,7 +26,7 @@ type ServerGd struct {
 	ClientMacOSURL   string         `gorm:"column:clientMacOSURL;type:varchar;size:255;" json:"client_macos_url"`
 	AutoPay          int            `gorm:"column:autoPay;type:tinyint;default:0;" json:"auto_pay"`
 	Backups          sql.NullString `gorm:"column:backups;type:json;" json:"backups"`
-	MStatHistory     sql.NullString `gorm:"column:mStatHistory;type:json;" json:"m_stat_history"`
+	MStatHistory     models.JSONMap `gorm:"column:mStatHistory;type:json;" json:"m_stat_history"`
 	Icon             string         `gorm:"column:icon;type:varchar;size:16;default:gd_default.png;" json:"icon"`
 	Description      string         `gorm:"column:description;type:varchar;size:1000;default:Welcome to my GDPS!;" json:"description"`
 	TextAlign        int            `gorm:"column:textAlign;type:tinyint;default:0;" json:"text_align"`
@@ -56,6 +57,7 @@ type ServerGdSmall struct {
 type ServerGdReduced struct {
 	ID               int    `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"-"`
 	SrvID            string `gorm:"column:srvid;type:varchar;size:8;" json:"srvid"`
+	Plan             int    `gorm:"column:plan;type:tinyint;" json:"plan"`
 	SrvName          string `gorm:"column:srvName;type:varchar;size:32;" json:"srv_name"`
 	Owner            string `gorm:"type:varchar;" json:"owner_id"`
 	UserCount        int    `gorm:"column:userCount;type:int;default:0;" json:"user_count"`

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/oliamb/cutter"
+	"golang.org/x/exp/slices"
 	"image"
 	"io"
 	"log"
@@ -190,6 +191,7 @@ func GenString(length int) string {
 
 func Should(err error) error {
 	if err != nil {
+		log.Println(err)
 		sentry.CaptureException(err)
 	}
 	return err
@@ -213,4 +215,25 @@ func HideField(model interface{}, field string) []string {
 	}
 
 	return fields
+}
+
+func FilterEmail(email string) bool {
+	semail := strings.Split(email, "@")
+	if len(semail) != 2 {
+		return false
+	}
+	AllowedEmailProviders := []string{
+		"yandex.ru",
+		"ya.ru",
+		"mail.ru",
+		"gmail.com",
+		"aol.com",
+		"rambler.ru",
+		"bk.ru",
+		"vk.com",
+	}
+	if !slices.Contains(AllowedEmailProviders, strings.ToLower(semail[1])) {
+		return false
+	}
+	return true
 }

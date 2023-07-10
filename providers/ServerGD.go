@@ -201,6 +201,7 @@ func (s *ServerGD) GetTextures() string {
 //region Settings
 
 func (s *ServerGD) ResetDBPassword() error {
+	s.LoadCoreConfig()
 
 	pwd := utils.GenString(12) + "*"
 	s.CoreConfig.DBConfig.Password = pwd
@@ -225,6 +226,7 @@ func (s *ServerGD) ResetDBPassword() error {
 }
 
 func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
+	s.LoadCoreConfig()
 	s.Srv.Description = settings.Description.Text
 	s.Srv.TextAlign = settings.Description.Align
 	ds := strings.Split(settings.Description.Discord, "/")
@@ -232,18 +234,27 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 	vk := strings.Split(settings.Description.Vk, "/")
 	s.Srv.Vk = vk[len(vk)-1]
 
+	s.CoreConfig.SecurityConfig.DisableProtection = !settings.Security.Enabled
+	s.CoreConfig.SecurityConfig.AutoActivate = settings.Security.AutoActivate
+	s.CoreConfig.SecurityConfig.NoLevelLimits = !settings.Security.LevelLimit
+
+	s.CoreConfig.ServerConfig.TopSize = settings.TopSize
+	s.CoreConfig.ServerConfig.HalMusic = settings.SpaceMusic
+	s.CoreConfig.ServerConfig.EnableModules = settings.Modules
+
 	if s.Srv.IsSpaceMusic == false {
 		s.Srv.IsSpaceMusic = settings.SpaceMusic
 		//If enabled -> update core config
 		if s.Srv.IsSpaceMusic == true {
 			s.CoreConfig.ServerConfig.HalMusic = true
-			updated, err := json.Marshal(s.CoreConfig)
-			err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
-			if utils.Should(err) != nil {
-				log.Println(err)
-				return err
-			}
 		}
+	}
+
+	updated, err := json.Marshal(s.CoreConfig)
+	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
+	if utils.Should(err) != nil {
+		log.Println(err)
+		return err
 	}
 
 	return s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{
@@ -256,8 +267,9 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 }
 
 func (s *ServerGD) UpdateChests(chests structs.ChestConfig) error {
+	s.LoadCoreConfig()
 	s.CoreConfig.ChestConfig = chests
-	updated, err := json.Marshal(chests)
+	updated, err := json.Marshal(s.CoreConfig)
 
 	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 	if utils.Should(err) != nil {
@@ -281,46 +293,48 @@ func (s *ServerGD) GetLogs(xtype int, page int) ([]*gdps_db.Action, int, error) 
 	a := gdps_db.Action{}
 
 	qdb = s.p.mdb.UTable(qdb, a.TableName())
-	pqdb := qdb // For count
+
+	d := s.p.mdb.Mutate("gdps", s.Srv.SrvID)
 	rqdb := qdb.Select(utils.HideField(a, "Data"), fmt.Sprintf(`
 	JSON_INSERT(
-		JSON_INSERT(actions.data,
+		JSON_INSERT(%s.actions.data,
 		    '$.name',
-			CASE WHEN actions.type=4 THEN
-				(SELECT name FROM levels WHERE levels.id=actions.target_id)
+			CASE WHEN %s.actions.type=4 THEN
+				(SELECT name FROM %s.levels WHERE %s.levels.id=%s.actions.target_id)
 		    ELSE
 		    	NULL
 		    END
 		),
 		'$.uname',
-		CASE WHEN actions.type=4 THEN
-			(SELECT uname FROM users WHERE users.uid=actions.uid)
+		CASE WHEN %s.actions.type=4 THEN
+			(SELECT uname FROM %s.users WHERE %s.users.uid=%s.actions.uid)
 		ELSE
 			NULL
 		END
-	) as data`)).Limit(50).Offset(page * 50)
+	) as data`, d, d, d, d, d, d, d, d, d,
+	))
 
 	var results []*gdps_db.Action
 
 	if xtype >= 0 {
-		rqdb = rqdb.Where(gdps_db.Action{Type: xtype})
-		pqdb = pqdb.Where(gdps_db.Action{Type: xtype})
+		rqdb = rqdb.Where(fmt.Sprintf("%s=?", gorm.Column(a, "Type")), xtype)
 	} else {
 		rqdb = rqdb.Where(fmt.Sprintf("%s<6", gorm.Column(a, "Type")))
-		pqdb = pqdb.Where(fmt.Sprintf("%s<6", gorm.Column(a, "Type")))
-	}
-
-	if err = rqdb.Find(&results).Error; utils.Should(err) != nil {
-		log.Println(err)
-		return nil, 0, err
 	}
 
 	var cnt int64
-	err = pqdb.Count(&cnt).Error
+	err = rqdb.Count(&cnt).Error
 	if cnt%50 == 0 {
 		cnt = cnt / 50
 	} else {
 		cnt = cnt/50 + 1
+	}
+
+	rqdb = rqdb.Limit(50).Offset(page * 50)
+
+	if err = rqdb.Find(&results).Error; utils.Should(err) != nil {
+		log.Println(err)
+		return nil, 0, err
 	}
 
 	return results, int(cnt), err
@@ -342,6 +356,8 @@ func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]*gdps_db.
 	}
 
 	qdb = s.p.mdb.UTable(qdb, a.TableName())
+
+	cnt := s.getSongCount(qdb)
 
 	var songs []*gdps_db.Song
 
@@ -369,17 +385,16 @@ func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]*gdps_db.
 		// Transform HAL resource
 		if strings.HasPrefix(song.URL, "hal:") {
 			xmus, err := mus.TransformHalResource(song.URL)
-			if err != nil {
+			if utils.Should(err) != nil {
 				continue
 			}
 			song.URL = xmus.Url
 		}
 		if strings.Contains(song.URL, "mediapool.halhost.cc") {
-			song.URL = strings.ReplaceAll(song.URL, "mediapool.halhost.cc", "mus.fruitspace.one")
+			song.URL = strings.ReplaceAll(song.URL, "mediapool.halhost.cc", "cdn2.fruitspace.one")
 		}
 	}
-
-	return songs, s.getSongCount(qdb), nil
+	return songs, cnt, nil
 }
 
 func (s *ServerGD) getSongCount(gdb *gorm.DB) int {
@@ -453,6 +468,11 @@ func (s *ServerGD) pushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype
 		Artist: response.Artist,
 		Size:   sz,
 		URL:    fmt.Sprintf("hal:%s:%s", xtype, rid),
+	}
+	var rsong *gdps_db.Song
+	qdb.Where(gdps_db.Song{URL: song.URL}).First(&rsong)
+	if rsong.ID > 0 {
+		return rsong.ID
 	}
 	if err := utils.Should(qdb.Create(&song).Error); err != nil {
 		log.Println(err)
@@ -693,6 +713,9 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 			return errors.New("Invalid name |name")
 		}
 		s.Srv.SrvName = conf.SrvName
+		if err := utils.Should(s.p.db.Model(s.Srv).Updates(db.ServerGd{SrvName: s.Srv.SrvName}).Error); err != nil {
+			return err
+		}
 	} else {
 		conf.SrvName = s.Srv.SrvName
 	}
@@ -714,9 +737,6 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 			}
 			return errors.New("Invalid textures URL:" + conf.Textures + "----" + merr + "==")
 		}
-	}
-	if err := utils.Should(s.p.db.Model(s.Srv).Updates(db.ServerGd{SrvName: s.Srv.SrvName}).Error); err != nil {
-		return err
 	}
 
 	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
@@ -755,6 +775,43 @@ func (s *ServerGD) DeleteInstallers() error {
 
 func (s *ServerGD) NewGDPSUser() *ServerGDUser {
 	return NewServerGDUserSession(s.p, s.Srv.SrvID)
+}
+
+func (s *ServerGD) SendWebhook(xtype string, data map[string]string) {
+	embd := utils.GetEmbed(xtype, data)
+	embd.Username = s.Srv.SrvName
+	embd.AvatarURL = "https://" + s.p.s3config["cdn"] + "/server_icons/" + s.Srv.Icon
+	url, ok := s.Srv.MStatHistory[xtype]
+	if !ok {
+		log.Println("Not ok")
+		log.Printf("%+v", s.Srv.MStatHistory)
+		return
+	}
+	err := embd.SendToWebhook(url.(string))
+	if err != nil {
+		log.Println(err, url.(string))
+	}
+}
+
+func (s *ServerGD) ModuleDiscord(enable bool, data map[string]interface{}) error {
+	err := s.LoadCoreConfig()
+	if err != nil {
+		return err
+	}
+	if s.CoreConfig.ServerConfig.EnableModules == nil {
+		s.CoreConfig.ServerConfig.EnableModules = make(map[string]bool)
+	}
+	s.CoreConfig.ServerConfig.EnableModules["discord"] = enable
+	updated, err := json.Marshal(s.CoreConfig)
+	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
+	if utils.Should(err) != nil {
+		log.Println(err)
+	} else {
+		s.Srv.MStatHistory = data
+		err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).
+			Updates(db.ServerGd{MStatHistory: s.Srv.MStatHistory}).Error
+	}
+	return err
 }
 
 //endregion

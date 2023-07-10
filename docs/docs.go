@@ -1150,7 +1150,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "m_stat_history": {
-                    "$ref": "#/definitions/sql.NullString"
+                    "$ref": "#/definitions/models.JSONMap"
                 },
                 "owner_id": {
                     "type": "integer"
@@ -1219,6 +1219,9 @@ const docTemplate = `{
                 },
                 "owner_id": {
                     "type": "string"
+                },
+                "plan": {
+                    "type": "integer"
                 },
                 "srv_name": {
                     "type": "string"

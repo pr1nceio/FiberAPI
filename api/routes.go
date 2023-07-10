@@ -80,9 +80,11 @@ func StartServer(api API) error {
 	gdps.Post("/icon", api.ManageGDPSChangeIcon)         //icon
 	gdps.Get("/dbreset", api.ManageGDPSResetDBPassword)  //reset DB Password
 	gdps.Post("/chests", api.ManageGDPSUpdateChests)     //update chests
-	gdps.Get("/logs", api.ManageGDPSGetLogs)             //get logs by filter
+	gdps.Post("/logs", api.ManageGDPSGetLogs)            //get logs by filter
 	gdps.Post("/music", api.ManageGDPSGetMusic)          //get songs by filter
 	gdps.Put("/music", api.ManageGDPSAddMusic)           //put songs
+
+	gdps.Put("/modules/discord", api.ManageGDPSDiscordModule)
 
 	//gdps.Get("/buildlab")
 	gdps.Post("/buildlab", api.ManageGDPSBuildLabPush)
@@ -90,9 +92,14 @@ func StartServer(api API) error {
 	gdps_user := gdps.Group("/u")
 	gdps_user.Post("/login", api.AuxiliaryGDPSLogin)
 	gdps_user.Get("/", api.AuxiliaryGDPSAuth)
+	gdps_user.Put("/", api.AuxiliaryGDPSChangeCreds)
 	gdps_user.Post("/music", api.AuxiliaryGDPSGetMusic)
 	gdps_user.Put("/music", api.AuxiliaryGDPSAddMusic)
+	gdps_user.Post("/recover", api.AuxiliaryGDPSForgotPassword)
 	//endregion
+
+	internal := app.Group("/internal")
+	internal.Post("/gd/:srvid/webhook", api.APIGDPSSendWebhook)
 
 	return app.Listen(api.Host)
 }

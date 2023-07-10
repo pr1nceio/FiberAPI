@@ -5,6 +5,9 @@ import (
 	"fmt"
 	mysql "github.com/cradio/gorm_mysql"
 	gorm "github.com/cradio/gormx"
+	"github.com/cradio/gormx/logger"
+	"log"
+	"os"
 )
 
 // MultiSQL allows to store multiple raw *sql.DB connections and create *gorm.DB instances out of them
@@ -52,11 +55,23 @@ func (m *MultiSQL) DisposeMutated(name, db string) {
 	m.Dispose(m.Mutate(name, db))
 }
 
-func (m *MultiSQL) Open(db string) (*gorm.DB, error) {
+func (m *MultiSQL) OpenCached(db string) (*gorm.DB, error) {
+
 	if v, ok := m.conns[db]; ok {
 		return v, nil
 	}
-	gdb, err := gorm.Open(mysql.New(mysql.Config{Conn: m.db}))
+	return m.Open(db)
+}
+
+func (m *MultiSQL) Open(db string) (*gorm.DB, error) {
+
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			LogLevel: logger.Info, // Log level
+		},
+	)
+	gdb, err := gorm.Open(mysql.New(mysql.Config{Conn: m.db}), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		return nil, err
 	}

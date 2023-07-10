@@ -253,7 +253,7 @@ func (b *BuildService) PushBuildQueue(srvId string, srvName string, icon string,
 	}
 	data, err := json.Marshal(conf)
 	err = b.db.Model(db.Queue{}).Create(db.Queue{Type: "gd", SrvID: srvId, Data: string(data)}).Error
-	return err
+	return utils.Should(err)
 }
 
 func (b *BuildService) PushClient(srvid string, iType string, file string, alterBucket bool) {

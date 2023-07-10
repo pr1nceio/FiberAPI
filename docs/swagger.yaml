@@ -54,7 +54,7 @@ definitions:
       level_count:
         type: integer
       m_stat_history:
-        $ref: '#/definitions/sql.NullString'
+        $ref: '#/definitions/models.JSONMap'
       owner_id:
         type: integer
       plan:
@@ -100,6 +100,8 @@ definitions:
         type: integer
       owner_id:
         type: string
+      plan:
+        type: integer
       srv_name:
         type: string
       srvid:

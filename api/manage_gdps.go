@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
@@ -113,7 +114,7 @@ func (api *API) ManageGDPSUpdateChests(c *fiber.Ctx) error {
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
-	srv.LoadCoreConfig()
+
 	if err := utils.Should(srv.UpdateChests(data)); err != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
@@ -341,6 +342,26 @@ func (api *API) ManageGDPSBuildLabPush(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
 	if err := srv.ExecuteBuildLab(data); err != nil {
+		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
+	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
+func (api *API) ManageGDPSDiscordModule(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	body := c.Request().Body()
+	var data interface{}
+	json.Unmarshal(body, &data)
+	pdata := data.(map[string]interface{})
+	err := srv.ModuleDiscord(pdata["enable"].(bool), pdata)
+	if err != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
 	return c.JSON(structs.NewAPIBasicResponse("Success"))

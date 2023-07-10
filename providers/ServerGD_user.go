@@ -1,10 +1,15 @@
 package providers
 
 import (
+	"errors"
+	"fmt"
 	gorm "github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/utils"
+	email "github.com/xhit/go-simple-mail/v2"
 	"log"
+	"regexp"
+	"strings"
 )
 
 type ServerGDUser struct {
@@ -15,7 +20,7 @@ type ServerGDUser struct {
 }
 
 func NewServerGDUser(p *ServerGDProvider, db *gorm.DB) *ServerGDUser {
-	return &ServerGDUser{p: p, db: db}
+	return &ServerGDUser{p: p, db: db, acc: &gdps_db.User{}}
 }
 
 func NewServerGDUserSession(p *ServerGDProvider, srvid string) *ServerGDUser {
@@ -25,15 +30,18 @@ func NewServerGDUserSession(p *ServerGDProvider, srvid string) *ServerGDUser {
 		return nil
 	}
 	p.mdb.UTable(db, (&gdps_db.User{}).TableName())
-	return &ServerGDUser{p: p, db: db, disposable: func() {
-		p.mdb.DisposeMutated("gdps", srvid)
-	}}
+	return &ServerGDUser{p: p, db: db, acc: &gdps_db.User{},
+		disposable: func() {
+			p.mdb.DisposeMutated("gdps", srvid)
+		}}
 }
 
 // Dispose is a fucking miracle that prevents memory leaks and connection overflows.
 // If you forgot to dispose connection, your server could easily blow up
 func (u *ServerGDUser) Dispose() {
-	u.disposable()
+	if u.disposable != nil {
+		u.disposable()
+	}
 }
 
 func (u *ServerGDUser) Data() *gdps_db.User {
@@ -53,7 +61,7 @@ func (u *ServerGDUser) Exists(uid int) bool {
 }
 
 func (u *ServerGDUser) GetUserByUID(uid int) bool {
-	return u.db.Where(gdps_db.User{UID: uid}).First(&u.acc).Error == nil
+	return u.db.First(&u.acc, uid).Error == nil
 }
 func (u *ServerGDUser) GetUserByUname(uname string) bool {
 	return u.db.Where(gdps_db.User{Uname: uname}).First(&u.acc).Error == nil
@@ -292,15 +300,73 @@ func (u *ServerGDUser) changePassword(passhash string) {
 	u.db.Where(gdps_db.User{UID: u.acc.UID}).Updates(gdps_db.User{Passhash: passhash})
 }
 
+func (u *ServerGDUser) UserChangePassword(pass string) error {
+	if len(pass) < 5 || len(pass) > 32 {
+		return errors.New("Password is too short or too long |pwd_shrt")
+	}
+	pass = utils.SHA256(utils.SHA512(pass) + "SaltyTruth:sob:")
+	u.changePassword(pass)
+	return nil
+}
+
+func (u *ServerGDUser) UserChangeEmail(email string) error {
+	if !utils.FilterEmail(email) {
+		return errors.New("Invalid email |email")
+	}
+	u.db.Where(gdps_db.User{UID: u.acc.UID}).Updates(gdps_db.User{Email: email})
+	return nil
+}
+
+func (u *ServerGDUser) UserChangeUsername(uname string) error {
+	if len(uname) > 16 {
+		return errors.New("Username is too long |uname_long")
+	}
+	if len(uname) < 4 {
+		return errors.New("Username is too short |uname_shrt")
+	}
+	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_.-]+$`).MatchString(uname) {
+		return errors.New("Invalid username |uname")
+	}
+	u.db.Where(gdps_db.User{UID: u.acc.UID}).Updates(gdps_db.User{Uname: uname})
+	return nil
+}
+
+func (u *ServerGDUser) UserForgotPasswordSendEmail(srvid string) error {
+	server := email.NewSMTPClient()
+	server.Host = u.p.config["email_host"]
+	server.Port = 587
+	server.Username = u.p.config["email"]
+	server.Password = u.p.config["email_pass"]
+	server.Encryption = email.EncryptionSTARTTLS
+	client, err := server.Connect()
+	if err != nil {
+		return err
+	}
+
+	msg, err := u.p.assets.ReadFile("assets/GDPSForgotPassword.html")
+	msgStr := string(msg)
+	msgStr = strings.ReplaceAll(msgStr, "{uname}", u.acc.Uname)
+	token := fmt.Sprintf("%d:%s", u.acc.UID, u.acc.Passhash)
+	msgStr = strings.ReplaceAll(msgStr, "{url}", fmt.Sprintf("https://gofruit.space/gdps/%s/recover?token=%s", srvid, token))
+	msgStr = strings.ReplaceAll(msgStr, "{srvid}", srvid)
+
+	eml := email.NewMSG()
+	eml.SetFrom(u.p.config["email"]).AddTo(u.acc.Email).SetSubject("Password recovery")
+	eml.SetBody(email.TextHTML, msgStr)
+
+	return eml.Send(client)
+}
+
 func (u *ServerGDUser) LogIn(uname string, pass string, ip string, uid int, rawhash bool) int {
 	if uid == 0 {
 		u.GetUserByUname(uname)
 		uid = u.acc.UID
-	}
-	if uid > 0 {
+	} else {
 		if !u.GetUserByUID(uid) {
 			return -1
 		}
+	}
+	if uid > 0 {
 		if u.acc.IsBanned > 1 {
 			return -12
 		}
@@ -316,7 +382,7 @@ func (u *ServerGDUser) LogIn(uname string, pass string, ip string, uid int, rawh
 		}
 		if u.acc.Passhash == passx {
 			u.UpdateIP(ip)
-			u.db.Where(gdps_db.User{UID: u.acc.UID}).UpdateColumn(gorm.Column(u.acc, "IsBanned"), 0)
+			u.db.Where(gdps_db.User{UID: u.acc.UID}).UpdateColumn(gorm.Column(gdps_db.User{}, "IsBanned"), 0)
 			return uid
 		}
 	}

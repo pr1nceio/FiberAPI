@@ -3,6 +3,7 @@ module github.com/fruitspace/FiberAPI
 go 1.19
 
 require (
+	github.com/aiomonitors/godiscord v0.0.0-20200422003858-41242d4e5847
 	github.com/aws/aws-sdk-go v1.44.289
 	github.com/cradio/gorm_mysql v0.0.0-20230522150626-7133a0060a10
 	github.com/cradio/gormx v1.25.5

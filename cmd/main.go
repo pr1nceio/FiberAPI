@@ -21,6 +21,7 @@ import (
 // @version	1.0
 // @BasePath	/v2/
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	sentry.Init(sentry.ClientOptions{
 		Dsn: "https://ef8c6a708a684aa78fdfc0be5a85115b@o1404863.ingest.sentry.io/4504374313222144",
 	})
@@ -60,7 +61,7 @@ func main() {
 		main()
 	}
 
-	GDPS_DB, _ := sql.Open("mysql", fiberapi.GDPSDB_USER+":"+fiberapi.GDPSDB_PASS+"@tcp("+fiberapi.GDPSDB_HOST+")/default_db?parseTime=true")
+	GDPS_DB, _ := sql.Open("mysql", fiberapi.GDPSDB_USER+":"+fiberapi.GDPSDB_PASS+"@tcp("+fiberapi.GDPSDB_HOST+")/?parseTime=true&multiStatements=true")
 
 	//providers
 	accProvider := providers.NewAccountProvider(DB, Redis).

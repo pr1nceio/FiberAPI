@@ -1755,16 +1755,13 @@ const docTemplate = `{
                 "icon": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "string"
-                },
                 "ios": {
                     "type": "boolean"
                 },
                 "macos": {
                     "type": "boolean"
                 },
-                "srvName": {
+                "srvname": {
                     "type": "string"
                 },
                 "textures": {
@@ -2076,6 +2073,12 @@ const docTemplate = `{
                         "type": "boolean"
                     }
                 },
+                "HalMusic": {
+                    "type": "boolean"
+                },
+                "Locked": {
+                    "type": "boolean"
+                },
                 "MaxComments": {
                     "type": "integer"
                 },
@@ -2094,6 +2097,12 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "object"
                     }
+                },
+                "SrvID": {
+                    "type": "string"
+                },
+                "SrvKey": {
+                    "type": "string"
                 },
                 "TopSize": {
                     "type": "integer"

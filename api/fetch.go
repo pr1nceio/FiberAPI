@@ -19,11 +19,15 @@ func (api *API) FetchGDTariffs(c *fiber.Ctx) error {
 // FetchStats returns all server type count stats
 func (api *API) FetchStats(c *fiber.Ctx) error {
 	return c.JSON(struct {
-		Status    string `json:"status"`
-		GDPSCount int    `json:"gdps_count"`
+		Status     string `json:"status"`
+		Clients    int    `json:"clients"`
+		GDPSCount  int    `json:"gdps_count"`
+		GDPSlevels int    `json:"gdps_levels"`
 	}{
 		"ok",
+		api.AccountProvider.GetUserCount(),
 		api.ServerGDProvider.CountServers(),
+		api.ServerGDProvider.CountLevels(),
 	})
 }
 

@@ -30,6 +30,7 @@ func (api *API) AuxiliaryGDPSLogin(c *fiber.Ctx) error {
 	defer acc.Dispose()
 	res := acc.LogIn(data.Uname, data.Password, getIP(c), 0, false)
 	if res > 0 {
+		srv.LoadCoreConfig()
 		if acc.Data().IsBanned == 1 && srv.CoreConfig.ServerConfig.EnableModules["discord"] {
 			srv.SendWebhook("newuser", map[string]string{"nickname": data.Uname})
 		}
@@ -134,8 +135,9 @@ func (api *API) AuxiliaryGDPSAddMusic(c *fiber.Ctx) error {
 	if utils.Should(err) != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
-	if acc.Data().IsBanned == 1 && srv.CoreConfig.ServerConfig.EnableModules["discord"] {
-		srv.SendWebhook("newuser", map[string]string{
+	srv.LoadCoreConfig()
+	if srv.CoreConfig.ServerConfig.EnableModules["discord"] {
+		srv.SendWebhook("newmusic", map[string]string{
 			"id":       strconv.Itoa(music.ID),
 			"name":     music.Name,
 			"artist":   music.Artist,

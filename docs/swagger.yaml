@@ -449,13 +449,11 @@ definitions:
         type: boolean
       icon:
         type: string
-      id:
-        type: string
       ios:
         type: boolean
       macos:
         type: boolean
-      srvName:
+      srvname:
         type: string
       textures:
         type: string
@@ -659,6 +657,10 @@ definitions:
         additionalProperties:
           type: boolean
         type: object
+      HalMusic:
+        type: boolean
+      Locked:
+        type: boolean
       MaxComments:
         type: integer
       MaxLevels:
@@ -672,6 +674,10 @@ definitions:
           type: object
         description: 'str_module: {str_key:b_value}'
         type: object
+      SrvID:
+        type: string
+      SrvKey:
+        type: string
       TopSize:
         type: integer
     type: object

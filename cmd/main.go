@@ -40,7 +40,10 @@ func main() {
 		},
 	)
 	DB, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true",
-		fiberapi.DB_USER, fiberapi.DB_PASS, fiberapi.DB_HOST, fiberapi.DB_NAME)), &gorm.Config{Logger: newLogger})
+		fiberapi.DB_USER, fiberapi.DB_PASS, fiberapi.DB_HOST, fiberapi.DB_NAME)), &gorm.Config{
+		Logger:                 newLogger,
+		SkipDefaultTransaction: true,
+	})
 	if err != nil {
 		log.Println("Error while connecting to " + fiberapi.DB_USER + "@" + fiberapi.DB_HOST + ": " + err.Error())
 		//CachedKV.Close()

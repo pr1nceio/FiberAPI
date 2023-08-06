@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/fruitspace/FiberAPI/api"
+	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/go-co-op/gocron"
 	"log"
@@ -17,7 +18,11 @@ var SessionID string
 var KvEngine *consul.KV
 
 func MaintainTasksDaily() {
+	if !LEADER {
+		return
+	}
 	// Check paid GDPS servers expiry
+	utils.SendMessageDiscord("Starting maintenance...")
 	gdpslist := conn.ServerGDProvider.GetUnpaidServers()
 	freezeReport := ""
 	for _, gdps := range gdpslist {
@@ -25,6 +30,7 @@ func MaintainTasksDaily() {
 		if !srv.GetServerBySrvID(gdps) {
 			continue
 		}
+		srv.LoadCoreConfig()
 		if srv.CoreConfig.ServerConfig.Locked {
 			continue
 		}
@@ -36,6 +42,10 @@ func MaintainTasksDaily() {
 		}
 	}
 	utils.SendMessageDiscord(freezeReport)
+
+	//Clear music
+	mus := services.InitMusic(conn.ServerGDProvider.ExposeRedis())
+	mus.CleanEmptyNewgrounds()
 }
 
 func PrepareElection(iconn *api.API) {

@@ -22,6 +22,11 @@ func InitMusic(redis *utils.MultiRedis) *MusicService {
 	return &MusicService{redis: redis.Get("music")}
 }
 
+func (m *MusicService) CleanEmptyNewgrounds() {
+	items, _ := m.redis.SMembers(context.Background(), "nomusic").Result()
+	m.redis.SRem(context.Background(), "nomusic", items)
+}
+
 //region Get Music
 
 func (m *MusicService) GetMusicNG(id string) (*structs.MusicResponse, error) {

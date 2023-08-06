@@ -21,14 +21,14 @@ type ChestConfig struct {
 }
 
 type ServerConfig struct {
-	SrvID         string                           `json:"-"`
-	SrvKey        string                           `json:"-"`
+	SrvID         string                           `json:"SrvID"`
+	SrvKey        string                           `json:"SrvKey"`
 	MaxUsers      int                              `json:"MaxUsers"`
 	MaxLevels     int                              `json:"MaxLevels"`
 	MaxComments   int                              `json:"MaxComments"`
 	MaxPosts      int                              `json:"MaxPosts"`
-	HalMusic      bool                             `json:"-"`
-	Locked        bool                             `json:"-"`
+	HalMusic      bool                             `json:"HalMusic"`
+	Locked        bool                             `json:"Locked"`
 	TopSize       int                              `json:"TopSize"`
 	EnableModules map[string]bool                  `json:"EnableModules"`
 	Modules       map[string](map[string]([]byte)) `json:"Modules"` //str_module: {str_key:b_value}

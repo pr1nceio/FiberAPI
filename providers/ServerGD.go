@@ -24,10 +24,13 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
 )
+
+var Jobs []string
 
 //region ServerGDProvider
 
@@ -72,6 +75,10 @@ func (sgp *ServerGDProvider) New() *ServerGD {
 	return &ServerGD{Srv: &db.ServerGd{}, p: sgp}
 }
 
+func (sgp *ServerGDProvider) ExposeRedis() *utils.MultiRedis {
+	return sgp.redis
+}
+
 func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 	var srvs []*db.ServerGdSmall
 	sgp.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Find(&srvs)
@@ -100,6 +107,12 @@ func (sgp *ServerGDProvider) GetTopServers(offset int) []*db.ServerGdSmall {
 func (sgp *ServerGDProvider) CountServers() int {
 	var cnt int64
 	sgp.db.Model(db.ServerGd{}).Count(&cnt)
+	return int(cnt)
+}
+
+func (sgp *ServerGDProvider) CountLevels() int {
+	var cnt int64
+	sgp.db.Table((&db.ServerGd{}).TableName()).Select(fmt.Sprintf("sum(%s)", gorm.Column(db.ServerGd{}, "LevelCount"))).Row().Scan(&cnt)
 	return int(cnt)
 }
 
@@ -207,10 +220,9 @@ func (s *ServerGD) ResetDBPassword() error {
 	s.CoreConfig.DBConfig.Password = pwd
 	s.Srv.DbPassword = pwd
 
-	tx, err := s.p.mdb.Raw().BeginTx(context.Background(), nil)
-	tx.Exec(fmt.Sprintf("ALTER USER halgd_%s@localhost IDENTIFIED BY ?", s.Srv.SrvID), pwd)
-	tx.Exec(fmt.Sprintf("ALTER USER halgd_%s@'%%' IDENTIFIED BY ?", s.Srv.SrvID), pwd)
-	err = tx.Commit()
+	rawdb := s.p.mdb.Raw()
+	_, err := rawdb.Exec(fmt.Sprintf("ALTER USER halgd_%s@localhost IDENTIFIED BY '%s'", s.Srv.SrvID, pwd))
+	_, err = rawdb.Exec(fmt.Sprintf("ALTER USER halgd_%s@'%%' IDENTIFIED BY '%s'", s.Srv.SrvID, pwd))
 	if utils.Should(err) != nil {
 		log.Println(err)
 	} else {
@@ -344,6 +356,20 @@ func (s *ServerGD) GetLogs(xtype int, page int) ([]*gdps_db.Action, int, error) 
 
 //region Songs
 
+//func (s *ServerGD) transfromSongs() error {
+//	a := gdps_db.Song{}
+//	mus := services.InitMusic(s.p.redis)
+//
+//	qdb, err := s.p.mdb.OpenMutated("gdps", s.Srv.SrvID)
+//	defer s.p.mdb.DisposeMutated("gdps", s.Srv.SrvID)
+//	if utils.Should(err) != nil {
+//		log.Println(err)
+//		return err
+//	}
+//
+//	musdb = s.p.mdb.UTable(qdb.WithContext(context.Background()), a.TableName())
+//}
+
 func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]*gdps_db.Song, int, error) {
 	a := gdps_db.Song{}
 	mus := services.InitMusic(s.p.redis)
@@ -470,14 +496,11 @@ func (s *ServerGD) pushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype
 		URL:    fmt.Sprintf("hal:%s:%s", xtype, rid),
 	}
 	var rsong *gdps_db.Song
-	qdb.Where(gdps_db.Song{URL: song.URL}).First(&rsong)
+	qdb.WithContext(context.Background()).Where(gdps_db.Song{URL: song.URL}).First(&rsong)
 	if rsong.ID > 0 {
 		return rsong.ID
 	}
-	if err := utils.Should(qdb.Create(&song).Error); err != nil {
-		log.Println(err)
-		return 0
-	}
+	qdb.WithContext(context.Background()).Create(&song)
 	return song.ID
 }
 
@@ -487,13 +510,22 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 	pm := NewPromocodeProvider(s.p.db)
 
 	preg := regexp.MustCompile("^[a-zA-Z0-9]+$")
+	defer func() {
+		// recover from panic if one occured. Set err to nil otherwise.
+		v := recover()
+		if v != nil {
+			log.Println(v, string(debug.Stack()))
+		}
+	}()
 	if !preg.MatchString(srvid) || !s.Exists(srvid) {
 		return errors.New("Invalid srvid |srvid")
 	}
-	s.GetServerBySrvID(srvid)
-	if uid != s.Srv.OwnerID && uid != 1 {
-		return errors.New("Invalid owner")
-	}
+	//s.GetServerBySrvID(srvid)
+	//if uid != s.Srv.OwnerID && uid != 1 {
+	//	return errors.New("Invalid owner")
+	//}
+	// Checked by api AUTH
+	s.LoadCoreConfig()
 
 	if tariffid < s.Srv.Plan || tariffid > len(fiberapi.ProductGDTariffs) {
 		return errors.New("Invalid Tariff |Tariff")
@@ -546,7 +578,7 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 		}
 	}
 
-	if err := s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(db.ServerGd{ExpireDate: when, Plan: tariffid}); err != nil {
+	if err := s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(db.ServerGd{ExpireDate: when, Plan: tariffid}).Error; err != nil {
 		log.Println(err)
 		return errors.New("DATABASE ERROR. REPORT IMMEDIATELY")
 	}
@@ -706,6 +738,14 @@ func (s *ServerGD) UploadTextures(inp io.Reader) error {
 }
 
 func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
+	defer func() {
+		// recover from panic if one occured. Set err to nil otherwise.
+		v := recover()
+		if v != nil {
+			log.Println(v, string(debug.Stack()))
+		}
+	}()
+	vdb := s.p.db.WithContext(context.Background())
 	if conf.SrvName != "" {
 		conf.SrvName = strings.TrimSpace(conf.SrvName)
 		preg := regexp.MustCompile("^[a-zA-Z0-9 ._-]+$")
@@ -727,7 +767,7 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	}
 	if conf.Textures == "default" {
 		s.Srv.IsCustomTextures = false
-		s.p.db.Model(s.Srv).Updates(db.ServerGd{IsCustomTextures: false})
+		s.p.db.Model(s.Srv).UpdateColumn(gorm.Column(db.ServerGd{}, "IsCustomTextures"), 0)
 	} else {
 		r, err := http.Head(conf.Textures)
 		if err != nil || r.StatusCode != 200 {
@@ -739,7 +779,7 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 		}
 	}
 
-	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
+	cbs := services.NewBuildService(vdb, s.p.mdb, s.p.redis).
 		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
 
 	andro := 0
@@ -775,6 +815,10 @@ func (s *ServerGD) DeleteInstallers() error {
 
 func (s *ServerGD) NewGDPSUser() *ServerGDUser {
 	return NewServerGDUserSession(s.p, s.Srv.SrvID)
+}
+
+func (s *ServerGD) NewInteractor() *ServerGDInteractor {
+	return NewServerGDInteractorSession(s.p, s.Srv.SrvID)
 }
 
 func (s *ServerGD) SendWebhook(xtype string, data map[string]string) {

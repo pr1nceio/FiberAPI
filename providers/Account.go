@@ -84,6 +84,12 @@ func (ap *AccountProvider) GetDiscordIntegrations(onlyClients bool) []string {
 	return ids
 }
 
+func (ap *AccountProvider) GetUserCount() int {
+	var cnt int64
+	ap.db.Model(db.User{}).Count(&cnt)
+	return int(cnt)
+}
+
 //endregion
 
 // Account is a container for db.User functionality

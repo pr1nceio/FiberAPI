@@ -19,8 +19,7 @@ type GDSettings struct {
 }
 
 type BuildLabSettings struct {
-	Id      string `json:"id"`
-	SrvName string `json:"srvName"`
+	SrvName string `json:"srvname"`
 	Version string `json:"version"`
 
 	Windows bool `json:"windows"`

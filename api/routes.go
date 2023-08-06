@@ -83,6 +83,10 @@ func StartServer(api API) error {
 	gdps.Post("/logs", api.ManageGDPSGetLogs)            //get logs by filter
 	gdps.Post("/music", api.ManageGDPSGetMusic)          //get songs by filter
 	gdps.Put("/music", api.ManageGDPSAddMusic)           //put songs
+	gdps.Get("/roles", api.ManageGDPSGetRoles)           //get roles
+	gdps.Post("/roles", api.ManageGDPSSetRole)           //create or update role
+
+	gdps.Get("/get/users", api.ManageGDPSQueryUsers) //get users
 
 	gdps.Put("/modules/discord", api.ManageGDPSDiscordModule)
 

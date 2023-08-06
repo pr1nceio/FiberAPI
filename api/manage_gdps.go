@@ -254,7 +254,7 @@ func (api *API) ManageGDPSChangeIcon(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
 	}
 	mpfd, err := c.MultipartForm()
-	if err != nil {
+	if utils.Should(err) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Unable to parse request", "form"))
 	}
 	icon := mpfd.File["profile_pic"]
@@ -365,6 +365,65 @@ func (api *API) ManageGDPSDiscordModule(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
+func (api *API) ManageGDPSGetRoles(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	roles := interactor.GetRoles()
+	return c.JSON(structs.APIRolesResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Roles:           roles,
+	})
+}
+
+func (api *API) ManageGDPSSetRole(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+
+	var data structs.InjectedGDRole
+	if c.BodyParser(&data) != nil {
+		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	err := interactor.SetRole(data)
+	if err != nil {
+		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
+	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
+func (api *API) ManageGDPSQueryUsers(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	users := interactor.SearchUsers(c.Query("user"))
+	return c.JSON(structs.APIGDPSUsersResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Users:           users,
+	})
 }
 
 // -------------------

@@ -42,3 +42,35 @@ type User struct {
 func (u *User) TableName() string {
 	return "users"
 }
+
+type UserMini struct {
+	UID      int    `gorm:"primary_key;AUTO_INCREMENT;column:uid;type:int;" json:"uid"`
+	Uname    string `gorm:"column:uname;type:varchar;size:16;" json:"uname"`
+	Email    string `gorm:"column:email;type:varchar;size:256;" json:"email"`
+	RoleID   int    `gorm:"column:role_id;type:int;default:0;" json:"role_id"`
+	Stars    int    `gorm:"column:stars;type:int;default:0;" json:"stars"`
+	Diamonds int    `gorm:"column:diamonds;type:int;default:0;" json:"diamonds"`
+	Coins    int    `gorm:"column:coins;type:int;default:0;" json:"coins"`
+	Ucoins   int    `gorm:"column:ucoins;type:int;default:0;" json:"ucoins"`
+	Demons   int    `gorm:"column:demons;type:int;default:0;" json:"demons"`
+	Cpoints  int    `gorm:"column:cpoints;type:int;default:0;" json:"cpoints"`
+	Orbs     int    `gorm:"column:orbs;type:int;default:0;" json:"orbs"`
+	IsBanned int    `gorm:"column:isBanned;type:tinyint;default:0;" json:"is_banned"`
+	Moons    int    `gorm:"column:moons;type:int;default:0;" json:"moons"`
+}
+
+func (u *UserMini) TableName() string {
+	return "users"
+}
+
+type UserNano struct {
+	UID      int    `gorm:"primary_key;AUTO_INCREMENT;column:uid;type:int;" json:"uid"`
+	Uname    string `gorm:"column:uname;type:varchar;size:16;" json:"uname"`
+	Email    string `gorm:"column:email;type:varchar;size:256;" json:"email"`
+	RoleID   int    `gorm:"column:role_id;type:int;default:0;" json:"role_id"`
+	IsBanned int    `gorm:"column:isBanned;type:tinyint;default:0;" json:"is_banned"`
+}
+
+func (u *UserNano) TableName() string {
+	return "users"
+}

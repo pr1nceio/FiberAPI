@@ -193,3 +193,18 @@ type APITopGDServers struct {
 	APIBasicSuccess
 	Servers []*db.ServerGdSmall `json:"servers"`
 }
+
+type InjectedGDRole struct {
+	gdps_db.Role
+	Users []gdps_db.UserNano `json:"users" gorm:"-"`
+}
+
+type APIRolesResponse struct {
+	APIBasicSuccess
+	Roles []InjectedGDRole `json:"roles"`
+}
+
+type APIGDPSUsersResponse struct {
+	APIBasicSuccess
+	Users []gdps_db.UserNano `json:"users"`
+}

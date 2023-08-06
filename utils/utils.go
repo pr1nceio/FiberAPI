@@ -176,7 +176,7 @@ func SendMessageDiscord(text string) {
 
 	content := bytes.NewReader(b)
 
-	http.Post("https://discord.com/api/webhooks/1126137382715015268/5zptTfBeT_rkkkeBHVzKsoTuTFHmNVXmynAjI2HieQL7ASxLo-FU5VfG_0yD_E75l7uG",
+	http.Post("https://discord.com/api/webhooks/1133486914394144768/YDbd9c1FrS42bNiDRMrTctyWBa0xWASWokCKiz2eAL5SfZkyzMNSd45wUJvY_xA-KrlQ",
 		"application/json", content)
 }
 
@@ -192,6 +192,7 @@ func GenString(length int) string {
 func Should(err error) error {
 	if err != nil {
 		log.Println(err)
+		log.Output(2, fmt.Sprintln(err))
 		sentry.CaptureException(err)
 	}
 	return err

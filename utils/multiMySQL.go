@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	mysql "github.com/cradio/gorm_mysql"
@@ -71,7 +72,10 @@ func (m *MultiSQL) Open(db string) (*gorm.DB, error) {
 			LogLevel: logger.Info, // Log level
 		},
 	)
-	gdb, err := gorm.Open(mysql.New(mysql.Config{Conn: m.db}), &gorm.Config{Logger: newLogger})
+	gdb, err := gorm.Open(mysql.New(mysql.Config{Conn: m.db}), &gorm.Config{
+		Logger:                 newLogger,
+		SkipDefaultTransaction: true,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +90,7 @@ func (m *MultiSQL) Dispose(db string) {
 
 func (m *MultiSQL) UTable(db *gorm.DB, table string) *gorm.DB {
 	if cdb, ok := db.Get("db"); ok {
-		return db.Table(fmt.Sprintf("`%s`.`%s`", cdb.(string), table))
+		return db.WithContext(context.Background()).Table(fmt.Sprintf("`%s`.`%s`", cdb.(string), table))
 	}
 	return db
 }

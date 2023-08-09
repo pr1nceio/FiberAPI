@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"fmt"
 	gorm "github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
@@ -81,4 +82,11 @@ func (i *ServerGDInteractor) SearchUsers(query string) []gdps_db.UserNano {
 	var users []gdps_db.UserNano
 	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Where("uname LIKE ?", "%"+query+"%").Find(&users)
 	return users
+}
+
+func (i *ServerGDInteractor) CountActiveUsersLastWeek() int {
+	var cnt int64
+	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Where(fmt.Sprintf("%s>=(CURRENT_DATE - INTERVAL 7 DAY)", gorm.Column(gdps_db.User{}, "UpdatedAt"))).
+		Count(&cnt)
+	return int(cnt)
 }

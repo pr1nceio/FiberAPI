@@ -22,9 +22,10 @@ func InitMusic(redis *utils.MultiRedis) *MusicService {
 	return &MusicService{redis: redis.Get("music")}
 }
 
-func (m *MusicService) CleanEmptyNewgrounds() {
+func (m *MusicService) CleanEmptyNewgrounds() int {
 	items, _ := m.redis.SMembers(context.Background(), "nomusic").Result()
-	m.redis.SRem(context.Background(), "nomusic", items)
+	cnt, _ := m.redis.SRem(context.Background(), "nomusic", items).Result()
+	return int(cnt)
 }
 
 //region Get Music

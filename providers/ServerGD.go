@@ -804,6 +804,8 @@ func (s *ServerGD) FreezeServer() {
 	s.CoreConfig.ServerConfig.Locked = true
 	vdata, _ := json.Marshal(s.CoreConfig)
 	utils.Should(s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(vdata), 0).Err())
+	// Who cares
+	s.p.db.Model(s.Srv).Updates(db.ServerGd{ExpireDate: time.Now()})
 }
 
 func (s *ServerGD) DeleteInstallers() error {

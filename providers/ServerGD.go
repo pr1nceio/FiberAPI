@@ -130,11 +130,24 @@ func (sgp *ServerGDProvider) GetInactiveServers(maxUsers int, free bool) []strin
 	var srvs []*db.ServerGdSmall
 	var srvids []string
 	tx := sgp.db.Model(db.ServerGd{}).
-		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 7 DAY)", gorm.Column(db.ServerGd{}, "CreationDate"))).
+		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 7 DAY)", gorm.Column(db.ServerGd{}, "CreatedAt"))).
 		Where(fmt.Sprintf("%s<=%d", gorm.Column(db.ServerGd{}, "UserCount"), maxUsers))
 	if free {
 		tx = tx.Where(db.ServerGd{Plan: 1})
 	}
+	tx.Find(&srvs)
+	for _, srv := range srvs {
+		srvids = append(srvids, srv.SrvID)
+	}
+	return srvids
+}
+
+func (sgp *ServerGDProvider) GetMissingInstallersServers() []string {
+	var srvs []*db.ServerGdSmall
+	var srvids []string
+	tx := sgp.db.Model(db.ServerGd{}).
+		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 1 DAY)", gorm.Column(db.ServerGd{}, "CreatedAt"))).
+		Where(fmt.Sprintf("%s=''", gorm.Column(db.ServerGd{}, "ClientWindowsURL")))
 	tx.Find(&srvs)
 	for _, srv := range srvs {
 		srvids = append(srvids, srv.SrvID)

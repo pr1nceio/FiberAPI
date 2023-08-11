@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/fruitspace/FiberAPI/api"
+	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/go-co-op/gocron"
@@ -76,6 +77,42 @@ func MaintainTasksDaily() {
 				freezeReport += fmt.Sprintf("\n❌ Couldn't purge %s, error: `%s`", gdps, err.Error())
 			} else {
 				freezeReport += fmt.Sprintf("\n❄️ %s is purged", gdps)
+			}
+			if len(freezeReport) > 500 {
+				utils.SendMessageDiscord(freezeReport)
+				freezeReport = ""
+			}
+		}
+	}
+
+	// Fix missing installers
+	{
+		gdpslist := conn.ServerGDProvider.GetMissingInstallersServers()
+		freezeReport := "### Restoring GDPS with missing installers (" + strconv.Itoa(len(gdpslist)) + ")...\n"
+		for _, gdps := range gdpslist {
+			srv := conn.ServerGDProvider.New()
+			if !srv.GetServerBySrvID(gdps) {
+				continue
+			}
+			srv.LoadCoreConfig()
+
+			if srv.CoreConfig.ServerConfig.Locked {
+				continue
+			}
+			err := srv.ExecuteBuildLab(structs.BuildLabSettings{
+				SrvName:  srv.Srv.SrvName,
+				Version:  "2.1",
+				Windows:  true,
+				Android:  true,
+				IOS:      false,
+				MacOS:    false,
+				Icon:     "gd_default.png",
+				Textures: "default",
+			})
+			if err != nil {
+				freezeReport += fmt.Sprintf("\n❌ Couldn't recover %s, error: `%s`", gdps, err.Error())
+			} else {
+				freezeReport += fmt.Sprintf("\n❄⚙️ %s is recovered W+A", gdps)
 			}
 			if len(freezeReport) > 500 {
 				utils.SendMessageDiscord(freezeReport)

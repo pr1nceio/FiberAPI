@@ -115,7 +115,7 @@ func (api *API) AdminCleanUnpaidInstallers(c *fiber.Ctx) error {
 	}
 
 	//Clear music
-	mus := services.InitMusic(api.ServerGDProvider.ExposeRedis())
+	mus := services.InitMusic(api.ServerGDProvider.ExposeRedis(), "admin")
 	mcnt := mus.CleanEmptyNewgrounds()
 	utils.SendMessageDiscord(fmt.Sprintf("Cleaned %d invalid NG songs. \n### Maintenance Complete", mcnt))
 

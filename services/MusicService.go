@@ -15,11 +15,12 @@ import (
 )
 
 type MusicService struct {
-	redis *redis.Client
+	redis    *redis.Client
+	onBehalf string
 }
 
-func InitMusic(redis *utils.MultiRedis) *MusicService {
-	return &MusicService{redis: redis.Get("music")}
+func InitMusic(redis *utils.MultiRedis, onBehalf string) *MusicService {
+	return &MusicService{redis: redis.Get("music"), onBehalf: onBehalf}
 }
 
 func (m *MusicService) CleanEmptyNewgrounds() int {
@@ -49,28 +50,28 @@ func (m *MusicService) GetExMusic(mtype string, id string) (*structs.MusicRespon
 	}
 	switch mtype {
 	case "ng":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/newgrounds?track=" + id)
+		resp, err := http.Get("https://api.fruitspace.one/hmusic/newgrounds?track=" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
 		rsp, _ := io.ReadAll(resp.Body)
 		json.Unmarshal(rsp, &mus)
 	case "sc":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/soundcloud?track=https://soundcloud.com/" + id)
+		resp, err := http.Get("https://api.fruitspace.one/hmusic/soundcloud?track=https://soundcloud.com/" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
 		rsp, _ := io.ReadAll(resp.Body)
 		json.Unmarshal(rsp, &mus)
 	case "vk":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/vk?track=" + id)
+		resp, err := http.Get("https://api.fruitspace.one/hmusic/vk?track=" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
 		rsp, _ := io.ReadAll(resp.Body)
 		json.Unmarshal(rsp, &mus)
 	case "yt":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/youtube?track=https://youtube.com/watch?v=" + id)
+		resp, err := http.Get("https://api.fruitspace.one/hmusic/youtube?track=https://youtube.com/watch?v=" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +79,7 @@ func (m *MusicService) GetExMusic(mtype string, id string) (*structs.MusicRespon
 		json.Unmarshal(rsp, &mus)
 		mus.Url = "https://cdn2.fruitspace.one/music/yt_" + id + ".mp3"
 	case "dz":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/deezer?track=https://deezer.page.link/" + id)
+		resp, err := http.Get("https://api.fruitspace.one/hmusic/deezer?track=https://deezer.page.link/" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
@@ -154,15 +155,17 @@ func (m *MusicService) GetNG(song string) (string, *structs.MusicResponse, error
 }
 
 func (m *MusicService) GetYT(song string) (string, *structs.MusicResponse, error) {
-	re := regexp.MustCompile(`^(((http|https):\/\/|)(www\.|)(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z\d\-\_])+)$`)
+	re := regexp.MustCompile(`^((http|https):\/\/|)(www\.|)(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z\d\-\_]+)([?&].+|)$`)
 	if !re.MatchString(song) {
 		return "", nil, errors.New("invalid url")
 	}
 	if strings.Contains(song, "v=") {
 		song = strings.Split(song, "v=")[1]
+		song = strings.Split(song, "&")[0]
 	} else if strings.Contains(song, "youtu.be") {
 		v := strings.Split(song, "/")
 		song = v[len(v)-1]
+		song = strings.Split(song, "?")[0]
 	}
 
 	mr, e := m.GetExMusic("yt", song)

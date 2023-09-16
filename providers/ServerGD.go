@@ -385,7 +385,7 @@ func (s *ServerGD) GetLogs(xtype int, page int) ([]*gdps_db.Action, int, error) 
 
 func (s *ServerGD) SearchSongs(query string, page int, mode string) ([]*gdps_db.Song, int, error) {
 	a := gdps_db.Song{}
-	mus := services.InitMusic(s.p.redis)
+	mus := services.InitMusic(s.p.redis, s.Srv.SrvID+"_search")
 
 	qdb, err := s.p.mdb.OpenMutated("gdps", s.Srv.SrvID)
 	defer s.p.mdb.DisposeMutated("gdps", s.Srv.SrvID)
@@ -442,9 +442,9 @@ func (s *ServerGD) getSongCount(gdb *gorm.DB) int {
 	return int(cnt)
 }
 
-func (s *ServerGD) AddSong(xtype string, url string) (*gdps_db.Song, error) {
+func (s *ServerGD) AddSong(xtype string, url string, meta string) (*gdps_db.Song, error) {
 	a := gdps_db.Song{}
-	mus := services.InitMusic(s.p.redis)
+	mus := services.InitMusic(s.p.redis, s.Srv.SrvID+"-"+meta)
 
 	qdb, err := s.p.mdb.OpenMutated("gdps", s.Srv.SrvID)
 	defer s.p.mdb.DisposeMutated("gdps", s.Srv.SrvID)

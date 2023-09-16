@@ -123,7 +123,7 @@ func MaintainTasksDaily() {
 	}
 
 	//Clear music
-	mus := services.InitMusic(conn.ServerGDProvider.ExposeRedis())
+	mus := services.InitMusic(conn.ServerGDProvider.ExposeRedis(), "admin")
 	mcnt := mus.CleanEmptyNewgrounds()
 	utils.SendMessageDiscord(fmt.Sprintf("Cleaned %d invalid NG songs. \n### Maintenance Complete", mcnt))
 }

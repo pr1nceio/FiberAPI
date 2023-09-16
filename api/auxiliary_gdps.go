@@ -27,7 +27,11 @@ func (api *API) AuxiliaryGDPSLogin(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("No server found"))
 	}
 	acc := srv.NewGDPSUser()
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	res := acc.LogIn(data.Uname, data.Password, getIP(c), 0, false)
 	if res > 0 {
 		srv.LoadCoreConfig()
@@ -61,7 +65,11 @@ func (api *API) AuxiliaryGDPSForgotPassword(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("No server found"))
 	}
 	acc := srv.NewGDPSUser()
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	if !acc.GetUserByEmail(data.Email) {
 		return c.JSON(structs.NewAPIError("No user found", "nouser"))
 	}
@@ -75,7 +83,11 @@ func (api *API) AuxiliaryGDPSForgotPassword(c *fiber.Ctx) error {
 func (api *API) AuxiliaryGDPSAuth(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	if acc == nil {
 		return c.JSON(structs.NewAPIError(err.Error()))
 	}
@@ -100,7 +112,11 @@ func (api *API) AuxiliaryGDPSChangeCreds(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
 	acc, err := api.gdpsUserAuth(c, srv)
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	if err != nil {
 		return c.JSON(structs.NewAPIError(err.Error()))
 	}
@@ -122,7 +138,11 @@ func (api *API) AuxiliaryGDPSChangeCreds(c *fiber.Ctx) error {
 func (api *API) AuxiliaryGDPSAddMusic(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	if err != nil {
 		return c.JSON(structs.NewAPIError(err.Error()))
 	}
@@ -131,7 +151,7 @@ func (api *API) AuxiliaryGDPSAddMusic(c *fiber.Ctx) error {
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
-	music, err := srv.AddSong(data.Type, data.Url)
+	music, err := srv.AddSong(data.Type, data.Url, strconv.Itoa(acc.Data().UID)+"_"+acc.Data().Uname)
 	if utils.Should(err) != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
@@ -153,7 +173,11 @@ func (api *API) AuxiliaryGDPSAddMusic(c *fiber.Ctx) error {
 func (api *API) AuxiliaryGDPSGetMusic(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	if err != nil {
 		return c.JSON(structs.NewAPIError(err.Error()))
 	}
@@ -177,7 +201,11 @@ func (api *API) AuxiliaryGDPSChangePassword(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc := &providers.ServerGDUser{}
 	acc, err := api.gdpsUserAuth(c, srv)
-	defer acc.Dispose()
+	defer func() {
+		if acc != nil {
+			acc.Dispose()
+		}
+	}()
 	if err != nil {
 		return c.JSON(structs.NewAPIError(err.Error()))
 	}

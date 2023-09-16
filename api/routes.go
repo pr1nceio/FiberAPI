@@ -3,11 +3,15 @@ package api
 import (
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
+	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
+	"log"
+	"runtime/debug"
 	"strings"
 )
 
@@ -29,8 +33,15 @@ func StartServer(api API) error {
 	})
 
 	app.Use(logger.New())
-	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{AllowCredentials: true}))
+	app.Use(recover.New(recover.Config{
+		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
+			go sentry.CaptureException(e.(error))
+			log.Println(string(debug.Stack()))
+			utils.SendMessageDiscord("Got panic at FiberAPI, check logs\n<@886130124225937409>")
+		},
+		EnableStackTrace: true,
+	}))
 	app.Get("/antiswagger/*", swagger.HandlerDefault) //Swag
 
 	app.All("/", shield)
@@ -47,6 +58,7 @@ func StartServer(api API) error {
 	app.Get("/user", api.UserSSO)                  //sso, top_server
 	app.Patch("/user", api.UserUpdate)             //change name, password, totp
 	app.Post("/user/avatar", api.UserAvatarUpdate) //avatar
+	app.Get("/user/joinguild", api.UserJoinGuild)  //avatar
 
 	app.Get("/payments", api.PaymentsGet)     // get payments
 	app.Post("/payments", api.PaymentsCreate) //create payment

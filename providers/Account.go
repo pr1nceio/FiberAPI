@@ -527,4 +527,23 @@ func (a *Account) AuthDiscord(code, session string) error {
 	}
 }
 
+func (a *Account) DiscordJoinGuild() error {
+	if len(a.user.DiscordToken) == 0 {
+		return errors.New("No acc")
+	}
+	tokens := strings.Split(a.user.DiscordToken, ";")
+	ds := services.NewDiscordService(fiberapi.DISCORD_CONFIG)
+	t, err := ds.RefreshToken(tokens[1])
+	if err != nil {
+		return err
+	}
+	err = ds.JoinGuild(t.Token, a.user.DiscordID)
+	if err != nil {
+		return err
+	}
+	return a.p.db.Model(&a.user).Updates(db.User{
+		DiscordToken: t.Token + ";" + t.RefreshToken,
+	}).Error
+}
+
 //endregion

@@ -161,3 +161,15 @@ func (api *API) UserAvatarUpdate(c *fiber.Ctx) error {
 		ProfilePic:      fmt.Sprintf("https://%s/profile_pics/%s", fiberapi.S3_CONFIG["cdn"], acc.Data().ProfilePic),
 	})
 }
+
+func (api *API) UserJoinGuild(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	err := acc.DiscordJoinGuild()
+	if err != nil {
+		return c.JSON(structs.NewAPIError("Couldn't autoinvite"))
+	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}

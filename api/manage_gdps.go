@@ -10,6 +10,7 @@ import (
 	"golang.org/x/exp/slices"
 	"io"
 	"net/http"
+	"runtime/debug"
 )
 
 // ManageGDPSDelete deletes gdps
@@ -24,6 +25,11 @@ import (
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid} [delete]
 func (api *API) ManageGDPSDelete(c *fiber.Ctx) error {
+	defer func() {
+		if c := recover(); c != nil {
+			debug.PrintStack()
+		}
+	}()
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
 	if !api.performAuth(c, acc) {
@@ -222,7 +228,7 @@ func (api *API) ManageGDPSAddMusic(c *fiber.Ctx) error {
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
-	music, err := srv.AddSong(data.Type, data.Url)
+	music, err := srv.AddSong(data.Type, data.Url, "owner")
 	if utils.Should(err) != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}

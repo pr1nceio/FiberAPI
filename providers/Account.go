@@ -443,6 +443,9 @@ func (a *Account) Login(uname string, password string, ip string) error {
 	if !a.user.IsActivated {
 		return errors.New("Account is not activated |act")
 	}
+	if len(password) < 6 {
+		return errors.New("Invalid password |nopwd")
+	}
 
 	pass := a.calcPassHash(uname, password)
 	if a.user.PassHash != pass {

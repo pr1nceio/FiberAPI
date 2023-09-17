@@ -12,7 +12,7 @@ var ProductGDTariffs = map[string]structs.GDTariff{
 		Comments:     -1,
 		Posts:        -1,
 		CustomMusic:  false,
-		Music:        structs.GDTariffMusic{},
+		Music:        structs.GDTariffMusic{Files: true},
 		GDLab:        structs.GDTariffBuildlab{},
 		ACL:          false,
 		Shops:        false,
@@ -37,7 +37,7 @@ var ProductGDTariffs = map[string]structs.GDTariff{
 			YouTube: true,
 			Deezer:  false,
 			VK:      false,
-			Files:   false,
+			Files:   true,
 		},
 		GDLab: structs.GDTariffBuildlab{
 			Enabled:  true,

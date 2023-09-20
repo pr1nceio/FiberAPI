@@ -83,8 +83,8 @@ func (b *BuildService) InstallServer(srvId string, maxUsers int, maxLevels int, 
 	}
 	b.redis.Set(context.Background(), srvId, jsonC, 0)
 
-	itx, err := b.mdb.Raw().BeginTx(context.Background(), nil)
-	GDPSDB_SQL, err := b.assets.ReadFile("assets/gdps_database.sql")
+	itx, _ := b.mdb.Raw().BeginTx(context.Background(), nil)
+	GDPSDB_SQL, _ := b.assets.ReadFile("assets/gdps_database.sql")
 	mangle := strings.ReplaceAll(string(GDPSDB_SQL), "CREATE TABLE ", "CREATE TABLE gdps_"+srvId+".")
 	itx.Exec(mangle)
 
@@ -115,17 +115,14 @@ func (b *BuildService) DeleteServer(srvId, srvName string, alterBucket bool) err
 	err := S3.DeleteFolderAsList("gdps_savedata/" + srvId)
 	if err != nil {
 		log.Println(err)
-		err = nil
 	}
 	err = S3.DeleteFolderAsList("savedata_old/" + srvId)
 	if err != nil {
 		log.Println(err)
-		err = nil
 	}
 	err = S3.DeleteFile("server_icons/gd_" + srvId + ".png")
 	if err != nil {
 		log.Println(err)
-		err = nil
 	}
 
 	log.Println("Deleting " + srvId)
@@ -148,7 +145,6 @@ func (b *BuildService) DeleteServer(srvId, srvName string, alterBucket bool) err
 				err = InstallersS3.DeleteFile(v)
 				if err != nil {
 					log.Println(err)
-					err = nil
 				}
 			}
 		}
@@ -156,7 +152,7 @@ func (b *BuildService) DeleteServer(srvId, srvName string, alterBucket bool) err
 
 	// Delete from FS DB
 	err = b.db.WhereBinary(db.ServerGd{SrvID: srvId}).Delete(db.ServerGd{}).Error
-	err = b.db.Where(db.Queue{Type: "gd"}).WhereBinary(db.Queue{SrvID: srvId}).Delete(db.Queue{}).Error
+	_ = b.db.Where(db.Queue{Type: "gd"}).WhereBinary(db.Queue{SrvID: srvId}).Delete(db.Queue{}).Error
 
 	// Delete Queue
 	return err
@@ -251,8 +247,8 @@ func (b *BuildService) PushBuildQueue(srvId string, srvName string, icon string,
 		TexturePack: tPack,
 		AlterBucket: alterBucket,
 	}
-	data, err := json.Marshal(conf)
-	err = b.db.Model(db.Queue{}).Create(&db.Queue{Type: "gd", SrvID: srvId, Data: string(data)}).Error
+	data, _ := json.Marshal(conf)
+	err := b.db.Model(db.Queue{}).Create(&db.Queue{Type: "gd", SrvID: srvId, Data: string(data)}).Error
 	return utils.Should(err)
 }
 

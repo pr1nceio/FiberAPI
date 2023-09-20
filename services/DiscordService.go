@@ -121,7 +121,7 @@ func (d *DiscordService) JoinGuild(token, uid string) error {
 	}
 	err = json.Unmarshal(body, &data)
 	log.Println(string(body))
-	return nil
+	return err
 }
 
 type DiscordAuthResponse struct {

@@ -122,7 +122,7 @@ func (u *ServerGDUser) UserForgotPasswordSendEmail(srvid string) error {
 		return err
 	}
 
-	msg, err := u.p.assets.ReadFile("assets/GDPSForgotPassword.html")
+	msg, _ := u.p.assets.ReadFile("assets/GDPSForgotPassword.html")
 	msgStr := string(msg)
 	msgStr = strings.ReplaceAll(msgStr, "{uname}", u.acc.Uname)
 	token := fmt.Sprintf("%d:%s", u.acc.UID, u.acc.Passhash)

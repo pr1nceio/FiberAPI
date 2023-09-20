@@ -261,6 +261,9 @@ func (a *Account) DecodeEmailToken(token string) int {
 		return 0
 	}
 	decoded, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return 0
+	}
 	uid, err := strconv.Atoi(utils.DoXOR(string(decoded), a.p.keys["key_void"]))
 	if err != nil {
 		return 0
@@ -286,9 +289,9 @@ func (a *Account) SendEmailVerification(lang string) error {
 		return err
 	}
 
-	msg, err := a.p.assets.ReadFile("assets/EmailConfirm_en.html")
+	msg, _ := a.p.assets.ReadFile("assets/EmailConfirm_en.html")
 	if lang == "ru" {
-		msg, err = a.p.assets.ReadFile("assets/EmailConfirm_ru.html")
+		msg, _ = a.p.assets.ReadFile("assets/EmailConfirm_ru.html")
 	}
 	token := a.EncodeEmailToken()
 	msgStr := string(msg)
@@ -315,9 +318,9 @@ func (a *Account) SendEmailRecovery(password string, lang string) error {
 		return err
 	}
 
-	msg, err := a.p.assets.ReadFile("assets/ForgotPassword_en.html")
+	msg, _ := a.p.assets.ReadFile("assets/ForgotPassword_en.html")
 	if lang == "ru" {
-		msg, err = a.p.assets.ReadFile("assets/ForgotPassword_ru.html")
+		msg, _ = a.p.assets.ReadFile("assets/ForgotPassword_ru.html")
 	}
 	msgStr := string(msg)
 	msgStr = strings.ReplaceAll(msgStr, "{uname}", a.user.Name+" "+a.user.Surname)

@@ -235,23 +235,29 @@ func (s *ServerGD) ResetDBPassword() error {
 
 	rawdb := s.p.mdb.Raw()
 	_, err := rawdb.Exec(fmt.Sprintf("ALTER USER halgd_%s@localhost IDENTIFIED BY '%s'", s.Srv.SrvID, pwd))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	_, err = rawdb.Exec(fmt.Sprintf("ALTER USER halgd_%s@'%%' IDENTIFIED BY '%s'", s.Srv.SrvID, pwd))
 	if utils.Should(err) != nil {
 		log.Println(err)
-	} else {
-		updated, err := json.Marshal(s.CoreConfig)
-		err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
-		if utils.Should(err) != nil {
-			log.Println(err)
-		} else {
-			err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{DbPassword: pwd}).Error
-		}
+		return err
 	}
+	updated, _ := json.Marshal(s.CoreConfig)
+	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
+	if utils.Should(err) != nil {
+		log.Println(err)
+		return err
+	}
+	err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{DbPassword: pwd}).Error
 	return err
 }
 
 func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
-	s.LoadCoreConfig()
+	if err := s.LoadCoreConfig(); err != nil {
+		return err
+	}
 	s.Srv.Description = settings.Description.Text
 	s.Srv.TextAlign = settings.Description.Align
 	ds := strings.Split(settings.Description.Discord, "/")
@@ -275,8 +281,8 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 		}
 	}
 
-	updated, err := json.Marshal(s.CoreConfig)
-	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
+	updated, _ := json.Marshal(s.CoreConfig)
+	err := s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 	if utils.Should(err) != nil {
 		log.Println(err)
 		return err
@@ -294,9 +300,9 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 func (s *ServerGD) UpdateChests(chests structs.ChestConfig) error {
 	s.LoadCoreConfig()
 	s.CoreConfig.ChestConfig = chests
-	updated, err := json.Marshal(s.CoreConfig)
+	updated, _ := json.Marshal(s.CoreConfig)
 
-	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
+	err := s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 	if utils.Should(err) != nil {
 		log.Println(err)
 	}
@@ -348,7 +354,7 @@ func (s *ServerGD) GetLogs(xtype int, page int) ([]*gdps_db.Action, int, error) 
 	}
 
 	var cnt int64
-	err = rqdb.Count(&cnt).Error
+	rqdb.Count(&cnt)
 	if cnt%50 == 0 {
 		cnt = cnt / 50
 	} else {
@@ -682,6 +688,9 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 	cs.SrvKey = SrvKey
 
 	err = s.p.db.Model(db.ServerGd{}).Create(&cs).Error
+	if err != nil {
+		return "", err
+	}
 	err = cbs.PushBuildQueue(cs.SrvID, cs.SrvName, "gd_default.png", "2.1", 1, true, false, false,
 		"default", "ru", cs.Plan < 2)
 
@@ -861,7 +870,7 @@ func (s *ServerGD) ModuleDiscord(enable bool, data map[string]interface{}) error
 		s.CoreConfig.ServerConfig.EnableModules = make(map[string]bool)
 	}
 	s.CoreConfig.ServerConfig.EnableModules["discord"] = enable
-	updated, err := json.Marshal(s.CoreConfig)
+	updated, _ := json.Marshal(s.CoreConfig)
 	err = s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(updated), 0).Err()
 	if utils.Should(err) != nil {
 		log.Println(err)

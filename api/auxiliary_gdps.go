@@ -199,7 +199,6 @@ func (api *API) AuxiliaryGDPSGetMusic(c *fiber.Ctx) error {
 
 func (api *API) AuxiliaryGDPSChangePassword(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
-	acc := &providers.ServerGDUser{}
 	acc, err := api.gdpsUserAuth(c, srv)
 	defer func() {
 		if acc != nil {

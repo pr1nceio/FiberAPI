@@ -353,6 +353,18 @@ func (api *API) ManageGDPSBuildLabPush(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
+func (api *API) ManageGDPSGetBuildStatus(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	return c.JSON(structs.NewAPIBasicResponse(srv.FetchBuildStatus()))
+}
+
 func (api *API) ManageGDPSDiscordModule(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()

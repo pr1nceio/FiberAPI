@@ -50,6 +50,9 @@ func (api *API) ServersCreateGD(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
 
+	api.SuperLock.Lock("gdps_create")
+	defer api.SuperLock.Unlock("gdps_create")
+
 	var err error
 	var srvid string
 	srv := api.ServerGDProvider.New()

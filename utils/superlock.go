@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"fmt"
 	consul "github.com/hashicorp/consul/api"
+	"log"
 	"sync"
 	"time"
 )
@@ -10,6 +12,7 @@ type SuperLock struct {
 	localLock map[string]*sync.Mutex
 	csul      *consul.KV
 	sessionID string
+	allocID   string
 }
 
 func NewSuperLock(consul *consul.KV, consulSession string) *SuperLock {
@@ -17,10 +20,12 @@ func NewSuperLock(consul *consul.KV, consulSession string) *SuperLock {
 		localLock: make(map[string]*sync.Mutex),
 		csul:      consul,
 		sessionID: consulSession,
+		allocID:   GetEnv("NOMAD_SHORT_ALLOC_ID", "default"),
 	}
 }
 
 func (s *SuperLock) Lock(lockName string) {
+	SendMessageDiscord(fmt.Sprintf("Acquiring lock '%s' for %s", lockName, s.allocID))
 	lock, ok := s.localLock[lockName]
 	if !ok {
 		lock = &sync.Mutex{}
@@ -33,30 +38,33 @@ func (s *SuperLock) Lock(lockName string) {
 	for {
 		isAcq, _, err := s.csul.Acquire(&consul.KVPair{
 			Key:     "sessions/fiberapi_lock/" + lockName,
-			Value:   []byte(GetEnv("NOMAD_SHORT_ALLOC_ID", "default")),
+			Value:   []byte(s.allocID),
 			Session: s.sessionID,
 		}, nil)
 		if err == nil && isAcq {
 			break
 		}
+		log.Println(err)
 		time.Sleep(500 * time.Millisecond)
 	}
+	SendMessageDiscord(fmt.Sprintf("LOCK ACQUIRED '%s' for %s", lockName, s.allocID))
 }
 
 func (s *SuperLock) Unlock(lockName string) {
-
+	SendMessageDiscord(fmt.Sprintf("Releasing lock '%s' for %s", lockName, s.allocID))
 	for {
 		if s.csul == nil {
 			break
 		}
 		isRel, _, err := s.csul.Release(&consul.KVPair{
 			Key:     "sessions/fiberapi_lock/" + lockName,
-			Value:   []byte(GetEnv("NOMAD_SHORT_ALLOC_ID", "default")),
+			Value:   []byte(s.allocID),
 			Session: s.sessionID,
 		}, nil)
 		if err == nil && isRel {
 			break
 		}
+		log.Println(err)
 		time.Sleep(500 * time.Millisecond)
 	}
 	lock, ok := s.localLock[lockName]
@@ -65,9 +73,11 @@ func (s *SuperLock) Unlock(lockName string) {
 		s.localLock[lockName] = lock
 	}
 	lock.Unlock()
+	SendMessageDiscord(fmt.Sprintf("LOCK RELEASED '%s' for %s", lockName, s.allocID))
 }
 
 func (s *SuperLock) ReleaseAll() {
+	SendMessageDiscord(fmt.Sprintf("Releasing all locks for %s", s.allocID))
 	for k := range s.localLock {
 		s.Unlock(k)
 		for {
@@ -76,12 +86,13 @@ func (s *SuperLock) ReleaseAll() {
 			}
 			isRel, _, err := s.csul.Release(&consul.KVPair{
 				Key:     "sessions/fiberapi_lock/" + k,
-				Value:   []byte(GetEnv("NOMAD_SHORT_ALLOC_ID", "default")),
+				Value:   []byte(s.allocID),
 				Session: s.sessionID,
 			}, nil)
 			if err == nil && isRel {
 				break
 			}
+			log.Println(err)
 			time.Sleep(500 * time.Millisecond)
 		}
 	}

@@ -132,7 +132,7 @@ func GetConsulKV() (consulKV *consul.KV, err error) {
 	consulConf := consul.DefaultConfig()
 	consulConf.Address = utils.GetEnv("CONSUL_ADDR", "127.0.0.1")
 	consulConf.Token = utils.GetEnv("CONSUL_TOKEN", "")
-	consulConf.Datacenter = utils.GetEnv("CONSUL_DC", "dc1")
+	consulConf.Datacenter = utils.GetEnv("CONSUL_DC", "m41")
 	consulCli, err := consul.NewClient(consulConf)
 	if err != nil {
 		log.Println("Unable to connect to Consul cluster. Assuming self-leadership: " + err.Error())
@@ -140,6 +140,7 @@ func GetConsulKV() (consulKV *consul.KV, err error) {
 	}
 	KvEngine = consulCli.KV()
 	SessID, _, err := consulCli.Session().Create(&consul.SessionEntry{Name: "FiberAPI", TTL: "5m"}, nil)
+	SessionID = SessID
 	if err != nil {
 		log.Println("Unable to connect to create Consul Session. Assuming self-leadership: " + err.Error())
 		return nil, err
@@ -188,6 +189,7 @@ func AquireLeadership() {
 			LEADER = true
 		}
 	} else {
+		log.Println(err)
 		if LEADER {
 			log.Println("Couldn't acquire leadership. Stepped down by force.")
 			LEADER = false

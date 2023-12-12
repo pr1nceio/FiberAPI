@@ -658,7 +658,9 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 
 	if tariffid == 1 {
 		//Temporary
-		return "", errors.New("Free server creation is disabled for now |Free server creation is disabled for now")
+		//if uid > 1 {
+		//	return "", errors.New("Free server creation is disabled for now |Free server creation is disabled for now")
+		//}
 		var cnt int64
 		s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid, Plan: 1}).Count(&cnt)
 		if cnt != 0 {

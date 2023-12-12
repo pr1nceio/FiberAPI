@@ -128,37 +128,44 @@ func MaintainTasksDaily() {
 	utils.SendMessageDiscord(fmt.Sprintf("Cleaned %d invalid NG songs. \n### Maintenance Complete", mcnt))
 }
 
-func PrepareElection(iconn *api.API) {
-	conn = iconn
+func GetConsulKV() (consulKV *consul.KV, err error) {
 	consulConf := consul.DefaultConfig()
 	consulConf.Address = utils.GetEnv("CONSUL_ADDR", "127.0.0.1")
 	consulConf.Token = utils.GetEnv("CONSUL_TOKEN", "")
-	consulConf.Datacenter = "hal"
+	consulConf.Datacenter = utils.GetEnv("CONSUL_DC", "dc1")
 	consulCli, err := consul.NewClient(consulConf)
 	if err != nil {
 		log.Println("Unable to connect to Consul cluster. Assuming self-leadership: " + err.Error())
+		return nil, err
+	}
+	KvEngine = consulCli.KV()
+	SessID, _, err := consulCli.Session().Create(&consul.SessionEntry{Name: "FiberAPI", TTL: "5m"}, nil)
+	if err != nil {
+		log.Println("Unable to connect to create Consul Session. Assuming self-leadership: " + err.Error())
+		return nil, err
+	}
+	ucron.Every(30).Seconds().Do(func() {
+		consulCli.Session().Renew(SessID, nil)
+	})
+	return KvEngine, nil
+}
+
+func PrepareElection(iconn *api.API) {
+	KvEngine = iconn.SuperLock.ExposeConsul()
+	conn = iconn
+	if KvEngine == nil {
+		log.Println("Unable to connect to create Session. Assuming self-leadership")
 		LEADER = true
 	} else {
-		KvEngine = consulCli.KV()
-		SessID, _, err := consulCli.Session().Create(&consul.SessionEntry{Name: "FiberAPI", TTL: "5m"}, nil)
-		ucron.Every(30).Seconds().Do(func() {
-			consulCli.Session().Renew(SessID, nil)
-		})
-		if err != nil {
-			log.Println("Unable to connect to create Session. Assuming self-leadership: " + err.Error())
-			LEADER = true
-		} else {
-			SessionID = SessID
-			AquireLeadership()
-			if !LEADER {
-				log.Println("Couldn't acquire leadership. Dispatching 10sec watchdog")
-				if _, err = ucron.Every(10).Seconds().Do(AquireLeadership); err != nil {
-					log.Println(err)
-				}
+		AquireLeadership()
+		if !LEADER {
+			log.Println("Couldn't acquire leadership. Dispatching 10sec watchdog")
+			if _, err := ucron.Every(10).Seconds().Do(AquireLeadership); err != nil {
+				log.Println(err)
 			}
 		}
 	}
-	_, err = ucron.Every(1).Day().At("00:00").Do(MaintainTasksDaily)
+	_, err := ucron.Every(1).Day().At("00:00").Do(MaintainTasksDaily)
 	if err != nil {
 		log.Println("CANNOT LAUNCH TASKS")
 	}

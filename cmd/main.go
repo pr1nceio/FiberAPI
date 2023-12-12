@@ -79,6 +79,13 @@ func main() {
 		WithAssets(&fiberapi.AssetsDir).
 		WithPaymentsProvider(payProvider)
 
+	// Consul
+	consulKV, err := GetConsulKV()
+	if err != nil {
+		log.Println("[main] Maintenance and Lock functionality will be degraded. Error: " + err.Error())
+		utils.SendMessageDiscord("Maintenance and Lock functionality will be degraded. Error: " + err.Error())
+	}
+
 	API := api.API{
 		AccountProvider:      accProvider,
 		NotificationProvider: notifProvider,
@@ -87,6 +94,8 @@ func main() {
 		ShopProvider:         shopProvider,
 		ServerGDProvider:     srvGDProvider,
 		Host:                 fiberapi.ADDR,
+
+		SuperLock: utils.NewSuperLock(consulKV, SessionID),
 	}
 
 	//Consul leadership stuff

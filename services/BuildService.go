@@ -210,6 +210,21 @@ func (b *BuildService) GetBuildQueue(Worker string) BuilderConfig {
 	return data
 }
 
+func (b *BuildService) CheckBuildStatusFor(xtype string, srvid string) string {
+	var job db.Queue
+	if b.db.Model(db.Queue{}).Where(db.Queue{Type: xtype, SrvID: srvid}).First(&job).Error != nil {
+		return ""
+	}
+	if job.Worker == "" {
+		return "waiting"
+	}
+	return "building"
+}
+
+func (b *BuildService) CheckBuildStatusForGD(srvid string) string {
+	return b.CheckBuildStatusFor("gd", srvid)
+}
+
 func (b *BuildService) PushBuildQueue(srvId string, srvName string, icon string, version string,
 	bAndroid int, bWindows bool, bIOS bool, bMacOS bool, textures string, region string, alterBucket bool) error {
 	srvId = srvId[:4]
@@ -256,7 +271,7 @@ func (b *BuildService) PushClient(srvid string, iType string, file string, alter
 	if alterBucket {
 		file = "https://cdn2.fruitspace.one/gdps_installers/" + file
 	} else {
-		file = "https://cdn.fruitspace.one/gdps_installers/" + file
+		file = "https://cdn3.fruitspace.one/gdps_installers/" + file
 	}
 	cdata := db.ServerGd{}
 	switch iType {

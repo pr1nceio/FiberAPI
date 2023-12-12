@@ -22,12 +22,14 @@ type API struct {
 	PromocodeProvider    *providers.PromocodeProvider
 	ShopProvider         *providers.ShopProvider
 	ServerGDProvider     *providers.ServerGDProvider
-	Host                 string
+
+	SuperLock *utils.SuperLock
+	Host      string
 }
 
 func StartServer(api API) error {
 	app := fiber.New(fiber.Config{
-		BodyLimit:     5 * 1024 * 1024,
+		BodyLimit:     5 * 1024 * 1024, // 5MB Body Limit?
 		CaseSensitive: true,
 		ServerHeader:  "Fiber",
 	})
@@ -104,6 +106,7 @@ func StartServer(api API) error {
 
 	//gdps.Get("/buildlab")
 	gdps.Post("/buildlab", api.ManageGDPSBuildLabPush)
+	gdps.Get("/buildlab/status", api.ManageGDPSGetBuildStatus)
 
 	gdps_user := gdps.Group("/u")
 	gdps_user.Post("/login", api.AuxiliaryGDPSLogin)
@@ -116,6 +119,12 @@ func StartServer(api API) error {
 
 	internal := app.Group("/internal")
 	internal.Post("/gd/:srvid/webhook", api.APIGDPSSendWebhook)
+
+	//region Legacy
+	app.Get("/v1/repatch/getserverinfo", api.LegacyRepatchGetServerInfo)
+	app.Post("/v1/repatch/report", api.LegacyRepatchUploadTelemetry)
+	app.Get("/v1/auth/confirm_email", api.AuthConfirmEmail)
+	//endregion
 
 	return app.Listen(api.Host)
 }

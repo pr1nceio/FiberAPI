@@ -155,7 +155,7 @@ func (m *MusicService) GetNG(song string) (string, *structs.MusicResponse, error
 }
 
 func (m *MusicService) GetYT(song string) (string, *structs.MusicResponse, error) {
-	re := regexp.MustCompile(`^((http|https):\/\/|)(www\.|)(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z\d\-\_]+)([?&].+|)$`)
+	re := regexp.MustCompile(`^((http|https):\/\/|)(www\.|m\.|)(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z\d\-\_]+)([?&].+|)$`)
 	if !re.MatchString(song) {
 		return "", nil, errors.New("invalid url")
 	}

@@ -19,7 +19,14 @@ func (api *API) AuxiliaryGDPSLogin(c *fiber.Ctx) error {
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
-	if !utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"]) {
+	val := false
+	if len(data.FCaptchaToken) > 0 {
+		val = utils.VerifyFCaptcha(data.FCaptchaToken, fiberapi.CONFIG["fCaptchaToken"])
+	}
+	//else if len(data.HCaptchaToken) > 0 {
+	//	val = utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"])
+	//}
+	if !val {
 		return c.Status(500).JSON(structs.NewAPIError("Captcha failed", "captcha"))
 	}
 	srv := api.ServerGDProvider.New()
@@ -53,11 +60,19 @@ func (api *API) AuxiliaryGDPSForgotPassword(c *fiber.Ctx) error {
 	var data struct {
 		Email         string `json:"email"`
 		HCaptchaToken string `json:"hCaptchaToken"`
+		FCaptchaToken string `json:"fCaptchaToken"`
 	}
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
 	}
-	if !utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"]) {
+	val := false
+	if len(data.FCaptchaToken) > 0 {
+		val = utils.VerifyFCaptcha(data.FCaptchaToken, fiberapi.CONFIG["fCaptchaToken"])
+	}
+	//else if len(data.HCaptchaToken) > 0 {
+	//	val = utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"])
+	//}
+	if !val {
 		return c.Status(500).JSON(structs.NewAPIError("Captcha failed", "captcha"))
 	}
 	srv := api.ServerGDProvider.New()

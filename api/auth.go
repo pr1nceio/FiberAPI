@@ -77,8 +77,8 @@ func (api *API) AuthConfirmEmail(c *fiber.Ctx) error {
 	if !acc.GetUserByUID(uid) {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid token supplied"))
 	}
-	if acc.VerifyEmail() != nil {
-		return c.Status(500).JSON(structs.NewAPIError("Unable to activate account"))
+	if err := acc.VerifyEmail(); err != nil {
+		return c.Status(500).JSON(structs.NewAPIError("Unable to activate account", err.Error()))
 	}
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", acc.NewSession(acc.Data().UID)))
@@ -114,12 +114,7 @@ func (api *API) AuthDiscord(c *fiber.Ctx) error {
 	if utils.Should(err) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Unauthorized"))
 	}
-	var token string
-	if len(c.Query("state")) == 0 {
-		token = acc.NewSession(acc.Data().UID)
-	} else {
-		token = c.Query("state")
-	}
+	token := acc.NewSession(acc.Data().UID)
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/DiscordConfirmationIndex.html")
 	c.Set("Content-Type", "text/html")
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token))

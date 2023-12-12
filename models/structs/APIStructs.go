@@ -36,6 +36,7 @@ type AuthLoginRequest struct {
 	Password      string `json:"password"`
 	TOTP          string `json:"totp"`
 	HCaptchaToken string `json:"hCaptchaToken"`
+	FCaptchaToken string `json:"fCaptchaToken"`
 }
 
 type AuthRecoverRequest struct {

@@ -529,6 +529,10 @@ func (a *Account) AuthDiscord(code, session string) error {
 				DiscordToken: data.Token + ";" + data.RefreshToken,
 			}).Error
 		}
+		// Fall back to new session
+		if a.GetUserByDiscord(data.ClientID) {
+			return nil
+		}
 		return errors.New("Unauthorized")
 	}
 }

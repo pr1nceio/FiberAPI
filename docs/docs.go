@@ -1677,6 +1677,9 @@ const docTemplate = `{
         "structs.AuthLoginRequest": {
             "type": "object",
             "properties": {
+                "fCaptchaToken": {
+                    "type": "string"
+                },
                 "hCaptchaToken": {
                     "type": "string"
                 },

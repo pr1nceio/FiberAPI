@@ -133,9 +133,6 @@ func DoXOR(text string, key string) (output string) {
 }
 
 func VerifyCaptcha(captcha string, secret string) bool {
-	if captcha == "AEUGH" {
-		return true
-	}
 	r, err := http.Post("https://hcaptcha.com/siteverify", "application/x-www-form-urlencoded",
 		strings.NewReader(fmt.Sprintf("secret=%s&response=%s", secret, captcha)))
 	if err != nil {
@@ -143,6 +140,37 @@ func VerifyCaptcha(captcha string, secret string) bool {
 	}
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return false
+	}
+	res := struct {
+		Success bool `json:"success"`
+	}{}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return false
+	}
+	return res.Success
+}
+
+func VerifyFCaptcha(captcha string, secret string) bool {
+	//URLENCODE
+	data := struct {
+		Secret   string `json:"secret"`
+		Solution string `json:"solution"`
+	}{
+		Secret:   secret,
+		Solution: captcha,
+	}
+	d, _ := json.Marshal(data)
+	r, err := http.Post("https://api.friendlycaptcha.com/api/v1/siteverify", "application/json", bytes.NewBuffer(d))
+	log.Println(string(d), err)
+	if err != nil {
+		return false
+	}
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	log.Println(string(body))
 	if err != nil {
 		return false
 	}

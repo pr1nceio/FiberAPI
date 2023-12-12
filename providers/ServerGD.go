@@ -79,6 +79,10 @@ func (sgp *ServerGDProvider) ExposeRedis() *utils.MultiRedis {
 	return sgp.redis
 }
 
+func (sgp *ServerGDProvider) ExposeGorm() *gorm.DB {
+	return sgp.db
+}
+
 func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 	var srvs []*db.ServerGdSmall
 	sgp.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Find(&srvs)
@@ -146,7 +150,7 @@ func (sgp *ServerGDProvider) GetMissingInstallersServers() []string {
 	var srvs []*db.ServerGdSmall
 	var srvids []string
 	tx := sgp.db.Model(db.ServerGd{}).
-		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 1 DAY)", gorm.Column(db.ServerGd{}, "CreatedAt"))).
+		//Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 1 DAY)", gorm.Column(db.ServerGd{}, "CreatedAt"))).
 		Where(fmt.Sprintf("%s=''", gorm.Column(db.ServerGd{}, "ClientWindowsURL")))
 	tx.Find(&srvs)
 	for _, srv := range srvs {
@@ -203,7 +207,8 @@ func (s *ServerGD) GetServerBySrvID(srvid string) bool {
 }
 
 func (s *ServerGD) LoadCoreConfig() (err error) {
-	if v, err := s.p.redis.Get("gdps").Get(context.Background(), s.Srv.SrvID).Result(); err == nil {
+	var v string
+	if v, err = s.p.redis.Get("gdps").Get(context.Background(), s.Srv.SrvID).Result(); err == nil {
 		return json.Unmarshal([]byte(v), &s.CoreConfig)
 	}
 	return err
@@ -255,6 +260,15 @@ func (s *ServerGD) ResetDBPassword() error {
 }
 
 func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
+	defer func() {
+		if l := recover(); l != nil {
+			log.Println(l)
+			m := fmt.Sprintf("%+v\n%+v", settings, s.CoreConfig)
+			utils.SendMessageDiscord(m)
+			log.Println(m)
+		}
+	}()
+
 	if err := s.LoadCoreConfig(); err != nil {
 		return err
 	}
@@ -298,7 +312,9 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 }
 
 func (s *ServerGD) UpdateChests(chests structs.ChestConfig) error {
-	s.LoadCoreConfig()
+	if errm := s.LoadCoreConfig(); errm != nil {
+		return utils.Should(errm)
+	}
 	s.CoreConfig.ChestConfig = chests
 	updated, _ := json.Marshal(s.CoreConfig)
 
@@ -508,11 +524,15 @@ func (s *ServerGD) pushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype
 	}
 
 	sz, _ := response.Size.Float64()
+	url := response.Url
+	if rid != "" {
+		url = fmt.Sprintf("hal:%s:%s", xtype, rid)
+	}
 	song := gdps_db.Song{
 		Name:   response.Name,
 		Artist: response.Artist,
 		Size:   sz,
-		URL:    fmt.Sprintf("hal:%s:%s", xtype, rid),
+		URL:    url,
 	}
 	var rsong *gdps_db.Song
 	qdb.WithContext(context.Background()).Where(gdps_db.Song{URL: song.URL}).First(&rsong)
@@ -637,6 +657,8 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 	}
 
 	if tariffid == 1 {
+		//Temporary
+		return "", errors.New("Free server creation is disabled for now |Free server creation is disabled for now")
 		var cnt int64
 		s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid, Plan: 1}).Count(&cnt)
 		if cnt != 0 {
@@ -757,6 +779,13 @@ func (s *ServerGD) UploadTextures(inp io.Reader) error {
 	}
 
 	return nil
+}
+
+func (s *ServerGD) FetchBuildStatus() string {
+	vdb := s.p.db.WithContext(context.Background())
+	cbs := services.NewBuildService(vdb, s.p.mdb, s.p.redis).
+		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
+	return cbs.CheckBuildStatusForGD(s.Srv.SrvID)
 }
 
 func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {

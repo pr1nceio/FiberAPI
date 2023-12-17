@@ -113,10 +113,10 @@ func (u *ServerGDUser) UserChangeUsername(uname string) error {
 func (u *ServerGDUser) UserForgotPasswordSendEmail(srvid string) error {
 	server := email.NewSMTPClient()
 	server.Host = u.p.config["email_host"]
-	server.Port = 587
+	server.Port = 25 //587
 	server.Username = u.p.config["email"]
 	server.Password = u.p.config["email_pass"]
-	server.Encryption = email.EncryptionSTARTTLS
+	server.Encryption = email.EncryptionNone //email.EncryptionSTARTTLS
 	client, err := server.Connect()
 	if err != nil {
 		return err

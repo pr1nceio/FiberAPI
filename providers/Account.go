@@ -280,10 +280,10 @@ func (a *Account) EncodeEmailToken() string {
 func (a *Account) SendEmailVerification(lang string) error {
 	server := email.NewSMTPClient()
 	server.Host = a.p.config["email_host"]
-	server.Port = 587
+	server.Port = 25 //587
 	server.Username = a.p.config["email"]
 	server.Password = a.p.config["email_pass"]
-	server.Encryption = email.EncryptionSTARTTLS
+	server.Encryption = email.EncryptionNone //email.EncryptionSTARTTLS
 	client, err := server.Connect()
 	if err != nil {
 		return err
@@ -309,10 +309,10 @@ func (a *Account) SendEmailVerification(lang string) error {
 func (a *Account) SendEmailRecovery(password string, lang string) error {
 	server := email.NewSMTPClient()
 	server.Host = a.p.config["email_host"]
-	server.Port = 587
+	server.Port = 25 //587
 	server.Username = a.p.config["email"]
 	server.Password = a.p.config["email_pass"]
-	server.Encryption = email.EncryptionSTARTTLS
+	server.Encryption = email.EncryptionNone //email.EncryptionSTARTTLS
 	client, err := server.Connect()
 	if err != nil {
 		return err

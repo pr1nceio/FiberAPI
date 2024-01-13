@@ -15,6 +15,7 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/hashicorp/consul/api v1.26.1
 	github.com/oliamb/cutter v0.2.2
+	github.com/parkervcp/crocgodyl v0.1.1-0.20200711021253-68a0c50ea809
 	github.com/pquerna/otp v1.4.0
 	github.com/swaggo/swag v1.16.2
 	github.com/xhit/go-simple-mail/v2 v2.16.0

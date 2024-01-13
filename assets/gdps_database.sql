@@ -213,3 +213,22 @@ CREATE TABLE rateQueue
     stars           int(11)          NOT NULL DEFAULT 0,
     isFeatured      tinyint(1)       NOT NULL DEFAULT 0
 );
+
+CREATE TABLE lists
+(
+    id                   int(11)          NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name                 varchar(32)      NOT NULL DEFAULT 'Unnamed',
+    description          varchar(256)     NOT NULL DEFAULT '',
+    uid                  int(11)          NOT NULL DEFAULT 0,
+    version              tinyint          NOT NULL DEFAULT 1,
+    difficulty           tinyint          NOT NULL DEFAULT -1,
+    downloads            int              NOT NULL DEFAULT 0,
+    likes                int              NOT NULL DEFAULT 0,
+    isFeatured           tinyint(1)       NOT NULL DEFAULT 0,
+    isUnlisted           tinyint(1)       NOT NULL DEFAULT 0,
+    levels               mediumtext       NOT NULL DEFAULT '',
+    diamonds             int              NOT NULL DEFAULT 0,
+    lvlDiamonds          int              NOT NULL DEFAULT 0,
+    uploadDate           DATETIME         NOT NULL DEFAULT NOW(),
+    updateDate           DATETIME         NOT NULL DEFAULT NOW()
+);

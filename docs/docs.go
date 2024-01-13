@@ -1574,12 +1574,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/db.ServerGdSmall"
                     }
                 },
-                "gta": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "mc": {
                     "type": "array",
                     "items": {

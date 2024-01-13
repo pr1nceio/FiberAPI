@@ -331,10 +331,6 @@ definitions:
         items:
           $ref: '#/definitions/db.ServerGdSmall'
         type: array
-      gta:
-        items:
-          type: string
-        type: array
       mc:
         items:
           type: string

@@ -133,10 +133,9 @@ type APIPaymentListResponse struct {
 
 type APIServerListResponse struct {
 	APIBasicSuccess
-	GD  []*db.ServerGdSmall `json:"gd"`
-	MC  []string            `json:"mc"`
-	GTA []string            `json:"gta"`
-	CS  []string            `json:"cs"`
+	GD []*db.ServerGdSmall `json:"gd"`
+	MC []string            `json:"mc"`
+	CS []string            `json:"cs"`
 }
 
 type APIServerGDCreateRequest struct {

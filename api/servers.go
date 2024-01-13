@@ -24,7 +24,6 @@ func (api *API) ServersList(c *fiber.Ctx) error {
 		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
 		GD:              api.ServerGDProvider.GetUserServers(acc.Data().UID),
 		MC:              nil,
-		GTA:             nil,
 		CS:              nil,
 	})
 }

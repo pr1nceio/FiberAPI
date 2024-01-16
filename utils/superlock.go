@@ -25,7 +25,6 @@ func NewSuperLock(consul *consul.KV, consulSession string) *SuperLock {
 }
 
 func (s *SuperLock) Lock(lockName string) {
-	SendMessageDiscord(fmt.Sprintf("Acquiring lock '%s' for %s", lockName, s.allocID))
 	lock, ok := s.localLock[lockName]
 	if !ok {
 		lock = &sync.Mutex{}
@@ -47,11 +46,9 @@ func (s *SuperLock) Lock(lockName string) {
 		log.Println(err)
 		time.Sleep(500 * time.Millisecond)
 	}
-	SendMessageDiscord(fmt.Sprintf("LOCK ACQUIRED '%s' for %s", lockName, s.allocID))
 }
 
 func (s *SuperLock) Unlock(lockName string) {
-	SendMessageDiscord(fmt.Sprintf("Releasing lock '%s' for %s", lockName, s.allocID))
 	for {
 		if s.csul == nil {
 			break
@@ -73,11 +70,9 @@ func (s *SuperLock) Unlock(lockName string) {
 		s.localLock[lockName] = lock
 	}
 	lock.Unlock()
-	SendMessageDiscord(fmt.Sprintf("LOCK RELEASED '%s' for %s", lockName, s.allocID))
 }
 
 func (s *SuperLock) ReleaseAll() {
-	SendMessageDiscord(fmt.Sprintf("Releasing all locks for %s", s.allocID))
 	for k := range s.localLock {
 		s.Unlock(k)
 		for {

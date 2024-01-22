@@ -63,9 +63,12 @@ func (api *API) ParticleGetUser(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
+	if used == nil {
+		used = new(uint)
+	}
 	return c.Status(200).JSON(structs.APIParticleUserResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("success"),
 		ParticleUser:    *pu.Data,
-		UsedSize:        used,
+		UsedSize:        *used,
 	})
 }

@@ -22,7 +22,10 @@ func (p *ParticleUser) RegisterFromUser(user *db.User) error {
 	return p.p.db.Model(&db.ParticleUser{}).Create(&p.Data).Error
 }
 
-func (p *ParticleUser) CalculateUsedSize() (size uint, err error) {
-	err = p.p.db.Model(db.Particle{}).Where(db.Particle{UID: p.Data.ID}).Select("sum(size)").Scan(&size).Error
+func (p *ParticleUser) CalculateUsedSize() (size *uint, err error) {
+	//SELECT sum(t.size)/1024/1204 FROM (SELECT DISTINCT layer_id, size FROM `particles` WHERE `particles`.`uid` = 1 AND `particles`.`deleted_at` IS NULL) as t
+	err = p.p.db.Table("(?) as t",
+		p.p.db.Model(db.Particle{}).Where(db.Particle{UID: p.Data.ID}).Select("DISTINCT layer_id", "size"),
+	).Select("sum(t.size)").Scan(&size).Error
 	return
 }

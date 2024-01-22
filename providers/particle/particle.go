@@ -47,10 +47,9 @@ func (p *ParticleProvider) SearchParticles(query string, arches []string, offici
 	if official {
 		vdb = vdb.Where("is_official = ?", true)
 	}
-	vdb = vdb.Select("name", "author", "uid", "CONCAT_WS(',',arch) as arch", "sum(downloads) as downloads",
+	vdb = vdb.Select("name", "author", "uid", "GROUP_CONCAT(DISTINCT arch SEPARATOR ',') as arch", "sum(downloads) as downloads",
 		"sum(likes) as likes", "max(is_official) as is_official", "max(updated_at) as updated_at").
-		Group("name").Group("author").Group("uid").Group("arch").
-		Order(fmt.Sprintf("%s DESC", sortBy))
+		Group("name").Group("author").Group("uid").Order(fmt.Sprintf("%s DESC", sortBy))
 
 	err = vdb.Count(&count).Error
 	if err != nil {

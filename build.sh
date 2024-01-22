@@ -16,6 +16,8 @@ echo -e "${GREEN}Generating Swagger docs...${GRAY}"
 swag init -g ./cmd/main.go --pd
 echo -e "${GREEN}Checking for ineffectual assignments...${GRAY}"
 ineffassign ./...
+echo -e "${GREEN}Checking for cyclomatic complexity${GRAY}"
+gocyclo -over 25 .
 echo -e "${GREEN}Building...${GRAY}"
 CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o FiberAPI ./cmd/...
 R=fiber_api

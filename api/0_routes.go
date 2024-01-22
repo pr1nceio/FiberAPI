@@ -3,6 +3,8 @@ package api
 import (
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
+	"github.com/fruitspace/FiberAPI/providers/ServerGD"
+	"github.com/fruitspace/FiberAPI/providers/particle"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
@@ -21,7 +23,8 @@ type API struct {
 	PaymentProvider      *providers.PaymentProvider
 	PromocodeProvider    *providers.PromocodeProvider
 	ShopProvider         *providers.ShopProvider
-	ServerGDProvider     *providers.ServerGDProvider
+	ServerGDProvider     *ServerGD.ServerGDProvider
+	ParticleProvider     *particle.ParticleProvider
 
 	SuperLock *utils.SuperLock
 	Host      string
@@ -125,6 +128,10 @@ func StartServer(api API) error {
 	app.Post("/v1/repatch/report", api.LegacyRepatchUploadTelemetry)
 	app.Get("/v1/auth/confirm_email", api.AuthConfirmEmail)
 	//endregion
+
+	app.Post("/particle/search", api.ParticleSearch)
+	app.Get("/particle/user", api.ParticleGetUser)
+	app.Get("/particle/v/:author/:name", api.ParticleGet)
 
 	return app.Listen(api.Host)
 }

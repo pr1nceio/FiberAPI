@@ -5,6 +5,7 @@ import (
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
+	"github.com/fruitspace/FiberAPI/providers/ServerGD"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/exp/slices"
@@ -51,7 +52,7 @@ func (api *API) ManageGDPSDelete(c *fiber.Ctx) error {
 // @Produce json
 // @Param Authorization header string true "User token"
 // @Param srvid path string true "GDPS Server ID"
-// @Success 200 {object} providers.ServerGD
+// @Success 200 {object} ServerGD.ServerGD
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid} [get]
@@ -446,7 +447,7 @@ func (api *API) ManageGDPSQueryUsers(c *fiber.Ctx) error {
 
 // -------------------
 // authGDPS is a simple authenticator for compacting code
-func (api *API) authGDPS(c *fiber.Ctx, acc *providers.Account, srv *providers.ServerGD) bool {
+func (api *API) authGDPS(c *fiber.Ctx, acc *providers.Account, srv *ServerGD.ServerGD) bool {
 	srvid := c.Params("srvid")
 	if len(srvid) != 4 || !srv.GetServerBySrvID(srvid) {
 		return false

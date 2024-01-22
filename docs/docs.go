@@ -389,7 +389,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/providers.ServerGD"
+                            "$ref": "#/definitions/ServerGD.ServerGD"
                         }
                     },
                     "403": {
@@ -1068,6 +1068,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ServerGD.ServerGD": {
+            "type": "object",
+            "properties": {
+                "coreConfig": {
+                    "$ref": "#/definitions/structs.GDPSConfig"
+                },
+                "srv": {
+                    "$ref": "#/definitions/db.ServerGd"
+                },
+                "tariff": {
+                    "$ref": "#/definitions/structs.GDTariff"
+                }
+            }
+        },
         "db.Notification": {
             "type": "object",
             "properties": {
@@ -1355,20 +1369,6 @@ const docTemplate = `{
         "models.JSONMap": {
             "type": "object",
             "additionalProperties": true
-        },
-        "providers.ServerGD": {
-            "type": "object",
-            "properties": {
-                "coreConfig": {
-                    "$ref": "#/definitions/structs.GDPSConfig"
-                },
-                "srv": {
-                    "$ref": "#/definitions/db.ServerGd"
-                },
-                "tariff": {
-                    "$ref": "#/definitions/structs.GDTariff"
-                }
-            }
         },
         "sql.NullString": {
             "type": "object",

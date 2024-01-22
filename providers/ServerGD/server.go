@@ -1,4 +1,4 @@
-package providers
+package ServerGD
 
 import (
 	"bytes"
@@ -16,6 +16,7 @@ import (
 	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
+	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
 	"image"
@@ -38,7 +39,7 @@ type ServerGDProvider struct {
 	db          *gorm.DB
 	mdb         *utils.MultiSQL
 	redis       *utils.MultiRedis
-	payments    *PaymentProvider
+	payments    *providers.PaymentProvider
 	assets      *embed.FS
 	keys        map[string]string
 	config      map[string]string
@@ -61,7 +62,7 @@ func (sgp *ServerGDProvider) WithKeys(keys, config, s3config, minioconfig map[st
 	return sgp
 }
 
-func (sgp *ServerGDProvider) WithPaymentsProvider(pm *PaymentProvider) *ServerGDProvider {
+func (sgp *ServerGDProvider) WithPaymentsProvider(pm *providers.PaymentProvider) *ServerGDProvider {
 	sgp.payments = pm
 	return sgp
 }
@@ -546,7 +547,7 @@ func (s *ServerGD) pushSong(qdb *gorm.DB, response *structs.MusicResponse, xtype
 //endregion
 
 func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration string, promocode string) error {
-	pm := NewPromocodeProvider(s.p.db)
+	pm := providers.NewPromocodeProvider(s.p.db)
 
 	preg := regexp.MustCompile("^[a-zA-Z0-9]+$")
 	defer func() {
@@ -633,7 +634,7 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 }
 
 func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration string, promocode string) (string, error) {
-	pm := NewPromocodeProvider(s.p.db)
+	pm := providers.NewPromocodeProvider(s.p.db)
 	cbs := services.NewBuildService(s.p.db, s.p.mdb, s.p.redis).
 		WithConfig(s.p.s3config, s.p.minioconfig).WithAssets(s.p.assets)
 

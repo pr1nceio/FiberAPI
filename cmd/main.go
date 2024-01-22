@@ -10,6 +10,8 @@ import (
 	"github.com/fruitspace/FiberAPI/api"
 	_ "github.com/fruitspace/FiberAPI/docs"
 	"github.com/fruitspace/FiberAPI/providers"
+	"github.com/fruitspace/FiberAPI/providers/ServerGD"
+	"github.com/fruitspace/FiberAPI/providers/particle"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
 	"log"
@@ -74,7 +76,7 @@ func main() {
 	payProvider := providers.NewPaymentProvider(DB, fiberapi.PAYMENTS_HOST)
 	promoProvider := providers.NewPromocodeProvider(DB)
 	shopProvider := providers.NewShopProvider(DB)
-	srvGDProvider := providers.NewServerGDProvider(DB, utils.NewMultiSQL(GDPS_DB), Redis).
+	srvGDProvider := ServerGD.NewServerGDProvider(DB, utils.NewMultiSQL(GDPS_DB), Redis).
 		WithKeys(fiberapi.KEYS, fiberapi.CONFIG, fiberapi.S3_CONFIG, fiberapi.MINIO_CONFIG).
 		WithAssets(&fiberapi.AssetsDir).
 		WithPaymentsProvider(payProvider)
@@ -93,6 +95,7 @@ func main() {
 		PromocodeProvider:    promoProvider,
 		ShopProvider:         shopProvider,
 		ServerGDProvider:     srvGDProvider,
+		ParticleProvider:     particle.NewParticleProvider(DB),
 		Host:                 fiberapi.ADDR,
 
 		SuperLock: utils.NewSuperLock(consulKV, SessionID),

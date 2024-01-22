@@ -1,4 +1,4 @@
-package providers
+package ServerGD
 
 import (
 	"fmt"

@@ -208,3 +208,35 @@ type APIGDPSUsersResponse struct {
 	APIBasicSuccess
 	Users []gdps_db.UserNano `json:"users"`
 }
+
+type APIParticleSearchRequest struct {
+	Query      string   `json:"query"`
+	Arch       []string `json:"arch"`
+	IsOfficial bool     `json:"is_official"`
+	Sort       string   `json:"sort"`
+	Page       int      `json:"page"`
+}
+
+type APIParticleSearchResponse struct {
+	APIBasicSuccess
+	Particles []db.Particle `json:"particles"`
+	Count     int64         `json:"count"`
+}
+
+type APIParticleUserResponse struct {
+	APIBasicSuccess
+	db.ParticleUser
+	UsedSize uint `json:"used_size"`
+}
+
+type ParticleStruct struct {
+	APIBasicSuccess
+	db.Particle
+	Branches map[string][]ParticleBranchItem `json:"branches"`
+}
+
+type ParticleBranchItem struct {
+	ID   uint   `json:"id"`
+	Arch string `json:"arch"`
+	Size uint   `json:"size"`
+}

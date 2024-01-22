@@ -6,7 +6,7 @@ import (
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/FiberAPI/providers"
+	"github.com/fruitspace/FiberAPI/providers/ServerGD"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
@@ -239,7 +239,7 @@ func (api *API) AuxiliaryGDPSChangePassword(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) gdpsUserAuth(c *fiber.Ctx, srv *providers.ServerGD) (*providers.ServerGDUser, error) {
+func (api *API) gdpsUserAuth(c *fiber.Ctx, srv *ServerGD.ServerGD) (*ServerGD.ServerGDUser, error) {
 	srvid := c.Params("srvid")
 	token := strings.Split(c.Get("Authorization"), ":")
 	if len(token) != 2 {

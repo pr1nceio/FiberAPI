@@ -1,5 +1,14 @@
 basePath: /v2/
 definitions:
+  ServerGD.ServerGD:
+    properties:
+      coreConfig:
+        $ref: '#/definitions/structs.GDPSConfig'
+      srv:
+        $ref: '#/definitions/db.ServerGd'
+      tariff:
+        $ref: '#/definitions/structs.GDTariff'
+    type: object
   db.Notification:
     properties:
       expire_date:
@@ -189,15 +198,6 @@ definitions:
     type: object
   models.JSONMap:
     additionalProperties: true
-    type: object
-  providers.ServerGD:
-    properties:
-      coreConfig:
-        $ref: '#/definitions/structs.GDPSConfig'
-      srv:
-        $ref: '#/definitions/db.ServerGd'
-      tariff:
-        $ref: '#/definitions/structs.GDTariff'
     type: object
   sql.NullString:
     properties:
@@ -980,7 +980,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/providers.ServerGD'
+            $ref: '#/definitions/ServerGD.ServerGD'
         "403":
           description: Forbidden
           schema:

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	consul "github.com/hashicorp/consul/api"
 	"log"
 	"sync"

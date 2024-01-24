@@ -728,7 +728,7 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 	if err != nil {
 		return "", err
 	}
-	err = cbs.PushBuildQueue(cs.SrvID, cs.SrvName, "gd_default.png", "2.1", 1, true, false, false,
+	err = cbs.PushBuildQueue(cs.SrvID, cs.SrvName, "gd_default.png", "2.2", 1, true, false, false,
 		"default", "ru", cs.Plan < 2)
 
 	return cs.SrvID, err
@@ -852,6 +852,10 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	if conf.Android {
 		andro = 1
 	}
+
+	// Set Version
+	s.p.db.Model(s.Srv).Updates(db.ServerGd{Version: conf.Version})
+
 	return cbs.PushBuildQueue(s.Srv.SrvID, conf.SrvName, s.Srv.Icon, conf.Version, andro, conf.Windows, conf.IOS, conf.MacOS,
 		conf.Textures, "ru", s.Srv.Plan < 2) //! Default textures
 }

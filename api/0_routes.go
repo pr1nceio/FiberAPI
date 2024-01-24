@@ -129,9 +129,15 @@ func StartServer(api API) error {
 	app.Get("/v1/auth/confirm_email", api.AuthConfirmEmail)
 	//endregion
 
+	// region Particle
 	app.Post("/particle/search", api.ParticleSearch)
 	app.Get("/particle/user", api.ParticleGetUser)
 	app.Get("/particle/v/:author/:name", api.ParticleGet)
+	// endregion
+
+	// region Repatch
+	app.Get("/repatch/gd/:id", api.RepatchGDInfo)
+	// endregion
 
 	return app.Listen(api.Host)
 }

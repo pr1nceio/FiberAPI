@@ -1174,6 +1174,9 @@ const docTemplate = `{
                 "post_count": {
                     "type": "integer"
                 },
+                "recipe": {
+                    "type": "string"
+                },
                 "srv_key": {
                     "type": "string"
                 },
@@ -1188,6 +1191,9 @@ const docTemplate = `{
                 },
                 "user_count": {
                     "type": "integer"
+                },
+                "version": {
+                    "type": "string"
                 },
                 "visits": {
                     "type": "integer"

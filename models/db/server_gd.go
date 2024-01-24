@@ -36,6 +36,8 @@ type ServerGd struct {
 	IsSpaceMusic     bool           `gorm:"column:isSpaceMusic;type:tinyint;default:0;" json:"is_space_music"`
 	Is22             bool           `gorm:"column:is22;type:tinyint;default:0;" json:"is_22"`
 	IsCustomTextures bool           `gorm:"column:isCustomTextures;type:tinyint;default:0;" json:"is_custom_textures"`
+	Version          string         `gorm:"column:version;type:varchar;size:8;default:2.1;" json:"version"`
+	Recipe           string         `gorm:"column:recipe;type:longtext;" json:"recipe"`
 }
 
 func (s *ServerGd) TableName() string {

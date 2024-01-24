@@ -240,3 +240,13 @@ type ParticleBranchItem struct {
 	Arch string `json:"arch"`
 	Size uint   `json:"size"`
 }
+
+type RepatchGDServer struct {
+	Name    string `json:"name" gorm:"column:srvName"`
+	SrvId   string `json:"srvid" gorm:"column:srvid"`
+	Players int    `json:"players" gorm:"column:userCount"`
+	Levels  int    `json:"levels" gorm:"column:levelCount"`
+	Icon    string `json:"icon" gorm:"column:icon"`
+	Version string `json:"version" gorm:"column:version"`
+	Recipe  string `json:"recipe" gorm:"column:recipe"`
+}

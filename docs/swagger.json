@@ -1166,6 +1166,9 @@
                 "post_count": {
                     "type": "integer"
                 },
+                "recipe": {
+                    "type": "string"
+                },
                 "srv_key": {
                     "type": "string"
                 },
@@ -1180,6 +1183,9 @@
                 },
                 "user_count": {
                     "type": "integer"
+                },
+                "version": {
+                    "type": "string"
                 },
                 "visits": {
                     "type": "integer"

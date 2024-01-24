@@ -171,6 +171,15 @@ type ServerGD struct {
 
 //region Getters
 
+func (s *ServerGD) GetRepatchServer(srvid string) (srv *structs.RepatchGDServer) {
+	cnt := s.p.db.Model(db.ServerGd{}).WhereBinary(db.ServerGd{SrvID: srvid}).Find(&srv).RowsAffected
+	srv.Icon = "https://" + s.p.s3config["cdn"] + "/server_icons/" + srv.Icon
+	if cnt == 0 {
+		srv = nil
+	}
+	return
+}
+
 func (s *ServerGD) GetReducedServer(srvid string) (srv db.ServerGdReduced) {
 	// Empty db.User for convenience
 	u := db.User{}
@@ -188,9 +197,12 @@ func (s *ServerGD) GetReducedServer(srvid string) (srv db.ServerGdReduced) {
 	return srv
 }
 
-func (s *ServerGD) GetTopUserServer(uid int) (srv db.ServerGdSmall) {
-	s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).Find(&srv)
+func (s *ServerGD) GetTopUserServer(uid int) (srv *db.ServerGdSmall) {
+	cnt := s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).First(&srv).RowsAffected
 	srv.Icon = "https://" + s.p.s3config["cdn"] + "/server_icons/" + srv.Icon
+	if cnt == 0 {
+		srv = nil
+	}
 	return srv
 }
 

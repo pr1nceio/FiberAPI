@@ -81,6 +81,7 @@ func (api *API) AuthConfirmEmail(c *fiber.Ctx) error {
 		return c.Status(500).JSON(structs.NewAPIError("Unable to activate account", err.Error()))
 	}
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
+	c.Set("Content-Type", "text/html")
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", acc.NewSession(acc.Data().UID)))
 }
 

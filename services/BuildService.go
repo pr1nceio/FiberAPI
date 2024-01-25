@@ -10,7 +10,6 @@ import (
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/go-redis/redis/v8"
 	"log"
-	"net/http"
 	"strings"
 )
 
@@ -234,8 +233,7 @@ func (b *BuildService) PushBuildQueue(srvId string, srvName string, icon string,
 		go func() {
 			S3 := utils.NewS3FS(b.s3config)
 			S3.DeleteFile("gdps_textures/" + srvId + ".zip")
-			h, _ := http.Get(textures)
-			log.Println(S3.PutFileStream("gdps_textures/"+srvId+".zip", h.Body))
+			// Rest is downloaded at CBS
 		}()
 	}
 

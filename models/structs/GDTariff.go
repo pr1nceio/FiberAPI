@@ -38,5 +38,5 @@ type GDTariffBuildlab struct {
 	MacOS    bool
 	Icons    bool
 	Textures bool
-	V22      bool
+	MultiVer bool
 }

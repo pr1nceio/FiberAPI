@@ -54,8 +54,6 @@ definitions:
         type: string
       icon:
         type: string
-      is_22:
-        type: boolean
       is_custom_textures:
         type: boolean
       is_space_music:
@@ -105,8 +103,6 @@ definitions:
         type: string
       icon:
         type: string
-      is_22:
-        type: boolean
       is_custom_textures:
         type: boolean
       level_count:
@@ -123,6 +119,8 @@ definitions:
         type: integer
       user_count:
         type: integer
+      version:
+        type: string
       vk:
         type: string
     type: object
@@ -613,9 +611,9 @@ definitions:
         type: boolean
       macOS:
         type: boolean
-      textures:
+      multiVer:
         type: boolean
-      v22:
+      textures:
         type: boolean
     type: object
   structs.GDTariffMusic:

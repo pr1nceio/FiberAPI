@@ -1142,9 +1142,6 @@
                 "icon": {
                     "type": "string"
                 },
-                "is_22": {
-                    "type": "boolean"
-                },
                 "is_custom_textures": {
                     "type": "boolean"
                 },
@@ -1219,9 +1216,6 @@
                 "icon": {
                     "type": "string"
                 },
-                "is_22": {
-                    "type": "boolean"
-                },
                 "is_custom_textures": {
                     "type": "boolean"
                 },
@@ -1245,6 +1239,9 @@
                 },
                 "user_count": {
                     "type": "integer"
+                },
+                "version": {
+                    "type": "string"
                 },
                 "vk": {
                     "type": "string"
@@ -1996,10 +1993,10 @@
                 "macOS": {
                     "type": "boolean"
                 },
-                "textures": {
+                "multiVer": {
                     "type": "boolean"
                 },
-                "v22": {
+                "textures": {
                     "type": "boolean"
                 }
             }

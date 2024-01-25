@@ -34,9 +34,8 @@ type ServerGd struct {
 	Discord          string         `gorm:"column:discord;type:varchar;size:128;" json:"discord"`
 	Vk               string         `gorm:"column:vk;type:varchar;size:128;" json:"vk"`
 	IsSpaceMusic     bool           `gorm:"column:isSpaceMusic;type:tinyint;default:0;" json:"is_space_music"`
-	Is22             bool           `gorm:"column:is22;type:tinyint;default:0;" json:"is_22"`
 	IsCustomTextures bool           `gorm:"column:isCustomTextures;type:tinyint;default:0;" json:"is_custom_textures"`
-	Version          string         `gorm:"column:version;type:varchar;size:8;default:2.1;" json:"version"`
+	Version          string         `gorm:"column:version;type:varchar;size:8;default:2.2;" json:"version"`
 	Recipe           string         `gorm:"column:recipe;type:longtext;" json:"recipe"`
 }
 
@@ -73,6 +72,6 @@ type ServerGdReduced struct {
 	TextAlign        int    `gorm:"column:textAlign;type:tinyint;default:0;" json:"text_align"`
 	Discord          string `gorm:"column:discord;type:varchar;size:128;" json:"discord"`
 	Vk               string `gorm:"column:vk;type:varchar;size:128;" json:"vk"`
-	Is22             bool   `gorm:"column:is22;type:tinyint;default:0;" json:"is_22"`
+	Version          string `gorm:"column:version;type:varchar;size:8;default:2.2;" json:"version"`
 	IsCustomTextures bool   `gorm:"column:isCustomTextures;type:tinyint;default:0;" json:"is_custom_textures"`
 }

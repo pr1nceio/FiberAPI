@@ -88,3 +88,10 @@ func (api *API) FetchDiscordUserInfo(c *fiber.Ctx) error {
 		Servers:         servers,
 	})
 }
+
+func (api *API) FetchMinecraftCores(c *fiber.Ctx) error {
+	return c.JSON(structs.MinecraftCoresResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Cores:           structs.MCCoresEggs,
+	})
+}

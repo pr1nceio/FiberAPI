@@ -242,13 +242,18 @@ func (a *Account) UpdateIP(ip string, fetchGeo bool) {
 //endregion
 
 // ! TO TRANSFER TO ServerGD as GetCountFor(UID int)
-func (a *Account) GetServersCount() map[string]int {
-	var cnt int64
-	a.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: a.user.UID}).Count(&cnt)
-	count := map[string]int{
-		"gd": int(cnt),
-		"mc": 0,
-		"cs": 0,
+func (a *Account) GetServersCount() map[string]int64 {
+	var (
+		cnt_gd int64
+		cnt_mc int64
+		cnt_cs int64
+	)
+	a.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: a.user.UID}).Count(&cnt_gd)
+	a.p.db.Model(db.ServerMc{}).Where(db.ServerMc{OwnerID: a.user.UID}).Count(&cnt_mc)
+	count := map[string]int64{
+		"gd": cnt_gd,
+		"mc": cnt_mc,
+		"cs": cnt_cs,
 	}
 	return count
 }

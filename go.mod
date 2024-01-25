@@ -14,6 +14,7 @@ require (
 	github.com/gofiber/swagger v0.1.14
 	github.com/google/uuid v1.5.0
 	github.com/hashicorp/consul/api v1.26.1
+	github.com/hashicorp/go-version v1.6.0
 	github.com/oliamb/cutter v0.2.2
 	github.com/parkervcp/crocgodyl v0.1.1-0.20200711021253-68a0c50ea809
 	github.com/pquerna/otp v1.4.0

@@ -104,7 +104,7 @@ type APIUserSSO struct {
 	IsPartner     bool                   `json:"is_partner"`
 	Reflink       string                 `json:"reflink"`
 	Notifications []db.Notification      `json:"notifications"`
-	Servers       map[string]int         `json:"servers"`
+	Servers       map[string]int64       `json:"servers"`
 	TopServers    map[string]interface{} `json:"top_servers"`
 }
 
@@ -249,4 +249,10 @@ type RepatchGDServer struct {
 	Icon    string `json:"icon" gorm:"column:icon"`
 	Version string `json:"version" gorm:"column:version"`
 	Recipe  string `json:"recipe" gorm:"column:recipe"`
+}
+
+type MinecraftCoresResponse struct {
+	APIBasicSuccess
+	Cores map[string]MCCore `json:"cores"`
+	//AllVersions []string          `json:"all_versions"`
 }

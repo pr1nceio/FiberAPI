@@ -716,6 +716,7 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 		Plan:       tariffid,
 		SrvName:    name,
 		ExpireDate: when,
+		Version:    "2.2",
 	}
 	DbPass, SrvKey, err := cbs.InstallServer(cs.SrvID, tariff.Players, tariff.Levels, -1, -1)
 	if err != nil {

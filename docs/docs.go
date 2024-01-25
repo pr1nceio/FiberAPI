@@ -1150,9 +1150,6 @@ const docTemplate = `{
                 "icon": {
                     "type": "string"
                 },
-                "is_22": {
-                    "type": "boolean"
-                },
                 "is_custom_textures": {
                     "type": "boolean"
                 },
@@ -1227,9 +1224,6 @@ const docTemplate = `{
                 "icon": {
                     "type": "string"
                 },
-                "is_22": {
-                    "type": "boolean"
-                },
                 "is_custom_textures": {
                     "type": "boolean"
                 },
@@ -1253,6 +1247,9 @@ const docTemplate = `{
                 },
                 "user_count": {
                     "type": "integer"
+                },
+                "version": {
+                    "type": "string"
                 },
                 "vk": {
                     "type": "string"
@@ -2004,10 +2001,10 @@ const docTemplate = `{
                 "macOS": {
                     "type": "boolean"
                 },
-                "textures": {
+                "multiVer": {
                     "type": "boolean"
                 },
-                "v22": {
+                "textures": {
                     "type": "boolean"
                 }
             }

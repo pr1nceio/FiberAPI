@@ -445,6 +445,26 @@ func (api *API) ManageGDPSQueryUsers(c *fiber.Ctx) error {
 	})
 }
 
+func (api *API) ManageGDPSPressStart22Upgrade(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	if err := srv.ExecuteBuildLab(structs.BuildLabSettings{
+		Version:  "2.2",
+		Windows:  true,
+		Android:  true,
+		Textures: "default",
+	}); err != nil {
+		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
+	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
 // -------------------
 // authGDPS is a simple authenticator for compacting code
 func (api *API) authGDPS(c *fiber.Ctx, acc *providers.Account, srv *ServerGD.ServerGD) bool {

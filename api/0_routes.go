@@ -77,6 +77,8 @@ func StartServer(api API) error {
 	fetch.Get("/gd/tariffs", api.FetchGDTariffs)
 	fetch.Get("/gd/top", api.FetchGDTopServers)
 	fetch.Get("/gd/info/:srvid", api.FetchGDServerInfo) // get public gdps download card
+
+	fetch.Get("/mc/cores", api.FetchMinecraftCores)
 	//endregion
 
 	//region Admin
@@ -107,7 +109,7 @@ func StartServer(api API) error {
 
 	gdps.Put("/modules/discord", api.ManageGDPSDiscordModule)
 
-	//gdps.Get("/buildlab")
+	gdps.Get("/upgrade22", api.ManageGDPSPressStart22Upgrade)
 	gdps.Post("/buildlab", api.ManageGDPSBuildLabPush)
 	gdps.Get("/buildlab/status", api.ManageGDPSGetBuildStatus)
 

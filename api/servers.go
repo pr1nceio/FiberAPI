@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,7 +24,7 @@ func (api *API) ServersList(c *fiber.Ctx) error {
 	return c.JSON(structs.APIServerListResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
 		GD:              api.ServerGDProvider.GetUserServers(acc.Data().UID),
-		MC:              nil,
+		MC:              api.ServerMCProvider.GetUserServers(acc.Data().UID),
 		CS:              nil,
 	})
 }
@@ -62,6 +63,31 @@ func (api *API) ServersCreateGD(c *fiber.Ctx) error {
 	}
 	if err != nil {
 		return c.JSON(structs.NewDecoupleAPIError(err))
+	}
+	return c.JSON(structs.NewAPIBasicResponse(srvid))
+}
+
+func (api *API) ServersCreateMC(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	var data structs.APIServerMCCreateRequest
+	if c.BodyParser(&data) != nil {
+		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
+	}
+
+	api.SuperLock.Lock("mc_create")
+	defer api.SuperLock.Unlock("mc_create")
+
+	var err error
+	var srvid string
+	srv := api.ServerMCProvider.New()
+	srvid, err = srv.CreateServer(
+		acc.Data(), data.Name, data.Tariff, data.Core, data.Version, data.AddStorage, data.DedicatedPort, data.Promocode,
+	)
+	if err != nil {
+		return c.JSON(structs.NewDecoupleAPIError(errors.New(srvid + " |" + err.Error())))
 	}
 	return c.JSON(structs.NewAPIBasicResponse(srvid))
 }

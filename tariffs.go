@@ -186,6 +186,6 @@ var ProductMCTariffs = map[string]structs.MCTariff{
 	},
 }
 
-const ProductMCDedicatedIPPrice = uint(100)
-const ProductMCAdditionalDiskPricePer10GB = uint(50)
-const ProductMCMySQLDBPrice = uint(0)
+const ProductMCDedicatedIPPrice = 100
+const ProductMCAdditionalDiskPricePer10GB = 50
+const ProductMCMySQLDBPrice = 0

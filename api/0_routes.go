@@ -1,9 +1,11 @@
 package api
 
 import (
+	"fmt"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/providers/ServerGD"
+	"github.com/fruitspace/FiberAPI/providers/ServerMC"
 	"github.com/fruitspace/FiberAPI/providers/particle"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
@@ -24,6 +26,7 @@ type API struct {
 	PromocodeProvider    *providers.PromocodeProvider
 	ShopProvider         *providers.ShopProvider
 	ServerGDProvider     *ServerGD.ServerGDProvider
+	ServerMCProvider     *ServerMC.ServerMCProvider
 	ParticleProvider     *particle.ParticleProvider
 
 	SuperLock *utils.SuperLock
@@ -43,7 +46,8 @@ func StartServer(api API) error {
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
 			go sentry.CaptureException(e.(error))
 			log.Println(string(debug.Stack()))
-			utils.SendMessageDiscord("Got panic at FiberAPI, check logs\n<@886130124225937409>")
+			utils.SendMessageDiscord(fmt.Sprintf("[%s] Got panic at FiberAPI, check logs\n<@886130124225937409>",
+				utils.GetEnv("NOMAD_SHORT_ALLOC_ID", "default")))
 		},
 		EnableStackTrace: true,
 	}))
@@ -121,6 +125,13 @@ func StartServer(api API) error {
 	gdps_user.Put("/music", api.AuxiliaryGDPSAddMusic)
 	gdps_user.Post("/recover", api.AuxiliaryGDPSForgotPassword)
 	//endregion
+
+	// region Minecraft
+	servers.Post("/mc", api.ServersCreateMC) // Create
+	//mc := servers.Group("/mc/:srvid")
+	//mc.Get("/", nil)       // get server
+	//mc.Delete("/", nil) //delete
+	// endregiom
 
 	internal := app.Group("/internal")
 	internal.Post("/gd/:srvid/webhook", api.APIGDPSSendWebhook)

@@ -15,11 +15,11 @@ type ServerMc struct {
 	RamMin      int       `gorm:"column:ram_min;type:int;" json:"ram_min"`
 	RamMax      int       `gorm:"column:ram_max;type:int;" json:"ram_max"`
 	CPUs        int       `gorm:"column:cpus;type:int;" json:"cpus"`
-	Disk        int       `gorm:"column:disk;type:int;" json:"disk"`
+	AddDisk     int       `gorm:"column:add_disk;type:int;" json:"add_disk"`
 	Description string    `gorm:"column:description;type:varchar;size:255;" json:"description"`
 	Icon        string    `gorm:"column:icon;type:varchar;size:16;default:mc_default.png;" json:"icon"`
 }
 
 func (ServerMc) TableName() string {
-	return "server_mc"
+	return "servers_mc"
 }

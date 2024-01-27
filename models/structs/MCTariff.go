@@ -2,13 +2,37 @@ package structs
 
 type MCTariff struct {
 	Title    string
-	PriceRUB uint
+	PriceRUB int
 
 	CPU       uint
 	MinRamGB  uint
 	MaxRamGB  uint
 	IsDynamic bool
 	DiskGB    uint
+}
+
+func (m MCTariff) GetStartupTemplate() string {
+	if m.IsDynamic {
+		return "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -XX:+UseShenandoahGC -XX:+UnlockExperimentalVMOptions -XX:ShenandoahUncommitDelay=10000 -XX:ShenandoahGuaranteedGCInterval=60000 -jar {{SERVER_JARFILE}}"
+	} else {
+		return "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}"
+	}
+}
+
+func (m MCTariff) GetRAM() uint {
+	if m.IsDynamic {
+		return m.MaxRamGB
+	} else {
+		return m.MaxRamGB
+	}
+}
+
+func (m MCTariff) GetSwap() uint {
+	if m.IsDynamic {
+		return 0
+	} else {
+		return 0
+	}
 }
 
 var MCCoresEggs = map[string]MCCore{

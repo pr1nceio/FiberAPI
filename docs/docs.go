@@ -1285,6 +1285,53 @@ const docTemplate = `{
                 }
             }
         },
+        "db.ServerMc": {
+            "type": "object",
+            "properties": {
+                "add_disk": {
+                    "type": "integer"
+                },
+                "core": {
+                    "type": "string"
+                },
+                "cpus": {
+                    "type": "integer"
+                },
+                "creation_date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expire_date": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "owner_id": {
+                    "type": "integer"
+                },
+                "plan": {
+                    "type": "string"
+                },
+                "ram_max": {
+                    "type": "integer"
+                },
+                "ram_min": {
+                    "type": "integer"
+                },
+                "srv_name": {
+                    "type": "string"
+                },
+                "srvid": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "db.Transaction": {
             "type": "object",
             "properties": {
@@ -1580,7 +1627,7 @@ const docTemplate = `{
                 "mc": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/db.ServerMc"
                     }
                 },
                 "message": {

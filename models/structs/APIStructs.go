@@ -134,7 +134,7 @@ type APIPaymentListResponse struct {
 type APIServerListResponse struct {
 	APIBasicSuccess
 	GD []*db.ServerGdSmall `json:"gd"`
-	MC []string            `json:"mc"`
+	MC []*db.ServerMc      `json:"mc"`
 	CS []string            `json:"cs"`
 }
 
@@ -255,4 +255,16 @@ type MinecraftCoresResponse struct {
 	APIBasicSuccess
 	Cores map[string]MCCore `json:"cores"`
 	//AllVersions []string          `json:"all_versions"`
+}
+
+type APIServerMCCreateRequest struct {
+	Name          string `json:"name"`
+	SrvId         string `json:"srvid"`
+	Tariff        string `json:"tariff"`
+	Core          string `json:"core"`
+	Version       string `json:"version"`
+	AddStorage    int    `json:"add_storage"`
+	DedicatedPort bool   `json:"dedicated_port"`
+	Duration      string `json:"duration"`
+	Promocode     string `json:"promocode"`
 }

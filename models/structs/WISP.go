@@ -15,12 +15,8 @@ type WispPagination struct {
 }
 
 type WispObject struct {
-	Object     string      `json:"object"`
-	Attributes interface{} `json:"attributes"`
-}
-
-func (wo *WispObject) AsWispNode() *WispNode {
-	return wo.Attributes.(*WispNode)
+	Object     string   `json:"object"`
+	Attributes WispNode `json:"attributes"`
 }
 
 type WispNode struct {

@@ -143,6 +143,37 @@ definitions:
       user_count:
         type: integer
     type: object
+  db.ServerMc:
+    properties:
+      add_disk:
+        type: integer
+      core:
+        type: string
+      cpus:
+        type: integer
+      creation_date:
+        type: string
+      description:
+        type: string
+      expire_date:
+        type: string
+      icon:
+        type: string
+      owner_id:
+        type: integer
+      plan:
+        type: string
+      ram_max:
+        type: integer
+      ram_min:
+        type: integer
+      srv_name:
+        type: string
+      srvid:
+        type: string
+      version:
+        type: string
+    type: object
   db.Transaction:
     properties:
       amount:
@@ -335,7 +366,7 @@ definitions:
         type: array
       mc:
         items:
-          type: string
+          $ref: '#/definitions/db.ServerMc'
         type: array
       message:
         type: string

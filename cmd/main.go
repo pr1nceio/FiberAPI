@@ -11,6 +11,7 @@ import (
 	_ "github.com/fruitspace/FiberAPI/docs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/providers/ServerGD"
+	"github.com/fruitspace/FiberAPI/providers/ServerMC"
 	"github.com/fruitspace/FiberAPI/providers/particle"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
@@ -80,6 +81,7 @@ func main() {
 		WithKeys(fiberapi.KEYS, fiberapi.CONFIG, fiberapi.S3_CONFIG, fiberapi.MINIO_CONFIG).
 		WithAssets(&fiberapi.AssetsDir).
 		WithPaymentsProvider(payProvider)
+	srvMCProvider := ServerMC.NewServerMCProvider(DB, payProvider)
 
 	// Consul
 	consulKV, err := GetConsulKV()
@@ -95,6 +97,7 @@ func main() {
 		PromocodeProvider:    promoProvider,
 		ShopProvider:         shopProvider,
 		ServerGDProvider:     srvGDProvider,
+		ServerMCProvider:     srvMCProvider,
 		ParticleProvider:     particle.NewParticleProvider(DB),
 		Host:                 fiberapi.ADDR,
 

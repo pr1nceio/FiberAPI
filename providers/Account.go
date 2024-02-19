@@ -5,6 +5,7 @@ import (
 	"context"
 	"embed"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -120,7 +121,12 @@ func (a *Account) GetUserByDiscord(discord_id string) bool {
 func (a *Account) GetUserBySession(session string) bool {
 	u := db.User{}
 	if v, err := a.p.redis.Get("sessions").Get(context.Background(), session).Result(); err == nil {
-		u.UID, _ = strconv.Atoi(v)
+		sess := &Session{}
+		err = json.Unmarshal([]byte(v), &sess)
+		if err != nil {
+			return false
+		}
+		u.UID = sess.UID
 	} else {
 		return false
 	}
@@ -135,6 +141,33 @@ func (a *Account) GetUIDByReflink(reflink string) int {
 	u := db.User{}
 	a.p.db.Select("uid").Where(&db.User{Reflink: reflink}).First(&u)
 	return u.UID
+}
+
+func (a *Account) ListSessions() []*Session {
+	ctx := context.Background()
+	var sessions []*Session
+	iter := a.p.redis.Get("sessions").Scan(ctx, 0, fmt.Sprintf("%d.*", a.user.UID), 0).Iterator()
+	for iter.Next(ctx) {
+		key := iter.Val()
+		val, err := a.p.redis.Get("sessions").Get(ctx, key).Result()
+		if utils.Should(err) != nil {
+			continue
+		}
+		sess := Session{}
+		err = json.Unmarshal([]byte(val), &sess)
+		if utils.Should(err) != nil {
+			continue
+		}
+		sessions = append(sessions, &sess)
+	}
+	return sessions
+}
+
+func (a *Account) DeleteSession(session string) {
+	if !strings.HasPrefix(session, fmt.Sprintf("%d.", a.user.UID)) {
+		return
+	}
+	a.p.redis.Get("sessions").Del(context.Background(), session)
 }
 
 //endregion
@@ -352,7 +385,17 @@ func (a *Account) VerifyEmail() error {
 //region Authentication
 
 // NewSession creates new session for Account and puts it in utils.MultiRedis Store
-func (a *Account) NewSession(uid int) string {
+func (a *Account) NewSession(uid int, useragent string, ip string) string {
+	// Create new session
+	sess := fmt.Sprintf("%d.%s", uid, uuid.New().String())
+	sessdata := NewSession(ip, useragent, uid)
+	data, _ := json.Marshal(sessdata)
+	a.p.redis.Get("sessions").SetEX(context.Background(), sess, string(data), time.Hour*24*30)
+	return sess
+}
+
+// NewSessionLegacy creates new session for Account and puts it in utils.MultiRedis Store
+func (a *Account) NewSessionLegacy(uid int) string {
 	// Create new session
 	sess := strconv.Itoa(uid) + uuid.New().String()
 	a.p.redis.Get("sessions").SetEX(context.Background(), sess, strconv.Itoa(uid), time.Hour*24*30)
@@ -562,3 +605,26 @@ func (a *Account) DiscordJoinGuild() error {
 }
 
 //endregion
+
+//region Session
+
+type Session struct {
+	IP        string    `json:"ip"`
+	UserAgent string    `json:"useragent"`
+	LoginDate time.Time `json:"logindate"`
+	LastDate  time.Time `json:"lastdate"`
+	UID       int       `json:"uid"`
+}
+
+func NewSession(ip string, useragent string, uid int) *Session {
+	t := time.Now()
+	return &Session{
+		IP:        ip,
+		UserAgent: useragent,
+		LoginDate: t,
+		LastDate:  t,
+		UID:       uid,
+	}
+}
+
+// endregion

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/structs"
+	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/exp/slices"
 	"io"
@@ -171,5 +172,29 @@ func (api *API) UserJoinGuild(c *fiber.Ctx) error {
 	if err != nil {
 		return c.JSON(structs.NewAPIError("Couldn't autoinvite"))
 	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
+func (api *API) UserListSessions(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	return c.JSON(struct {
+		structs.APIBasicSuccess
+		Sessions []*providers.Session `json:"sessions"`
+	}{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Sessions:        acc.ListSessions(),
+	})
+}
+
+func (api *API) UserDeleteSession(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	sess := c.Params("session")
+	acc.DeleteSession(sess)
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }

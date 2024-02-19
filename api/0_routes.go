@@ -68,6 +68,8 @@ func StartServer(api API) error {
 	app.Patch("/user", api.UserUpdate)             //change name, password, totp
 	app.Post("/user/avatar", api.UserAvatarUpdate) //avatar
 	app.Get("/user/joinguild", api.UserJoinGuild)  //avatar
+	app.Get("/user/sessions", api.UserListSessions)
+	app.Delete("/user/session/:session", api.UserDeleteSession)
 
 	app.Get("/payments", api.PaymentsGet)     // get payments
 	app.Post("/payments", api.PaymentsCreate) //create payment
@@ -164,6 +166,11 @@ func getIP(ctx *fiber.Ctx) string {
 		IPAddr = strings.Split(ctx.IP(), ":")[0]
 	}
 	return IPAddr
+}
+
+func getUserAgent(ctx *fiber.Ctx) string {
+	ua := ctx.Get("User-Agent", "Unknown")
+	return utils.ParseUserAgent(ua)
 }
 
 func (api *API) performAuth(c *fiber.Ctx, acc *providers.Account) bool {

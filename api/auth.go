@@ -66,7 +66,7 @@ func (api *API) AuthLogin(c *fiber.Ctx) error {
 
 	return c.JSON(structs.AuthLoginResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("Logged in"),
-		Token:           acc.NewSession(acc.Data().UID),
+		Token:           acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c)),
 	})
 }
 
@@ -82,7 +82,9 @@ func (api *API) AuthConfirmEmail(c *fiber.Ctx) error {
 	}
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
 	c.Set("Content-Type", "text/html")
-	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", acc.NewSession(acc.Data().UID)))
+	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r),
+		"{uname}", acc.Data().Uname), "{token}", acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c)),
+	))
 }
 
 // AuthRecoverPassword sends email to user with randomly generated password
@@ -115,7 +117,7 @@ func (api *API) AuthDiscord(c *fiber.Ctx) error {
 	if utils.Should(err) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Unauthorized"))
 	}
-	token := acc.NewSession(acc.Data().UID)
+	token := acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c))
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/DiscordConfirmationIndex.html")
 	c.Set("Content-Type", "text/html")
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token))

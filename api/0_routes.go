@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"log"
@@ -51,6 +52,9 @@ func StartServer(api API) error {
 		},
 		EnableStackTrace: true,
 	}))
+	app.Use(pprof.New(pprof.Config{
+		Prefix: "/highlyadvertisedendpointplsdontdoanythingbad",
+	}))
 	app.Get("/antiswagger/*", swagger.HandlerDefault) //Swag
 
 	app.All("/", shield)
@@ -69,7 +73,7 @@ func StartServer(api API) error {
 	app.Post("/user/avatar", api.UserAvatarUpdate) //avatar
 	app.Get("/user/joinguild", api.UserJoinGuild)  //avatar
 	app.Get("/user/sessions", api.UserListSessions)
-	app.Delete("/user/session/:session", api.UserDeleteSession)
+	app.Delete("/user/sessions", api.UserDeleteSessions)
 
 	app.Get("/payments", api.PaymentsGet)     // get payments
 	app.Post("/payments", api.PaymentsCreate) //create payment
@@ -110,6 +114,7 @@ func StartServer(api API) error {
 	gdps.Put("/music", api.ManageGDPSAddMusic)           //put songs
 	gdps.Get("/roles", api.ManageGDPSGetRoles)           //get roles
 	gdps.Post("/roles", api.ManageGDPSSetRole)           //create or update role
+	gdps.Get("/levelpacks", api.ManageGDPSGetLevelPacks) //get levelpacks
 
 	gdps.Get("/get/users", api.ManageGDPSQueryUsers) //get users
 

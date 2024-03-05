@@ -189,12 +189,12 @@ func (api *API) UserListSessions(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) UserDeleteSession(c *fiber.Ctx) error {
+func (api *API) UserDeleteSessions(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	if !api.performAuth(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
-	sess := c.Params("session")
-	acc.DeleteSession(sess)
+	sess := c.Get("Authorization")
+	acc.DeleteSessions(sess)
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }

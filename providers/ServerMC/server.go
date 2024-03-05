@@ -32,6 +32,12 @@ func (smp *ServerMCProvider) GetUserServers(uid int) (srvs []*db.ServerMc) {
 	return
 }
 
+func (smp *ServerMCProvider) CountServers() int {
+	var cnt int64
+	smp.db.Model(db.ServerMc{}).Count(&cnt)
+	return int(cnt)
+}
+
 func (smp *ServerMCProvider) New() *ServerMC {
 	return &ServerMC{
 		p: smp,

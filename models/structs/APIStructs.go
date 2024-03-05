@@ -199,6 +199,11 @@ type InjectedGDRole struct {
 	Users []gdps_db.UserNano `json:"users" gorm:"-"`
 }
 
+type InjectedGDLevelPack struct {
+	gdps_db.LevelPack
+	Levels []gdps_db.LevelNano `json:"levels" gorm:"-"`
+}
+
 type APIRolesResponse struct {
 	APIBasicSuccess
 	Roles []InjectedGDRole `json:"roles"`
@@ -207,6 +212,11 @@ type APIRolesResponse struct {
 type APIGDPSUsersResponse struct {
 	APIBasicSuccess
 	Users []gdps_db.UserNano `json:"users"`
+}
+
+type APILevelpacksResponse struct {
+	APIBasicSuccess
+	Packs []InjectedGDLevelPack `json:"packs"`
 }
 
 type APIParticleSearchRequest struct {

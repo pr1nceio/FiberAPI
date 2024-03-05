@@ -23,11 +23,13 @@ func (api *API) FetchStats(c *fiber.Ctx) error {
 		Clients    int    `json:"clients"`
 		GDPSCount  int    `json:"gdps_count"`
 		GDPSlevels int    `json:"gdps_levels"`
+		MCCount    int    `json:"mc_count"`
 	}{
 		"ok",
 		api.AccountProvider.GetUserCount(),
 		api.ServerGDProvider.CountServers(),
 		api.ServerGDProvider.CountLevels(),
+		api.ServerMCProvider.CountServers(),
 	})
 }
 

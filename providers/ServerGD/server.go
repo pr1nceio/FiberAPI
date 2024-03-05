@@ -710,8 +710,11 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 		}
 	}
 
+	initialSRVID := ""
+	s.p.db.Model(db.ServerGd{}).Order("id DESC").Select("srvid").First(&initialSRVID)
+
 	cs := db.ServerGd{
-		SrvID:      cbs.CheckAvail("0001"),
+		SrvID:      cbs.CheckAvail(initialSRVID),
 		OwnerID:    uid,
 		Plan:       tariffid,
 		SrvName:    name,

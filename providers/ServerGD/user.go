@@ -1,6 +1,7 @@
 package ServerGD
 
 import (
+	"crypto/sha1"
 	"errors"
 	"fmt"
 	gorm "github.com/cradio/gormx"
@@ -75,16 +76,15 @@ func (u *ServerGDUser) UpdateIP(ip string) {
 	u.db.Where(gdps_db.User{UID: u.acc.UID}).Updates(gdps_db.User{LastIP: ip})
 }
 
-func (u *ServerGDUser) changePassword(passhash string) {
-	u.db.Where(gdps_db.User{UID: u.acc.UID}).Updates(gdps_db.User{Passhash: passhash})
+func (u *ServerGDUser) changePassword(passhash string, gjp2 string) {
+	u.db.Where(gdps_db.User{UID: u.acc.UID}).Updates(gdps_db.User{Passhash: passhash, Gjphash: gjp2})
 }
 
 func (u *ServerGDUser) UserChangePassword(pass string) error {
 	if len(pass) < 5 || len(pass) > 32 {
 		return errors.New("Password is too short or too long |pwd_shrt")
 	}
-	pass = utils.SHA256(utils.SHA512(pass) + "SaltyTruth:sob:")
-	u.changePassword(pass)
+	u.changePassword(utils.SHA256(utils.SHA512(pass)+"SaltyTruth:sob:"), DoGjp2(pass))
 	return nil
 }
 
@@ -152,7 +152,7 @@ func (u *ServerGDUser) LogIn(uname string, pass string, ip string, uid int, rawh
 
 		passx := utils.SHA256(utils.SHA512(pass) + "SaltyTruth:sob:")
 		if len(u.acc.Passhash) == 36 {
-			u.changePassword(passx)
+			u.changePassword(passx, DoGjp2(pass))
 			passx = utils.MD5(utils.MD5(pass+"HalogenCore1704")+"ae07") + utils.MD5(pass)[:4]
 		}
 
@@ -166,4 +166,10 @@ func (u *ServerGDUser) LogIn(uname string, pass string, ip string, uid int, rawh
 		}
 	}
 	return -1
+}
+
+func DoGjp2(password string) string {
+	sha := sha1.New()
+	sha.Write([]byte(password + "mI29fmAnxgTs"))
+	return fmt.Sprintf("%x", sha.Sum(nil))
 }

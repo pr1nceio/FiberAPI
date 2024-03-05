@@ -163,11 +163,15 @@ func (a *Account) ListSessions() []*Session {
 	return sessions
 }
 
-func (a *Account) DeleteSession(session string) {
-	if !strings.HasPrefix(session, fmt.Sprintf("%d.", a.user.UID)) {
-		return
+func (a *Account) DeleteSessions(session string) {
+	ctx := context.Background()
+	iter := a.p.redis.Get("sessions").Scan(ctx, 0, fmt.Sprintf("%d.*", a.user.UID), 0).Iterator()
+	for iter.Next(ctx) {
+		key := iter.Val()
+		if key != session {
+			a.p.redis.Get("sessions").Del(context.Background(), key)
+		}
 	}
-	a.p.redis.Get("sessions").Del(context.Background(), session)
 }
 
 //endregion

@@ -45,6 +45,22 @@ type Level struct {
 	StringSettings       string    `gorm:"column:stringSettings;type:text;size:16777215;" json:"string_settings"`
 }
 
+type LevelNano struct {
+	ID              int       `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"id"`
+	Name            string    `gorm:"column:name;type:varchar;size:32;default:Unnamed;" json:"name"`
+	UID             int       `gorm:"column:uid;type:int;" json:"uid"`
+	Length          int       `gorm:"column:length;type:tinyint;default:0;" json:"length"`
+	Difficulty      int       `gorm:"column:difficulty;type:tinyint;default:0;" json:"difficulty"`
+	DemonDifficulty int       `gorm:"column:demonDifficulty;type:tinyint;default:-1;" json:"demon_difficulty"`
+	VersionGame     int       `gorm:"column:versionGame;type:tinyint;" json:"version_game"`
+	StarsGot        int       `gorm:"column:starsGot;type:tinyint;default:0;" json:"stars_got"`
+	Downloads       uint      `gorm:"column:downloads;type:uint;default:0;" json:"downloads"`
+	Likes           int       `gorm:"column:likes;type:int;default:0;" json:"likes"`
+	IsFeatured      int       `gorm:"column:isFeatured;type:tinyint;default:0;" json:"is_featured"`
+	IsEpic          int       `gorm:"column:isEpic;type:tinyint;default:0;" json:"is_epic"`
+	UpdateDate      time.Time `gorm:"column:updateDate;type:datetime;" json:"update_date"`
+}
+
 func (l *Level) TableName() string {
 	return "levels"
 }

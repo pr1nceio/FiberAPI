@@ -445,6 +445,24 @@ func (api *API) ManageGDPSQueryUsers(c *fiber.Ctx) error {
 	})
 }
 
+func (api *API) ManageGDPSGetLevelPacks(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	packs := interactor.GetPack(c.QueryBool("gau"))
+	return c.JSON(structs.APILevelpacksResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Packs:           packs,
+	})
+}
+
 func (api *API) ManageGDPSPressStart22Upgrade(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()

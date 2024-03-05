@@ -39,6 +39,8 @@ func (i *ServerGDInteractor) Dispose() {
 	}
 }
 
+// region Roles
+
 func (i *ServerGDInteractor) GetRoles() []structs.InjectedGDRole {
 	var roles []gdps_db.Role
 	var uniRoles []structs.InjectedGDRole
@@ -74,6 +76,34 @@ func (i *ServerGDInteractor) SetRoleUsers(roleId int, users []int) error {
 	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Where("role_id=?", roleId).Update(gorm.Column(gdps_db.User{}, "RoleID"), 0)
 	return i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Where("uid IN ?", users).Update(gorm.Column(gdps_db.User{}, "RoleID"), roleId).Error
 }
+
+// endregion
+
+// region Levelpacks
+
+func (i *ServerGDInteractor) GetPack(isgau bool) []structs.InjectedGDLevelPack {
+	var packs []gdps_db.LevelPack
+	var uniPacks []structs.InjectedGDLevelPack
+	mode := "0"
+	if isgau {
+		mode = "1"
+	}
+	i.p.mdb.UTable(i.db, (&gdps_db.LevelPack{}).TableName()).Where(
+		fmt.Sprintf("%s=?", gorm.Column(gdps_db.LevelPack{}, "PackType")), mode,
+	).Find(&packs)
+	for _, pack := range packs {
+		var lvls []gdps_db.LevelNano
+		i.p.mdb.UTable(i.db, (&gdps_db.Level{}).TableName()).Where("id IN (?)", pack.Levels).Find(&lvls)
+		uniPacks = append(uniPacks, structs.InjectedGDLevelPack{
+			LevelPack: pack,
+			Levels:    lvls,
+		})
+	}
+
+	return uniPacks
+}
+
+//endregion
 
 func (i *ServerGDInteractor) SearchUsers(query string) []gdps_db.UserNano {
 	if len(query) < 3 {

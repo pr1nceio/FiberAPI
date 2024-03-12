@@ -7,6 +7,7 @@ import (
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/utils"
 	"log"
+	"strings"
 )
 
 type ServerGDInteractor struct {
@@ -93,7 +94,7 @@ func (i *ServerGDInteractor) GetPack(isgau bool) []structs.InjectedGDLevelPack {
 	).Find(&packs)
 	for _, pack := range packs {
 		var lvls []gdps_db.LevelNano
-		i.p.mdb.UTable(i.db, (&gdps_db.Level{}).TableName()).Where("id IN (?)", pack.Levels).Find(&lvls)
+		i.p.mdb.UTable(i.db, (&gdps_db.Level{}).TableName()).Where("id IN (?)", strings.Split(pack.Levels, ",")).Find(&lvls)
 		uniPacks = append(uniPacks, structs.InjectedGDLevelPack{
 			LevelPack: pack,
 			Levels:    lvls,

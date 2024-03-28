@@ -116,7 +116,8 @@ func StartServer(api API) error {
 	gdps.Post("/roles", api.ManageGDPSSetRole)           //create or update role
 	gdps.Get("/levelpacks", api.ManageGDPSGetLevelPacks) //get levelpacks
 
-	gdps.Get("/get/users", api.ManageGDPSQueryUsers) //get users
+	gdps.Get("/get/users", api.ManageGDPSQueryUsers)   //get users
+	gdps.Get("/get/levels", api.ManageGDPSQueryLevels) //get levels
 
 	gdps.Put("/modules/discord", api.ManageGDPSDiscordModule)
 

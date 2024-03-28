@@ -7,6 +7,7 @@ import (
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/utils"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -82,7 +83,7 @@ func (i *ServerGDInteractor) SetRoleUsers(roleId int, users []int) error {
 
 // region Levelpacks
 
-func (i *ServerGDInteractor) GetPack(isgau bool) []structs.InjectedGDLevelPack {
+func (i *ServerGDInteractor) GetPacks(isgau bool) []structs.InjectedGDLevelPack {
 	var packs []gdps_db.LevelPack
 	var uniPacks []structs.InjectedGDLevelPack
 	mode := "0"
@@ -104,6 +105,20 @@ func (i *ServerGDInteractor) GetPack(isgau bool) []structs.InjectedGDLevelPack {
 	return uniPacks
 }
 
+func (i *ServerGDInteractor) SetPack(pack structs.InjectedGDLevelPack) error {
+	purePack := pack.LevelPack
+	purePack.Levels = ""
+	for _, lvl := range pack.Levels {
+		purePack.Levels += strconv.Itoa(lvl.ID) + ","
+	}
+	purePack.Levels = strings.TrimRight(purePack.Levels, ",")
+	return i.p.mdb.UTable(i.db, (&gdps_db.LevelPack{}).TableName()).Save(&purePack).Error
+}
+
+func (i *ServerGDInteractor) DeletePack(id int) error {
+	return i.p.mdb.UTable(i.db, (&gdps_db.LevelPack{}).TableName()).Delete(&gdps_db.LevelPack{ID: id}).Error
+}
+
 //endregion
 
 func (i *ServerGDInteractor) SearchUsers(query string) []gdps_db.UserNano {
@@ -113,6 +128,15 @@ func (i *ServerGDInteractor) SearchUsers(query string) []gdps_db.UserNano {
 	var users []gdps_db.UserNano
 	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Where("uname LIKE ?", "%"+query+"%").Find(&users)
 	return users
+}
+
+func (i *ServerGDInteractor) SearchLevels(query string) []gdps_db.LevelNano {
+	if len(query) < 3 {
+		return nil
+	}
+	var levels []gdps_db.LevelNano
+	i.p.mdb.UTable(i.db, (&gdps_db.Level{}).TableName()).Where("name LIKE ?", "%"+query+"%").Or("id=?", query).Find(&levels)
+	return levels
 }
 
 func (i *ServerGDInteractor) CountActiveUsersLastWeek() int {

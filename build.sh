@@ -22,5 +22,5 @@ echo -e "${GREEN}Building...${GRAY}"
 CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o FiberAPI ./cmd/...
 R=fiber_api
 echo -e "${GREEN}Pushing to $R...${NC}"
-sudo docker build -t cr.yandex/crpr24jcqm2dno6qlm3b/$R . && docker push cr.yandex/crpr24jcqm2dno6qlm3b/$R
+docker build -t cr.yandex/crpr24jcqm2dno6qlm3b/$R . && docker push cr.yandex/crpr24jcqm2dno6qlm3b/$R
 echo -e "${GREEN}Done.${NC}"

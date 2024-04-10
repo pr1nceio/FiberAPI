@@ -115,6 +115,8 @@ func StartServer(api API) error {
 	gdps.Get("/roles", api.ManageGDPSGetRoles)           //get roles
 	gdps.Post("/roles", api.ManageGDPSSetRole)           //create or update role
 	gdps.Get("/levelpacks", api.ManageGDPSGetLevelPacks) //get levelpacks
+	gdps.Delete("/levelpack/:id", api.ManageGDPSDeleteLevelPack)
+	gdps.Post("/levelpack", api.ManageGDPSEditLevelPack)
 
 	gdps.Get("/get/users", api.ManageGDPSQueryUsers)   //get users
 	gdps.Get("/get/levels", api.ManageGDPSQueryLevels) //get levels
@@ -160,7 +162,20 @@ func StartServer(api API) error {
 	app.Get("/repatch/gd/:id", api.RepatchGDInfo)
 	// endregion
 
+	routes := collectRoutes(app)
+	app.Get("/highlyadvertisedendpoint", func(c *fiber.Ctx) error {
+		return c.SendString(strings.Join(routes, "\n"))
+	})
+
 	return app.Listen(api.Host)
+}
+
+func collectRoutes(app *fiber.App) []string {
+	var routes []string
+	for _, route := range app.GetRoutes(true) {
+		routes = append(routes, fmt.Sprintf("%s %s", route.Method, route.Path))
+	}
+	return routes
 }
 
 func getIP(ctx *fiber.Ctx) string {

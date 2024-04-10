@@ -50,28 +50,28 @@ func (m *MusicService) GetExMusic(mtype string, id string) (*structs.MusicRespon
 	}
 	switch mtype {
 	case "ng":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/newgrounds?track=" + id + "&onbehalf=" + m.onBehalf)
+		resp, err := http.Get("http://127.0.0.1:8001/newgrounds?track=" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
 		rsp, _ := io.ReadAll(resp.Body)
 		json.Unmarshal(rsp, &mus)
 	case "sc":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/soundcloud?track=https://soundcloud.com/" + id + "&onbehalf=" + m.onBehalf)
+		resp, err := http.Get("http://127.0.0.1:8001/soundcloud?track=https://soundcloud.com/" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
 		rsp, _ := io.ReadAll(resp.Body)
 		json.Unmarshal(rsp, &mus)
 	case "vk":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/vk?track=" + id + "&onbehalf=" + m.onBehalf)
+		resp, err := http.Get("http://127.0.0.1:8001/vk?track=" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
 		rsp, _ := io.ReadAll(resp.Body)
 		json.Unmarshal(rsp, &mus)
 	case "yt":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/youtube?track=https://youtube.com/watch?v=" + id + "&onbehalf=" + m.onBehalf)
+		resp, err := http.Get("http://127.0.0.1:8001/youtube?track=https://youtube.com/watch?v=" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (m *MusicService) GetExMusic(mtype string, id string) (*structs.MusicRespon
 		json.Unmarshal(rsp, &mus)
 		mus.Url = "https://cdn2.fruitspace.one/music/yt_" + id + ".mp3"
 	case "dz":
-		resp, err := http.Get("https://api.fruitspace.one/hmusic/deezer?track=https://deezer.page.link/" + id + "&onbehalf=" + m.onBehalf)
+		resp, err := http.Get("http://127.0.0.1:8001/deezer?track=https://deezer.page.link/" + id + "&onbehalf=" + m.onBehalf)
 		if err != nil {
 			return nil, err
 		}

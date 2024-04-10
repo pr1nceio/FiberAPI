@@ -463,6 +463,51 @@ func (api *API) ManageGDPSGetLevelPacks(c *fiber.Ctx) error {
 	})
 }
 
+func (api *API) ManageGDPSDeleteLevelPack(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	param, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
+	}
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	err = interactor.DeletePack(param)
+	if err != nil {
+		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
+	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
+func (api *API) ManageGDPSEditLevelPack(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.performAuth(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+
+	var data structs.InjectedGDLevelPack
+	if c.BodyParser(&data) != nil {
+		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	err := interactor.SetPack(data)
+	if err != nil {
+		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
+	}
+	return c.JSON(structs.NewAPIBasicResponse("Success"))
+}
+
 func (api *API) ManageGDPSQueryLevels(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()

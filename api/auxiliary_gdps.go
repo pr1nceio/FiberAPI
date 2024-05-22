@@ -4,16 +4,37 @@ import (
 	"errors"
 	"fmt"
 	fiberapi "github.com/fruitspace/FiberAPI"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers/ServerGD"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/proxy"
 	"strconv"
 	"strings"
 )
 
-func (api *API) AuxiliaryGDPSLogin(c *fiber.Ctx) error {
+type AuxiliaryGDPSAPI struct {
+	*ent.API
+}
+
+func (api *AuxiliaryGDPSAPI) Register(router fiber.Router) error {
+	router.Post("/login", api.Login)
+	router.Get("/", api.Auth)
+	router.Put("/", api.ChangeCreds)
+	router.Post("/music", api.GetMusic)
+	router.Put("/music", api.AddMusic)
+	router.Post("/recover", api.ForgotPassword)
+	router.Group("/gdproxy").Use(func(c *fiber.Ctx) error {
+		c.Request().Header.Set("User-Agent", "")
+		c.Request().SetHost("www.boomlings.com")
+		return proxy.Do(c, "https://www.boomlings.com/database"+strings.Split(c.Path(), "/gdproxy")[1])
+	})
+	return nil
+}
+
+func (api *AuxiliaryGDPSAPI) Login(c *fiber.Ctx) error {
 	srvid := c.Params("srvid")
 	var data structs.AuthLoginRequest
 	if c.BodyParser(&data) != nil {
@@ -55,7 +76,7 @@ func (api *API) AuxiliaryGDPSLogin(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIError("Error", strconv.Itoa(res)))
 }
 
-func (api *API) AuxiliaryGDPSForgotPassword(c *fiber.Ctx) error {
+func (api *AuxiliaryGDPSAPI) ForgotPassword(c *fiber.Ctx) error {
 	srvid := c.Params("srvid")
 	var data struct {
 		Email         string `json:"email"`
@@ -95,7 +116,7 @@ func (api *API) AuxiliaryGDPSForgotPassword(c *fiber.Ctx) error {
 	return c.JSON(structs.NewDecoupleAPIError(err))
 }
 
-func (api *API) AuxiliaryGDPSAuth(c *fiber.Ctx) error {
+func (api *AuxiliaryGDPSAPI) Auth(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
 	defer func() {
@@ -116,7 +137,7 @@ func (api *API) AuxiliaryGDPSAuth(c *fiber.Ctx) error {
 	return c.JSON(data)
 }
 
-func (api *API) AuxiliaryGDPSChangeCreds(c *fiber.Ctx) error {
+func (api *AuxiliaryGDPSAPI) ChangeCreds(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	var data struct {
 		Email    string `json:"email"`
@@ -150,7 +171,7 @@ func (api *API) AuxiliaryGDPSChangeCreds(c *fiber.Ctx) error {
 	return c.JSON(structs.NewDecoupleAPIError(err))
 }
 
-func (api *API) AuxiliaryGDPSAddMusic(c *fiber.Ctx) error {
+func (api *AuxiliaryGDPSAPI) AddMusic(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
 	defer func() {
@@ -185,7 +206,7 @@ func (api *API) AuxiliaryGDPSAddMusic(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) AuxiliaryGDPSGetMusic(c *fiber.Ctx) error {
+func (api *AuxiliaryGDPSAPI) GetMusic(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
 	defer func() {
@@ -212,7 +233,7 @@ func (api *API) AuxiliaryGDPSGetMusic(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) AuxiliaryGDPSChangePassword(c *fiber.Ctx) error {
+func (api *AuxiliaryGDPSAPI) ChangePassword(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	acc, err := api.gdpsUserAuth(c, srv)
 	defer func() {
@@ -239,7 +260,7 @@ func (api *API) AuxiliaryGDPSChangePassword(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) gdpsUserAuth(c *fiber.Ctx, srv *ServerGD.ServerGD) (*ServerGD.ServerGDUser, error) {
+func (api *AuxiliaryGDPSAPI) gdpsUserAuth(c *fiber.Ctx, srv *ServerGD.ServerGD) (*ServerGD.ServerGDUser, error) {
 	srvid := c.Params("srvid")
 	token := strings.Split(c.Get("Authorization"), ":")
 	if len(token) != 2 {

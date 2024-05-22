@@ -2,10 +2,21 @@ package api
 
 import (
 	fiberapi "github.com/fruitspace/FiberAPI"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/exp/slices"
 )
+
+type PaymentsAPI struct {
+	*ent.API
+}
+
+func (api *PaymentsAPI) Register(router fiber.Router) error {
+	router.Get("/payments", api.GetPayments) // get payments
+	router.Post("/payments", api.Create)     //create payment
+	return nil
+}
 
 // PaymentsCreate creates invoice for specified merchant
 // @Tags Payments
@@ -18,9 +29,9 @@ import (
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /payments [post]
-func (api *API) PaymentsCreate(c *fiber.Ctx) error {
+func (api *PaymentsAPI) Create(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	var data structs.APIPaymentRequest
@@ -53,9 +64,9 @@ func (api *API) PaymentsCreate(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /payments [get]
-func (api *API) PaymentsGet(c *fiber.Ctx) error {
+func (api *PaymentsAPI) GetPayments(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 

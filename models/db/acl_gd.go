@@ -1,9 +1,9 @@
 package db
 
 type ACLGd struct {
-	ID               string `gorm:"primary_key;column:id;type:varchar;size:64;" json:"id"`
+	ID               string `gorm:"primary_key;column:id;type:varchar(64);size:64;" json:"id"`
 	UID              int    `gorm:"column:uid;type:int;" json:"uid"`
-	TargetID         string `gorm:"column:target_id;type:varchar;size:64;" json:"target_id"`
+	TargetID         string `gorm:"column:target_id;type:varchar(64);size:64;" json:"target_id"`
 	CanAccess        bool   `gorm:"column:canAccess;type:tinyint;default:0;" json:"can_access"`
 	CanModerateMusic bool   `gorm:"column:canModerateMusic;type:tinyint;default:0;" json:"can_moderate_music"`
 	CanViewPlayers   bool   `gorm:"column:canViewPlayers;type:tinyint;default:0;" json:"can_view_players"`

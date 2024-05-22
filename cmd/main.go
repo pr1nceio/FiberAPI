@@ -5,10 +5,11 @@ import (
 	"fmt"
 	mysql "github.com/cradio/gorm_mysql"
 	"github.com/cradio/gormx"
-	"github.com/cradio/gormx/logger"
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/api"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	_ "github.com/fruitspace/FiberAPI/docs"
+	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/providers/ServerGD"
 	"github.com/fruitspace/FiberAPI/providers/ServerMC"
@@ -31,20 +32,20 @@ func main() {
 	defer sentry.Flush(2 * time.Second)
 
 	if len(os.Args) > 1 && os.Args[1] == "-test" {
-		api.StartServer(api.API{Host: ":8080"})
+		api.StartServer(ent.API{Host: ":8080"})
 		return
 	}
 
 	// Bind Databases
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			LogLevel: logger.Info, // Log level
-		},
-	)
+	//newLogger := logger.New(
+	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	//	logger.Config{
+	//		LogLevel: logger.Info, // Log level
+	//	},
+	//)
 	DB, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true",
 		fiberapi.DB_USER, fiberapi.DB_PASS, fiberapi.DB_HOST, fiberapi.DB_NAME)), &gorm.Config{
-		Logger:                 newLogger,
+		//Logger:                 newLogger,
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
@@ -52,6 +53,10 @@ func main() {
 		//CachedKV.Close()
 		time.Sleep(10 * time.Second)
 		main()
+	}
+
+	if err = DB.AutoMigrate(&db.ServerGd{}); err != nil {
+		log.Println(err)
 	}
 
 	//Bind Redis
@@ -67,8 +72,8 @@ func main() {
 		main()
 	}
 
-	GDPS_DB, _ := sql.Open("mysql", fiberapi.GDPSDB_USER+":"+fiberapi.GDPSDB_PASS+"@tcp("+fiberapi.GDPSDB_HOST+")/?parseTime=true&multiStatements=true")
-
+	gdpsdbDSN := fiberapi.GDPSDB_USER + ":" + fiberapi.GDPSDB_PASS + "@tcp(" + fiberapi.GDPSDB_HOST + ")/?parseTime=true&multiStatements=true"
+	GDPS_DB, _ := sql.Open("mysql", gdpsdbDSN)
 	//providers
 	accProvider := providers.NewAccountProvider(DB, Redis).
 		WithKeys(fiberapi.KEYS, fiberapi.CONFIG, fiberapi.S3_CONFIG).
@@ -77,7 +82,7 @@ func main() {
 	payProvider := providers.NewPaymentProvider(DB, fiberapi.PAYMENTS_HOST)
 	promoProvider := providers.NewPromocodeProvider(DB)
 	shopProvider := providers.NewShopProvider(DB)
-	srvGDProvider := ServerGD.NewServerGDProvider(DB, utils.NewMultiSQL(GDPS_DB), Redis).
+	srvGDProvider := ServerGD.NewServerGDProvider(DB, utils.NewMultiSQL(GDPS_DB, gdpsdbDSN), Redis).
 		WithKeys(fiberapi.KEYS, fiberapi.CONFIG, fiberapi.S3_CONFIG, fiberapi.MINIO_CONFIG).
 		WithAssets(&fiberapi.AssetsDir).
 		WithPaymentsProvider(payProvider)
@@ -90,7 +95,7 @@ func main() {
 		utils.SendMessageDiscord("Maintenance and Lock functionality will be degraded. Error: " + err.Error())
 	}
 
-	API := api.API{
+	API := ent.API{
 		AccountProvider:      accProvider,
 		NotificationProvider: notifProvider,
 		PaymentProvider:      payProvider,

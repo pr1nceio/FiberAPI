@@ -2,9 +2,22 @@ package api
 
 import (
 	"errors"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 )
+
+type ServersAPI struct {
+	*ent.API
+}
+
+func (api *ServersAPI) Register(router fiber.Router) error {
+	router.Get("/", api.ListServers)
+	router.Post("/servers/gd", api.CreateGD)
+	router.Post("/servers/mc", api.CreateMC)
+
+	return nil
+}
 
 // ServersList returns list of user servers
 // @Tags Server Management
@@ -16,9 +29,9 @@ import (
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers [get]
-func (api *API) ServersList(c *fiber.Ctx) error {
+func (api *ServersAPI) ListServers(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	return c.JSON(structs.APIServerListResponse{
@@ -40,9 +53,9 @@ func (api *API) ServersList(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd [post]
-func (api *API) ServersCreateGD(c *fiber.Ctx) error {
+func (api *ServersAPI) CreateGD(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	var data structs.APIServerGDCreateRequest
@@ -67,9 +80,9 @@ func (api *API) ServersCreateGD(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse(srvid))
 }
 
-func (api *API) ServersCreateMC(c *fiber.Ctx) error {
+func (api *ServersAPI) CreateMC(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	var data structs.APIServerMCCreateRequest

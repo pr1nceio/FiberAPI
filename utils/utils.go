@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/md5"
+	cryrand "crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -10,12 +11,13 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/oliamb/cutter"
+	"golang.org/x/exp/rand"
 	"golang.org/x/exp/slices"
 	"image"
 	"io"
 	"log"
 	"math"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -212,7 +214,14 @@ func GenString(length int) string {
 	var str string
 	alpha := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	for i := 0; i < length; i++ {
-		str += string(alpha[rand.Intn(len(alpha))])
+		xr := 0
+		randN, err := cryrand.Int(cryrand.Reader, big.NewInt(int64(len(alpha))))
+		if err != nil {
+			xr = rand.Intn(len(alpha))
+		} else {
+			xr = int(randN.Int64())
+		}
+		str += string(alpha[xr])
 	}
 	return str
 }

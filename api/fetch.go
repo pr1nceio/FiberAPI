@@ -2,14 +2,30 @@ package api
 
 import (
 	fiberapi "github.com/fruitspace/FiberAPI"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"math"
 	"strconv"
 )
 
+type FetchAPI struct {
+	*ent.API
+}
+
+func (api *FetchAPI) Register(router fiber.Router) error {
+	router.Get("/stats", api.Stats)
+	router.Get("/bot_discord", api.DiscordUsers)
+	router.Get("/bot_discord_info", api.DiscordUserInfo)
+	router.Get("/gd/tariffs", api.GDTariffs)
+	router.Get("/gd/top", api.GDTopServers)
+	router.Get("/gd/info/:srvid", api.GDServerInfo) // get public gdps download card
+	router.Get("/mc/cores", api.MinecraftCores)
+	return nil
+}
+
 // FetchGDTariffs returns a list of available GDPS Tariffs [/fetch/gd/tariffs]
-func (api *API) FetchGDTariffs(c *fiber.Ctx) error {
+func (api *FetchAPI) GDTariffs(c *fiber.Ctx) error {
 	return c.JSON(struct {
 		Status  string `json:"status"`
 		Tariffs map[string]structs.GDTariff
@@ -17,7 +33,7 @@ func (api *API) FetchGDTariffs(c *fiber.Ctx) error {
 }
 
 // FetchStats returns all server type count stats
-func (api *API) FetchStats(c *fiber.Ctx) error {
+func (api *FetchAPI) Stats(c *fiber.Ctx) error {
 	return c.JSON(struct {
 		Status     string `json:"status"`
 		Clients    int    `json:"clients"`
@@ -41,13 +57,13 @@ func (api *API) FetchStats(c *fiber.Ctx) error {
 // @Param srvid path string true "GDPS Server ID"
 // @Response 200 {object} db.ServerGdReduced
 // @Router /fetch/gd/info/{srvid} [get]
-func (api *API) FetchGDServerInfo(c *fiber.Ctx) error {
+func (api *FetchAPI) GDServerInfo(c *fiber.Ctx) error {
 	gdpsID := c.Params("srvid")
 	server := api.ServerGDProvider.New().GetReducedServer(gdpsID)
 	return c.JSON(server)
 }
 
-func (api *API) FetchGDTopServers(c *fiber.Ctx) error {
+func (api *FetchAPI) GDTopServers(c *fiber.Ctx) error {
 	offsetp := c.Query("offset")
 	offset, _ := strconv.Atoi(offsetp)
 	servers := api.ServerGDProvider.GetTopServers(offset)
@@ -57,7 +73,7 @@ func (api *API) FetchGDTopServers(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) FetchDiscordUsers(c *fiber.Ctx) error {
+func (api *FetchAPI) DiscordUsers(c *fiber.Ctx) error {
 	accs := api.AccountProvider.GetDiscordIntegrations(false)
 	accsr := api.AccountProvider.GetDiscordIntegrations(true)
 	return c.JSON(map[string][]string{
@@ -66,7 +82,7 @@ func (api *API) FetchDiscordUsers(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) FetchDiscordUserInfo(c *fiber.Ctx) error {
+func (api *FetchAPI) DiscordUserInfo(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	if !acc.GetUserByDiscord(c.Query("discord_id", "-1")) {
 		return c.JSON(structs.NewAPIError("No User"))
@@ -91,7 +107,7 @@ func (api *API) FetchDiscordUserInfo(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) FetchMinecraftCores(c *fiber.Ctx) error {
+func (api *FetchAPI) MinecraftCores(c *fiber.Ctx) error {
 	return c.JSON(structs.MinecraftCoresResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
 		Cores:           structs.MCCoresEggs,

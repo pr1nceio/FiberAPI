@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
@@ -8,7 +9,17 @@ import (
 	"strings"
 )
 
-func (api *API) LegacyRepatchGetServerInfo(c *fiber.Ctx) error {
+type LegacyAPI struct {
+	*ent.API
+}
+
+func (api *LegacyAPI) Register(router fiber.Router) error {
+	router.Get("/repatch/getserverinfo", api.RepatchGetServerInfo)
+	router.Post("/repatch/report", api.RepatchUploadTelemetry)
+	return nil
+}
+
+func (api *LegacyAPI) RepatchGetServerInfo(c *fiber.Ctx) error {
 	srvid := c.Query("id")
 	server := api.ServerGDProvider.New().GetReducedServer(srvid)
 	if server.SrvName == "" {
@@ -38,7 +49,7 @@ func (api *API) LegacyRepatchGetServerInfo(c *fiber.Ctx) error {
 	return c.JSON(data)
 }
 
-func (api *API) LegacyRepatchUploadTelemetry(c *fiber.Ctx) error {
+func (api *LegacyAPI) RepatchUploadTelemetry(c *fiber.Ctx) error {
 	type Fingerprint struct {
 		CPU   string   `json:"cpu"`
 		Cores int      `json:"cores"`

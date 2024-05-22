@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
@@ -10,7 +11,16 @@ import (
 	"strconv"
 )
 
-func (api *API) AdminCleanUnpaidInstallers(c *fiber.Ctx) error {
+type AdminAPI struct {
+	*ent.API
+}
+
+func (api *AdminAPI) Register(route fiber.Router) error {
+	route.Get("/bot_clear", api.CleanUnpaidInstallers)
+	return nil
+}
+
+func (api *AdminAPI) CleanUnpaidInstallers(c *fiber.Ctx) error {
 	if c.Query("key") != "M41dss0nT0p" {
 		return c.Status(404).SendString("Cannot GET /admin/bot_clear")
 	}

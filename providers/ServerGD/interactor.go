@@ -130,8 +130,14 @@ func (i *ServerGDInteractor) SearchUsers(query string) []gdps_db.UserNano {
 	return users
 }
 
+func (i *ServerGDInteractor) ListUsers(page int) []gdps_db.UserNano {
+	var users []gdps_db.UserNano
+	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Order("uid").Offset(10 * page).Limit(10).Find(&users)
+	return users
+}
+
 func (i *ServerGDInteractor) SearchLevels(query string) []gdps_db.LevelNano {
-	if len(query) < 3 {
+	if _, err := strconv.Atoi(query); len(query) == 0 || (err != nil && len(query) < 3) {
 		return nil
 	}
 	var levels []gdps_db.LevelNano

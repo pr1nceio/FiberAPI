@@ -6,10 +6,10 @@ import (
 
 type Level struct {
 	ID                   int       `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"id"`
-	Name                 string    `gorm:"column:name;type:varchar;size:32;default:Unnamed;" json:"name"`
-	Description          string    `gorm:"column:description;type:varchar;size:256;" json:"description"`
+	Name                 string    `gorm:"column:name;type:varchar(32);size:32;default:Unnamed;" json:"name"`
+	Description          string    `gorm:"column:description;type:varchar(256);size:256;" json:"description"`
 	UID                  int       `gorm:"column:uid;type:int;" json:"uid"`
-	Password             string    `gorm:"column:password;type:varchar;size:8;" json:"password"`
+	Password             string    `gorm:"column:password;type:varchar(8);size:8;" json:"password"`
 	Version              int       `gorm:"column:version;type:tinyint;default:1;" json:"version"`
 	Length               int       `gorm:"column:length;type:tinyint;default:0;" json:"length"`
 	Difficulty           int       `gorm:"column:difficulty;type:tinyint;default:0;" json:"difficulty"`
@@ -47,7 +47,7 @@ type Level struct {
 
 type LevelNano struct {
 	ID              int       `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;" json:"id"`
-	Name            string    `gorm:"column:name;type:varchar;size:32;default:Unnamed;" json:"name"`
+	Name            string    `gorm:"column:name;type:varchar(32);size:32;default:Unnamed;" json:"name"`
 	UID             int       `gorm:"column:uid;type:int;" json:"uid"`
 	Length          int       `gorm:"column:length;type:tinyint;default:0;" json:"length"`
 	Difficulty      int       `gorm:"column:difficulty;type:tinyint;default:0;" json:"difficulty"`

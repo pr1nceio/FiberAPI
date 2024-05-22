@@ -3,23 +3,28 @@ package utils
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	mysql "github.com/cradio/gorm_mysql"
 	gorm "github.com/cradio/gormx"
-	"github.com/cradio/gormx/logger"
-	"log"
-	"os"
 )
 
 // MultiSQL allows to store multiple raw *sql.DB connections and create *gorm.DB instances out of them
 type MultiSQL struct {
 	db       *sql.DB
+	dsn      string
 	conns    map[string]*gorm.DB
 	mutators map[string]func(db string) string
+	errors   int
 }
 
-func NewMultiSQL(db *sql.DB) *MultiSQL {
-	return &MultiSQL{db: db, conns: make(map[string]*gorm.DB), mutators: make(map[string]func(db string) string)}
+func NewMultiSQL(db *sql.DB, dsn string) *MultiSQL {
+	return &MultiSQL{
+		db:       db,
+		conns:    make(map[string]*gorm.DB),
+		mutators: make(map[string]func(db string) string),
+		dsn:      dsn,
+	}
 }
 
 // AddMutator adds database name mutator function with specified name
@@ -45,7 +50,21 @@ func (m *MultiSQL) Mutate(name, value string) string {
 }
 
 func (m *MultiSQL) Raw() *sql.DB {
-	return m.db
+	return m.yield()
+}
+
+func (m *MultiSQL) yield() *sql.DB {
+	if m.db.Ping() == nil {
+		return m.db
+	}
+	// Restart
+	_ = m.db.Close()
+	if db, err := sql.Open("mysql", m.dsn); err == nil {
+		m.errors++
+		m.db = db
+		return m.db
+	}
+	panic(errors.New("cannot connect to database"))
 }
 
 func (m *MultiSQL) OpenMutated(name, db string) (*gorm.DB, error) {
@@ -66,14 +85,14 @@ func (m *MultiSQL) OpenCached(db string) (*gorm.DB, error) {
 
 func (m *MultiSQL) Open(db string) (*gorm.DB, error) {
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			LogLevel: logger.Info, // Log level
-		},
-	)
-	gdb, err := gorm.Open(mysql.New(mysql.Config{Conn: m.db}), &gorm.Config{
-		Logger:                 newLogger,
+	//newLogger := logger.New(
+	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	//	logger.Config{
+	//		LogLevel: logger.Info, // Log level
+	//	},
+	//)
+	gdb, err := gorm.Open(mysql.New(mysql.Config{Conn: m.yield()}), &gorm.Config{
+		//Logger:                 newLogger,
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {

@@ -1,11 +1,24 @@
 package api
 
 import (
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 )
 
-func (api *API) ParticleSearch(c *fiber.Ctx) error {
+type ParticleAPI struct {
+	*ent.API
+}
+
+func (api *ParticleAPI) Register(router fiber.Router) error {
+	router.Post("/search", api.Search)
+	router.Get("/user", api.GetUser)
+	router.Get("/v/:author/:name", api.Get)
+
+	return nil
+}
+
+func (api *ParticleAPI) Search(c *fiber.Ctx) error {
 	var req structs.APIParticleSearchRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(structs.NewAPIError("invalid json", err.Error()))
@@ -21,9 +34,9 @@ func (api *API) ParticleSearch(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) ParticleGet(c *fiber.Ctx) error {
+func (api *ParticleAPI) Get(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	author := c.Params("author")
@@ -37,10 +50,10 @@ func (api *API) ParticleGet(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(particle)
 }
 
-func (api *API) ParticleGetUser(c *fiber.Ctx) error {
+func (api *ParticleAPI) GetUser(c *fiber.Ctx) error {
 	q := c.QueryBool("reg")
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	pu := api.ParticleProvider.NewUser()

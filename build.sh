@@ -20,7 +20,7 @@ echo -e "${GREEN}Checking for cyclomatic complexity...${GRAY}"
 gocyclo -over 25 .
 echo -e "${GREEN}Building...${GRAY}"
 CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o FiberAPI ./cmd/...
-R=fiber_api
-echo -e "${GREEN}Pushing to $R...${NC}"
-docker build -t cr.yandex/crpr24jcqm2dno6qlm3b/$R . && docker push cr.yandex/crpr24jcqm2dno6qlm3b/$R
+#R=fiber_api
+#echo -e "${GREEN}Pushing to $R...${NC}"
+#docker build -t cr.yandex/crpr24jcqm2dno6qlm3b/$R . && docker push cr.yandex/crpr24jcqm2dno6qlm3b/$R
 echo -e "${GREEN}Done.${NC}"

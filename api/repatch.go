@@ -1,11 +1,21 @@
 package api
 
 import (
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 )
 
-func (api *API) RepatchGDInfo(c *fiber.Ctx) error {
+type RepatchAPI struct {
+	*ent.API
+}
+
+func (api *RepatchAPI) Register(router fiber.Router) error {
+	router.Get("/gd/:id", api.GDInfo)
+	return nil
+}
+
+func (api *RepatchAPI) GDInfo(c *fiber.Ctx) error {
 	srvid := c.Params("id")
 	server := api.ServerGDProvider.New().GetRepatchServer(srvid)
 	if server == nil {

@@ -2,12 +2,22 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"log"
 )
 
-func (api *API) APIGDPSSendWebhook(c *fiber.Ctx) error {
+type InternalGDPSApi struct {
+	*ent.API
+}
+
+func (api *InternalGDPSApi) Register(router fiber.Router) error {
+	router.Post("/gd/:srvid/webhook", api.SendWebhook)
+	return nil
+}
+
+func (api *InternalGDPSApi) SendWebhook(c *fiber.Ctx) error {
 	srvid := c.Params("srvid")
 	xtype := c.Query("type")
 	var data map[string]string

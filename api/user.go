@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	fiberapi "github.com/fruitspace/FiberAPI"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +11,21 @@ import (
 	"io"
 	"net/http"
 )
+
+type UserAPI struct {
+	*ent.API
+}
+
+func (api *UserAPI) Register(router fiber.Router) error {
+	router.Get("/", api.SSO)                 //sso, top_server
+	router.Patch("/", api.Update)            //change name, password, totp
+	router.Post("/avatar", api.AvatarUpdate) //avatar
+	router.Get("/joinguild", api.JoinGuild)  //avatar
+	router.Get("/sessions", api.ListSessions)
+	router.Delete("/sessions", api.DeleteSessions)
+
+	return nil
+}
 
 // UserSSO returns base information
 // @Tags User Management
@@ -21,9 +37,9 @@ import (
 // @Failure 403 {object} structs.APIError
 // @Failure 500 {object} structs.APIError
 // @Router /user [get]
-func (api *API) UserSSO(c *fiber.Ctx) error {
+func (api *UserAPI) SSO(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	aData := acc.Data()
@@ -60,9 +76,9 @@ func (api *API) UserSSO(c *fiber.Ctx) error {
 // @Failure 403 {object} structs.APIError
 // @Failure 500 {object} structs.APIError
 // @Router /user [patch]
-func (api *API) UserUpdate(c *fiber.Ctx) error {
+func (api *UserAPI) Update(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	var data structs.APIUserUpdateRequest
@@ -115,9 +131,9 @@ func (api *API) UserUpdate(c *fiber.Ctx) error {
 // @Failure 403 {object} structs.APIError
 // @Failure 500 {object} structs.APIError
 // @Router /user/avatar [post]
-func (api *API) UserAvatarUpdate(c *fiber.Ctx) error {
+func (api *UserAPI) AvatarUpdate(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	mpfd, err := c.MultipartForm()
@@ -163,9 +179,9 @@ func (api *API) UserAvatarUpdate(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) UserJoinGuild(c *fiber.Ctx) error {
+func (api *UserAPI) JoinGuild(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	err := acc.DiscordJoinGuild()
@@ -175,9 +191,9 @@ func (api *API) UserJoinGuild(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-func (api *API) UserListSessions(c *fiber.Ctx) error {
+func (api *UserAPI) ListSessions(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	return c.JSON(struct {
@@ -189,9 +205,9 @@ func (api *API) UserListSessions(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) UserDeleteSessions(c *fiber.Ctx) error {
+func (api *UserAPI) DeleteSessions(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	sess := c.Get("Authorization")

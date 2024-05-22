@@ -10,13 +10,12 @@ type GDTariff struct {
 	Comments int
 	Posts    int
 
-	CustomMusic  bool
-	Music        GDTariffMusic
-	GDLab        GDTariffBuildlab
-	ACL          bool
-	Shops        bool
-	Roles        bool
-	CustomChests bool
+	CustomMusic bool
+	Music       GDTariffMusic
+	GDLab       GDTariffBuildlab
+	ACL         bool
+	Shops       bool
+	Roles       bool
 
 	Modules    bool
 	Backups    bool
@@ -39,4 +38,5 @@ type GDTariffBuildlab struct {
 	Icons    bool
 	Textures bool
 	MultiVer bool
+	Extended bool
 }

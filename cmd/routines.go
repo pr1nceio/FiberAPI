@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/fruitspace/FiberAPI/api"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
@@ -13,7 +13,7 @@ import (
 import consul "github.com/hashicorp/consul/api"
 
 var ucron = gocron.NewScheduler(utils.Loc)
-var conn *api.API
+var conn *ent.API
 
 var LEADER = false
 var SessionID string
@@ -151,7 +151,7 @@ func GetConsulKV() (consulKV *consul.KV, err error) {
 	return KvEngine, nil
 }
 
-func PrepareElection(iconn *api.API) {
+func PrepareElection(iconn *ent.API) {
 	KvEngine = iconn.SuperLock.ExposeConsul()
 	conn = iconn
 	if KvEngine == nil {

@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	fiberapi "github.com/fruitspace/FiberAPI"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/providers/ServerGD"
@@ -14,7 +15,39 @@ import (
 	"runtime/debug"
 )
 
-// ManageGDPSDelete deletes gdps
+type ManageGDPSAPI struct {
+	*ent.API
+}
+
+func (api *ManageGDPSAPI) Register(router fiber.Router) error {
+	router.Get("/", api.Get)       // get server
+	router.Delete("/", api.Delete) //delete
+
+	router.Post("/settings", api.ChangeSettings) //change settings
+	router.Post("/icon", api.ChangeIcon)         //icon
+	router.Get("/dbreset", api.ResetDBPassword)  //reset DB Password
+	router.Post("/chests", api.UpdateChests)     //update chests
+	router.Post("/logs", api.GetLogs)            //get logs by filter
+	router.Post("/music", api.GetMusic)          //get songs by filter
+	router.Put("/music", api.AddMusic)           //put songs
+	router.Get("/roles", api.GetRoles)           //get roles
+	router.Post("/roles", api.SetRole)           //create or update role
+	router.Get("/levelpacks", api.GetLevelPacks) //get levelpacks
+	router.Delete("/levelpack/:id", api.DeleteLevelPack)
+	router.Post("/levelpack", api.EditLevelPack)
+
+	router.Get("/get/users", api.QueryUsers)   //get users
+	router.Get("/get/levels", api.QueryLevels) //get levels
+
+	router.Put("/modules/discord", api.DiscordModule)
+
+	router.Get("/upgrade22", api.PressStart22Upgrade)
+	router.Post("/buildlab", api.BuildLabPush)
+	router.Get("/buildlab/status", api.GetBuildStatus)
+	return nil
+}
+
+// Delete deletes gdps
 // @Tags GDPS Management
 // @Summary Deletes existing GDPS
 // @Accept json
@@ -25,7 +58,7 @@ import (
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid} [delete]
-func (api *API) ManageGDPSDelete(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) Delete(c *fiber.Ctx) error {
 	defer func() {
 		if c := recover(); c != nil {
 			debug.PrintStack()
@@ -33,7 +66,7 @@ func (api *API) ManageGDPSDelete(c *fiber.Ctx) error {
 	}()
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -45,7 +78,7 @@ func (api *API) ManageGDPSDelete(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-// ManageGDPSGet returns gdps parameters
+// Get returns gdps parameters
 // @Tags GDPS Management
 // @Summary Returns GDPS configuration
 // @Accept json
@@ -56,21 +89,21 @@ func (api *API) ManageGDPSDelete(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid} [get]
-func (api *API) ManageGDPSGet(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) Get(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
 		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
 	}
-	srv.LoadCoreConfig()
+	_ = srv.LoadCoreConfig()
 	srv.LoadTariff()
 	return c.JSON(srv)
 }
 
-// ManageGDPSResetDBPassword resets gdps password
+// ResetDBPassword resets gdps password
 // @Tags GDPS Management
 // @Summary Resets GDPS database password
 // @Accept json
@@ -81,10 +114,10 @@ func (api *API) ManageGDPSGet(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/dbreset [get]
-func (api *API) ManageGDPSResetDBPassword(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) ResetDBPassword(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -96,7 +129,7 @@ func (api *API) ManageGDPSResetDBPassword(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-// ManageGDPSUpdateChests updates gdps chest settings
+// UpdateChests updates gdps chest settings
 // @Tags GDPS Management
 // @Summary Updates GDPS chest settings
 // @Accept json
@@ -108,10 +141,10 @@ func (api *API) ManageGDPSResetDBPassword(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/chests [post]
-func (api *API) ManageGDPSUpdateChests(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) UpdateChests(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -129,7 +162,7 @@ func (api *API) ManageGDPSUpdateChests(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-// ManageGDPSGetLogs  returns gdps logs by filter
+// GetLogs  returns gdps logs by filter
 // @Tags GDPS Management
 // @Summary Retrieves GDPS logs by filter
 // @Description -1=all, 0=registrations, 1=logins, 2=account deletions, 3=bans, 4=level actions
@@ -142,10 +175,10 @@ func (api *API) ManageGDPSUpdateChests(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/logs [post]
-func (api *API) ManageGDPSGetLogs(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) GetLogs(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -166,7 +199,7 @@ func (api *API) ManageGDPSGetLogs(c *fiber.Ctx) error {
 	})
 }
 
-// ManageGDPSGetMusic  returns gdps music by filter
+// GetMusic  returns gdps music by filter
 // @Tags GDPS Management
 // @Summary Retrieves GDPS music by filter
 // @Description Modes: id (asc), alpha (asc), downloads (desc)
@@ -179,10 +212,10 @@ func (api *API) ManageGDPSGetLogs(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/music [post]
-func (api *API) ManageGDPSGetMusic(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) GetMusic(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -203,7 +236,7 @@ func (api *API) ManageGDPSGetMusic(c *fiber.Ctx) error {
 	})
 }
 
-// ManageGDPSAddMusic adds music to gdps
+// AddMusic adds music to gdps
 // @Tags GDPS Management
 // @Summary Uploads music to GDPS
 // @Description Types: ng (newgrounds), yt (youtube), vk (vkontakte), dz (deezer), db (dropbox/direct links)
@@ -216,10 +249,10 @@ func (api *API) ManageGDPSGetMusic(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/music [put]
-func (api *API) ManageGDPSAddMusic(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) AddMusic(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -239,7 +272,7 @@ func (api *API) ManageGDPSAddMusic(c *fiber.Ctx) error {
 	})
 }
 
-// ManageGDPSChangeIcon changes gdps icon
+// ChangeIcon changes gdps icon
 // @Tags GDPS Management
 // @Summary Changes GDPS icon
 // @Accept mpfd
@@ -251,10 +284,10 @@ func (api *API) ManageGDPSAddMusic(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/icon [post]
-func (api *API) ManageGDPSChangeIcon(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) ChangeIcon(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -292,7 +325,7 @@ func (api *API) ManageGDPSChangeIcon(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-// ManageGDPSChangeSettings changes gdps settings
+// ChangeSettings changes gdps settings
 // @Tags GDPS Management
 // @Summary Changes GDPS settings
 // @Accept json
@@ -304,10 +337,10 @@ func (api *API) ManageGDPSChangeIcon(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/settings [post]
-func (api *API) ManageGDPSChangeSettings(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) ChangeSettings(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -323,7 +356,7 @@ func (api *API) ManageGDPSChangeSettings(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-// ManageGDPSBuildLabPush manages gdps installers
+// BuildLabPush manages gdps installers
 // @Tags GDPS Management
 // @Summary Manages GDPS installers and mods
 // @Accept json
@@ -335,10 +368,10 @@ func (api *API) ManageGDPSChangeSettings(c *fiber.Ctx) error {
 // @Failure 500 {object} structs.APIError
 // @Failure 403 {object} structs.APIError
 // @Router /servers/gd/{srvid}/buildlab [post]
-func (api *API) ManageGDPSBuildLabPush(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) BuildLabPush(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -354,10 +387,10 @@ func (api *API) ManageGDPSBuildLabPush(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-func (api *API) ManageGDPSGetBuildStatus(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) GetBuildStatus(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -366,10 +399,10 @@ func (api *API) ManageGDPSGetBuildStatus(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse(srv.FetchBuildStatus()))
 }
 
-func (api *API) ManageGDPSDiscordModule(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) DiscordModule(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -377,7 +410,7 @@ func (api *API) ManageGDPSDiscordModule(c *fiber.Ctx) error {
 	}
 	body := c.Request().Body()
 	var data interface{}
-	json.Unmarshal(body, &data)
+	_ = json.Unmarshal(body, &data)
 	pdata := data.(map[string]interface{})
 	err := srv.ModuleDiscord(pdata["enable"].(bool), pdata)
 	if err != nil {
@@ -386,10 +419,10 @@ func (api *API) ManageGDPSDiscordModule(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-func (api *API) ManageGDPSGetRoles(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) GetRoles(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -404,10 +437,10 @@ func (api *API) ManageGDPSGetRoles(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) ManageGDPSSetRole(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) SetRole(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -427,10 +460,10 @@ func (api *API) ManageGDPSSetRole(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-func (api *API) ManageGDPSQueryUsers(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) QueryUsers(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -444,11 +477,28 @@ func (api *API) ManageGDPSQueryUsers(c *fiber.Ctx) error {
 		Users:           users,
 	})
 }
-
-func (api *API) ManageGDPSGetLevelPacks(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) ListUsers(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	if !api.authGDPS(c, acc, srv) {
+		return c.Status(500).JSON(structs.NewAPIError("You have no permission to manage this server"))
+	}
+	interactor := srv.NewInteractor()
+	defer interactor.Dispose()
+	users := interactor.ListUsers(c.QueryInt("page"))
+	return c.JSON(structs.APIGDPSUsersResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Users:           users,
+	})
+}
+
+func (api *ManageGDPSAPI) GetLevelPacks(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	srv := api.ServerGDProvider.New()
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -463,14 +513,14 @@ func (api *API) ManageGDPSGetLevelPacks(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) ManageGDPSDeleteLevelPack(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) DeleteLevelPack(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
 	param, err := c.ParamsInt("id")
 	if err != nil {
 		return c.Status(500).JSON(structs.NewAPIError(err.Error()))
 	}
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -485,10 +535,10 @@ func (api *API) ManageGDPSDeleteLevelPack(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-func (api *API) ManageGDPSEditLevelPack(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) EditLevelPack(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -508,10 +558,10 @@ func (api *API) ManageGDPSEditLevelPack(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("Success"))
 }
 
-func (api *API) ManageGDPSQueryLevels(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) QueryLevels(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -526,10 +576,10 @@ func (api *API) ManageGDPSQueryLevels(c *fiber.Ctx) error {
 	})
 }
 
-func (api *API) ManageGDPSPressStart22Upgrade(c *fiber.Ctx) error {
+func (api *ManageGDPSAPI) PressStart22Upgrade(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	srv := api.ServerGDProvider.New()
-	if !api.performAuth(c, acc) {
+	if !api.PerformAuth_(c, acc) {
 		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
 	}
 	if !api.authGDPS(c, acc, srv) {
@@ -548,7 +598,7 @@ func (api *API) ManageGDPSPressStart22Upgrade(c *fiber.Ctx) error {
 
 // -------------------
 // authGDPS is a simple authenticator for compacting code
-func (api *API) authGDPS(c *fiber.Ctx, acc *providers.Account, srv *ServerGD.ServerGD) bool {
+func (api *ManageGDPSAPI) authGDPS(c *fiber.Ctx, acc *providers.Account, srv *ServerGD.ServerGD) bool {
 	srvid := c.Params("srvid")
 	if len(srvid) != 4 || !srv.GetServerBySrvID(srvid) {
 		return false

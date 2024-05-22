@@ -2,11 +2,25 @@ package api
 
 import (
 	fiberapi "github.com/fruitspace/FiberAPI"
+	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/gofiber/fiber/v2"
 	"strings"
 )
+
+type AuthAPI struct {
+	*ent.API
+}
+
+func (api *AuthAPI) Register(router fiber.Router) error {
+	router.Post("/login", api.Login)
+	router.Post("/register", api.ARegister)
+	router.All("/confirm_email", api.ConfirmEmail)
+	router.Post("/recover", api.RecoverPassword)
+	router.All("/discord", api.Discord)
+	return nil
+}
 
 // AuthRegister registers new FruitSpace user
 // @Tags Authentication
@@ -18,7 +32,7 @@ import (
 // @Success 200 {object} structs.APIBasicSuccess
 // @Failure 500 {object} structs.APIError
 // @Router /auth/register [post]
-func (api *API) AuthRegister(c *fiber.Ctx) error {
+func (api *AuthAPI) ARegister(c *fiber.Ctx) error {
 	var data structs.AuthRegisterRequest
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
@@ -42,7 +56,7 @@ func (api *API) AuthRegister(c *fiber.Ctx) error {
 // @Success 200 {object} structs.AuthLoginResponse
 // @Failure 500 {object} structs.APIError
 // @Router /auth/login [post]
-func (api *API) AuthLogin(c *fiber.Ctx) error {
+func (api *AuthAPI) Login(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	var data structs.AuthLoginRequest
 	if c.BodyParser(&data) != nil {
@@ -71,7 +85,7 @@ func (api *API) AuthLogin(c *fiber.Ctx) error {
 }
 
 // AuthConfirmEmail serves page for email confirmations [/auth/confirm_email]
-func (api *API) AuthConfirmEmail(c *fiber.Ctx) error {
+func (api *AuthAPI) ConfirmEmail(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	uid := acc.DecodeEmailToken(c.Query("token"))
 	if !acc.GetUserByUID(uid) {
@@ -96,7 +110,7 @@ func (api *API) AuthConfirmEmail(c *fiber.Ctx) error {
 // @Success 200 {object} structs.APIBasicSuccess
 // @Failure 500 {object} structs.APIError
 // @Router /auth/recover [post]
-func (api *API) AuthRecoverPassword(c *fiber.Ctx) error {
+func (api *AuthAPI) RecoverPassword(c *fiber.Ctx) error {
 	var data structs.AuthRecoverRequest
 	if c.BodyParser(&data) != nil {
 		return c.Status(500).JSON(structs.NewAPIError("Invalid request"))
@@ -111,7 +125,7 @@ func (api *API) AuthRecoverPassword(c *fiber.Ctx) error {
 	return c.JSON(structs.NewAPIBasicResponse("New password sent to your email inbox"))
 }
 
-func (api *API) AuthDiscord(c *fiber.Ctx) error {
+func (api *AuthAPI) Discord(c *fiber.Ctx) error {
 	acc := api.AccountProvider.New()
 	err := acc.AuthDiscord(c.Query("code"), c.Query("state"))
 	if utils.Should(err) != nil {

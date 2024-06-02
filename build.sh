@@ -7,11 +7,6 @@ NC='\033[0m'
 GRAY='\033[0;37m'
 
 PATH=$PATH:~/go/bin
-echo -e "${GREEN}Resolving deps...${GRAY}"
-go mod tidy
-go install github.com/swaggo/swag/cmd/swag@latest
-go install github.com/gordonklaus/ineffassign@latest
-go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 echo -e "${GREEN}Generating Swagger docs...${GRAY}"
 swag init -g ./cmd/main.go --pd
 echo -e "${GREEN}Checking for ineffectual assignments...${GRAY}"

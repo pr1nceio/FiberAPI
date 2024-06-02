@@ -13,8 +13,8 @@ type PaymentsAPI struct {
 }
 
 func (api *PaymentsAPI) Register(router fiber.Router) error {
-	router.Get("/payments", api.GetPayments) // get payments
-	router.Post("/payments", api.Create)     //create payment
+	router.Get("/", api.GetPayments) // get payments
+	router.Post("/", api.Create)     //create payment
 	return nil
 }
 

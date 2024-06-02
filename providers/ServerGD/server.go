@@ -15,6 +15,7 @@ import (
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/models/gdps_db"
+	"github.com/fruitspace/FiberAPI/models/particle"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/FiberAPI/services"
@@ -26,6 +27,7 @@ import (
 	"net/http"
 	"regexp"
 	"runtime/debug"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -300,12 +302,16 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 	s.CoreConfig.ServerConfig.HalMusic = settings.SpaceMusic
 	s.CoreConfig.ServerConfig.EnableModules = settings.Modules
 
-	if s.Srv.IsSpaceMusic == false {
+	if s.Srv.IsSpaceMusic == false && s.Srv.Plan > 1 {
 		s.Srv.IsSpaceMusic = settings.SpaceMusic
 		//If enabled -> update core config
 		if s.Srv.IsSpaceMusic == true {
 			s.CoreConfig.ServerConfig.HalMusic = true
 		}
+	}
+
+	if s.Srv.Plan == 4 {
+		s.Srv.DownloadPageStyle = settings.DownloadPageStyles // Hope it works
 	}
 
 	updated, _ := json.Marshal(s.CoreConfig)
@@ -316,11 +322,12 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 	}
 
 	return s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{
-		Description:  s.Srv.Description,
-		TextAlign:    s.Srv.TextAlign,
-		Discord:      s.Srv.Discord,
-		Vk:           s.Srv.Vk,
-		IsSpaceMusic: s.Srv.IsSpaceMusic,
+		Description:       s.Srv.Description,
+		TextAlign:         s.Srv.TextAlign,
+		Discord:           s.Srv.Discord,
+		Vk:                s.Srv.Vk,
+		IsSpaceMusic:      s.Srv.IsSpaceMusic,
+		DownloadPageStyle: s.Srv.DownloadPageStyle,
 	}).Error
 }
 
@@ -829,8 +836,9 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	} else {
 		conf.SrvName = s.Srv.SrvName
 	}
-	if conf.Version != "2.2" {
-		conf.Version = "2.1"
+	versions := []string{"1.9", "2.0", "2.1", "2.2"}
+	if !slices.Contains(versions, conf.Version) {
+		conf.Version = "2.2"
 	}
 	if conf.Icon != "custom" {
 		conf.Icon = "gd_default.png"
@@ -857,8 +865,14 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 		andro = 1
 	}
 
+	manif := particle.QuickGDPSRecipe(s.Srv.SrvID, conf.Version, "")
+	dat, _ := json.Marshal(manif)
+
 	// Set Version
-	s.p.db.Model(s.Srv).Updates(db.ServerGd{Version: conf.Version})
+	s.p.db.Model(s.Srv).Updates(db.ServerGd{
+		Version: conf.Version,
+		Recipe:  string(dat),
+	})
 
 	return cbs.PushBuildQueue(s.Srv.SrvID, conf.SrvName, s.Srv.Icon, conf.Version, andro, conf.Windows, conf.IOS, conf.MacOS,
 		conf.Textures, "ru", s.Srv.Plan < 2) //! Default textures

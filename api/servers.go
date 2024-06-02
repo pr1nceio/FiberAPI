@@ -13,8 +13,8 @@ type ServersAPI struct {
 
 func (api *ServersAPI) Register(router fiber.Router) error {
 	router.Get("/", api.ListServers)
-	router.Post("/servers/gd", api.CreateGD)
-	router.Post("/servers/mc", api.CreateMC)
+	router.Post("/gd", api.CreateGD)
+	router.Post("/mc", api.CreateMC)
 
 	return nil
 }
@@ -71,6 +71,7 @@ func (api *ServersAPI) CreateGD(c *fiber.Ctx) error {
 	srv := api.ServerGDProvider.New()
 	if len(data.SrvId) == 4 {
 		err = srv.UpgradeServer(acc.Data().UID, data.SrvId, data.Tariff, data.Duration, data.Promocode)
+		srvid = data.SrvId
 	} else {
 		srvid, err = srv.CreateServer(acc.Data().UID, data.Name, data.Tariff, data.Duration, data.Promocode)
 	}

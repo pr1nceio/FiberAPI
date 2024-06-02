@@ -15,7 +15,8 @@ type GDSettings struct {
 		AutoActivate bool `json:"autoActivate"`
 		LevelLimit   bool `json:"levelLimit"`
 	} `json:"security"`
-	Modules map[string]bool `json:"modules"`
+	Modules            map[string]bool        `json:"modules"`
+	DownloadPageStyles map[string]interface{} `json:"downloadpage_style"`
 }
 
 type BuildLabSettings struct {

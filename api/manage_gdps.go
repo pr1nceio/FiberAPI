@@ -37,6 +37,7 @@ func (api *ManageGDPSAPI) Register(router fiber.Router) error {
 	router.Post("/levelpack", api.EditLevelPack)
 
 	router.Get("/get/users", api.QueryUsers)   //get users
+	router.Get("/get/lusers", api.ListUsers)   //get chests
 	router.Get("/get/levels", api.QueryLevels) //get levels
 
 	router.Put("/modules/discord", api.DiscordModule)

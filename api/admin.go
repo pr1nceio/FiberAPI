@@ -69,7 +69,7 @@ func (api *AdminAPI) CleanUnpaidInstallers(c *fiber.Ctx) error {
 			}
 			// If there's no active users last week then freeze server and set expire date to current time to ensure removal in future
 
-			if srv.CoreConfig.ServerConfig.Locked {
+			if srv.CoreConfig.ServerConfig.Locked && c.Query("force") == "" {
 				continue
 			}
 			srv.FreezeServer()

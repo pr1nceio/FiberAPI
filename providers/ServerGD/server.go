@@ -24,6 +24,7 @@ import (
 	"image/png"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"regexp"
 	"runtime/debug"
@@ -584,12 +585,14 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 	//	return errors.New("Invalid owner")
 	//}
 	// Checked by api AUTH
+	s.GetServerBySrvID(srvid)
 	s.LoadCoreConfig()
 
 	if tariffid < s.Srv.Plan || tariffid > len(fiberapi.ProductGDTariffs) {
 		return errors.New("Invalid Tariff |Tariff")
 	}
 	tariff := fiberapi.ProductGDTariffs[strconv.Itoa(tariffid)]
+	currentTariff := fiberapi.ProductGDTariffs[strconv.Itoa(s.Srv.Plan)]
 
 	when := time.Now()
 	// Select which is latter (only non-free tariffs)
@@ -612,9 +615,16 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 		price := float64(tariff.PriceRUB)
 		if duration == "yr" {
 			price *= 10
+			//if tariffid != s.Srv.Plan {
+			//	monthsLeft := math.Min(math.Floor(s.Srv.ExpireDate.Sub(time.Now()).Hours()/24/30), 10)
+			//	price = price - float64(currentTariff.PriceRUB)*monthsLeft // is this right?
+			//}
 		}
 		if duration == "all" {
 			price *= 30 // 3*10
+			fmt.Println(currentTariff.PriceRUB)
+			price -= float64(currentTariff.PriceRUB) * 30 // Delta
+			price = math.Max(1, price)
 		}
 
 		if promocode != "" {

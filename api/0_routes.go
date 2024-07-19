@@ -28,7 +28,7 @@ func StartServer(api ent.API) error {
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowCredentials: true,
-		AllowOrigins:     "https://fruitspace.ru, https://fruitspace.one, https://gofruit.space",
+		AllowOrigins:     "https://fruitspace.ru, https://fruitspace.one, https://gofruit.space, https://beta.fruitspace.one",
 	}))
 	app.Use(recover.New(recover.Config{
 		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {

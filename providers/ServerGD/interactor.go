@@ -130,10 +130,12 @@ func (i *ServerGDInteractor) SearchUsers(query string) []gdps_db.UserNano {
 	return users
 }
 
-func (i *ServerGDInteractor) ListUsers(page int) []gdps_db.UserNano {
+func (i *ServerGDInteractor) ListUsers(page int) ([]gdps_db.UserNano, int64) {
 	var users []gdps_db.UserNano
+	var count int64
 	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Order("uid").Offset(10 * page).Limit(10).Find(&users)
-	return users
+	i.p.mdb.UTable(i.db, (&gdps_db.User{}).TableName()).Count(&count)
+	return users, count
 }
 
 func (i *ServerGDInteractor) SearchLevels(query string) []gdps_db.LevelNano {

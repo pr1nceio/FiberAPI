@@ -58,6 +58,9 @@ func main() {
 	if err = DB.AutoMigrate(&db.ServerGd{}); err != nil {
 		log.Println(err)
 	}
+	if err = DB.AutoMigrate(&db.Notification{}); err != nil {
+		log.Println(err)
+	}
 
 	//Bind Redis
 	Redis := utils.NewMultiRedis().WithDefault(fiberapi.REDIS_HOST, fiberapi.REDIS_PASS).

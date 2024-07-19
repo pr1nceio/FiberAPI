@@ -19,8 +19,9 @@ func NewNotificationProvider(db *gorm.DB) *NotificationProvider {
 func (np *NotificationProvider) GetNotificationsForUID(uid int) []db.Notification {
 	var notifications []db.Notification
 	np.db.Where(
-		np.db.Where(db.Notification{TargetUID: uid}).Or(db.Notification{TargetUID: 0}),
-	).Where(gorm.Column(db.Notification{}, "ExpireDate") + ">CURRENT_TIMESTAMP").Find(&notifications)
+		np.db.Where(db.Notification{TargetUID: uid}).Or("target_uid=0"),
+	).Where(gorm.Column(db.Notification{}, "ExpireDate") + ">CURRENT_TIMESTAMP").
+		Order("sendDate DESC").Find(&notifications)
 	return notifications
 }
 

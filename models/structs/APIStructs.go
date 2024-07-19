@@ -90,22 +90,21 @@ type UserAvatarResponse struct {
 }
 
 type APIUserSSO struct {
-	Status        string                 `json:"status"`
-	Uname         string                 `json:"uname"`
-	Name          string                 `json:"name"`
-	Surname       string                 `json:"surname"`
-	ProfilePic    string                 `json:"profile_pic"`
-	VkId          string                 `json:"vk_id"`
-	DiscordId     string                 `json:"discord_id"`
-	Balance       float64                `json:"balance"`
-	ShopBalance   float64                `json:"shop_balance"`
-	Is2FA         bool                   `json:"is_2fa"`
-	IsAdmin       bool                   `json:"is_admin"`
-	IsPartner     bool                   `json:"is_partner"`
-	Reflink       string                 `json:"reflink"`
-	Notifications []db.Notification      `json:"notifications"`
-	Servers       map[string]int64       `json:"servers"`
-	TopServers    map[string]interface{} `json:"top_servers"`
+	Status      string                 `json:"status"`
+	Uname       string                 `json:"uname"`
+	Name        string                 `json:"name"`
+	Surname     string                 `json:"surname"`
+	ProfilePic  string                 `json:"profile_pic"`
+	VkId        string                 `json:"vk_id"`
+	DiscordId   string                 `json:"discord_id"`
+	Balance     float64                `json:"balance"`
+	ShopBalance float64                `json:"shop_balance"`
+	Is2FA       bool                   `json:"is_2fa"`
+	IsAdmin     bool                   `json:"is_admin"`
+	IsPartner   bool                   `json:"is_partner"`
+	Reflink     string                 `json:"reflink"`
+	Servers     map[string]int64       `json:"servers"`
+	TopServers  map[string]interface{} `json:"top_servers"`
 }
 
 type APIUserUpdateRequest struct {
@@ -217,6 +216,7 @@ type APIRolesResponse struct {
 type APIGDPSUsersResponse struct {
 	APIBasicSuccess
 	Users []gdps_db.UserNano `json:"users"`
+	Count int64              `json:"count"`
 }
 
 type APIGDPSLevelsResponse struct {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/api/ent"
+	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +18,8 @@ type UserAPI struct {
 }
 
 func (api *UserAPI) Register(router fiber.Router) error {
-	router.Get("/", api.SSO)                 //sso, top_server
+	router.Get("/", api.SSO) //sso, top_server
+	router.Get("/notifications", api.GetNotifications)
 	router.Patch("/", api.Update)            //change name, password, totp
 	router.Post("/avatar", api.AvatarUpdate) //avatar
 	router.Get("/joinguild", api.JoinGuild)  //avatar
@@ -44,24 +46,38 @@ func (api *UserAPI) SSO(c *fiber.Ctx) error {
 	}
 	aData := acc.Data()
 	return c.JSON(structs.APIUserSSO{
-		Status:        "ok",
-		Uname:         aData.Uname,
-		Name:          aData.Name,
-		Surname:       aData.Surname,
-		ProfilePic:    fmt.Sprintf("https://%s/profile_pics/%s", fiberapi.S3_CONFIG["cdn"], aData.ProfilePic),
-		VkId:          aData.VkID,
-		DiscordId:     aData.DiscordID,
-		Balance:       aData.Balance,
-		ShopBalance:   api.ShopProvider.GetUserShopsBalance(aData.UID),
-		Is2FA:         aData.Is2FA,
-		IsAdmin:       aData.IsAdmin,
-		IsPartner:     aData.IsPartner,
-		Reflink:       aData.Reflink,
-		Notifications: api.NotificationProvider.GetNotificationsForUID(aData.UID),
-		Servers:       acc.GetServersCount(),
+		Status:      "ok",
+		Uname:       aData.Uname,
+		Name:        aData.Name,
+		Surname:     aData.Surname,
+		ProfilePic:  fmt.Sprintf("https://%s/profile_pics/%s", fiberapi.S3_CONFIG["cdn"], aData.ProfilePic),
+		VkId:        aData.VkID,
+		DiscordId:   aData.DiscordID,
+		Balance:     aData.Balance,
+		ShopBalance: api.ShopProvider.GetUserShopsBalance(aData.UID),
+		Is2FA:       aData.Is2FA,
+		IsAdmin:     aData.IsAdmin,
+		IsPartner:   aData.IsPartner,
+		Reflink:     aData.Reflink,
+		Servers:     acc.GetServersCount(),
 		TopServers: map[string]interface{}{
 			"gd": api.ServerGDProvider.New().GetTopUserServer(aData.UID),
 		},
+	})
+}
+
+func (api *UserAPI) GetNotifications(c *fiber.Ctx) error {
+	acc := api.AccountProvider.New()
+	if !api.PerformAuth_(c, acc) {
+		return c.Status(403).JSON(structs.NewAPIError("Unauthorized"))
+	}
+	aData := acc.Data()
+	return c.JSON(struct {
+		structs.APIBasicSuccess
+		Notifications []db.Notification `json:"notifications"`
+	}{
+		structs.NewAPIBasicResponse("ok"),
+		api.NotificationProvider.GetNotificationsForUID(aData.UID),
 	})
 }
 

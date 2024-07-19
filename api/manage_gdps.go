@@ -489,10 +489,11 @@ func (api *ManageGDPSAPI) ListUsers(c *fiber.Ctx) error {
 	}
 	interactor := srv.NewInteractor()
 	defer interactor.Dispose()
-	users := interactor.ListUsers(c.QueryInt("page"))
+	users, total := interactor.ListUsers(c.QueryInt("page"))
 	return c.JSON(structs.APIGDPSUsersResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
 		Users:           users,
+		Count:           total,
 	})
 }
 

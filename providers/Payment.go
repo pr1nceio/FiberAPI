@@ -109,6 +109,7 @@ func (p *PaymentProvider) CreateInvoice(uid int, amount float64, email string, m
 	utils.Should(json.NewDecoder(resp.Body).Decode(&res))
 	if res.Status != "ok" {
 		utils.Should(errors.New(res.Message))
+		utils.SendMessageDiscord(res.Message)
 	}
 	return &db.Transaction{Amount: amount, GoPayURL: res.Url, IsActive: true, Method: "none"}
 }

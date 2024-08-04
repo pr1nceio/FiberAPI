@@ -38,4 +38,4 @@ var ValidImageTypes = []string{
 	"image/png",
 }
 
-var ValidMerchants = []string{"qiwi", "enot", "yookassa"}
+var ValidMerchants = []string{"paypalych", "lava", "enot", "yookassa"}

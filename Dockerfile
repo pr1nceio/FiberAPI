@@ -1,4 +1,4 @@
-FROM golang:1.22.2 as builder
+FROM golang:1.22 as builder
 RUN mkdir /app
 WORKDIR /app
 ADD go.mod go.sum /app/

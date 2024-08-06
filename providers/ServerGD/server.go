@@ -288,6 +288,7 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 	if err := s.LoadCoreConfig(); err != nil {
 		return err
 	}
+
 	s.Srv.Description = settings.Description.Text
 	s.Srv.TextAlign = settings.Description.Align
 	ds := strings.Split(settings.Description.Discord, "/")
@@ -303,12 +304,9 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 	s.CoreConfig.ServerConfig.HalMusic = settings.SpaceMusic
 	s.CoreConfig.ServerConfig.EnableModules = settings.Modules
 
-	if s.Srv.IsSpaceMusic == false && s.Srv.Plan > 1 {
-		s.Srv.IsSpaceMusic = settings.SpaceMusic
-		//If enabled -> update core config
-		if s.Srv.IsSpaceMusic == true {
-			s.CoreConfig.ServerConfig.HalMusic = true
-		}
+	if (s.Srv.IsSpaceMusic == false || s.CoreConfig.ServerConfig.HalMusic == false) && s.Srv.Plan > 1 {
+		s.Srv.IsSpaceMusic = true
+		s.CoreConfig.ServerConfig.HalMusic = true
 	}
 
 	if s.Srv.Plan == 4 {

@@ -24,7 +24,10 @@ type API struct {
 }
 
 func (api *API) PerformAuth_(c *fiber.Ctx, acc *providers.Account) bool {
-	token := c.Get("Authorization")
+	token := c.Cookies("token")
+	if len(token) == 0 {
+		token = c.Get("Authorization")
+	}
 	if token == "" || !acc.GetUserBySession(token) {
 		return false
 	}
@@ -32,4 +35,15 @@ func (api *API) PerformAuth_(c *fiber.Ctx, acc *providers.Account) bool {
 		return false
 	}
 	return true
+}
+
+func (api *API) SetToken_(c *fiber.Ctx, token string) {
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    token,
+		Domain:   "fruitspace.one",
+		MaxAge:   1000 * 60 * 60 * 24 * 30,
+		Secure:   true,
+		HTTPOnly: true,
+	})
 }

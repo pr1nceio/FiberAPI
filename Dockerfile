@@ -1,4 +1,4 @@
-FROM golang:1.22 as builder
+FROM golang:1.22 AS builder
 RUN mkdir /app
 WORKDIR /app
 ADD go.mod go.sum /app/
@@ -10,7 +10,7 @@ RUN echo "Resolving deps..." && \
 ADD . /app
 RUN bash build.sh
 
-FROM alpine as runner
+FROM alpine AS runner
 RUN mkdir /app
 RUN apk add --no-cache tzdata
 COPY --from=builder /app/FiberAPI /app

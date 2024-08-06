@@ -77,10 +77,11 @@ func (api *AuthAPI) Login(c *fiber.Ctx) error {
 	if !utils.VerifyCaptcha(data.HCaptchaToken, fiberapi.CONFIG["hCaptchaToken"]) {
 		return c.Status(500).JSON(structs.NewAPIError("Captcha failed", "captcha"))
 	}
-
+	token := acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c))
+	api.SetToken_(c, token)
 	return c.JSON(structs.AuthLoginResponse{
 		APIBasicSuccess: structs.NewAPIBasicResponse("Logged in"),
-		Token:           acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c)),
+		Token:           token,
 	})
 }
 
@@ -96,8 +97,10 @@ func (api *AuthAPI) ConfirmEmail(c *fiber.Ctx) error {
 	}
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/EmailConfirmationIndex.html")
 	c.Set("Content-Type", "text/html")
+	token := acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c))
+	api.SetToken_(c, token)
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r),
-		"{uname}", acc.Data().Uname), "{token}", acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c)),
+		"{uname}", acc.Data().Uname), "{token}", token,
 	))
 }
 
@@ -134,5 +137,6 @@ func (api *AuthAPI) Discord(c *fiber.Ctx) error {
 	token := acc.NewSession(acc.Data().UID, getUserAgent(c), getIP(c))
 	r, _ := fiberapi.AssetsDir.ReadFile("assets/DiscordConfirmationIndex.html")
 	c.Set("Content-Type", "text/html")
+	api.SetToken_(c, token)
 	return c.SendString(strings.ReplaceAll(strings.ReplaceAll(string(r), "{uname}", acc.Data().Uname), "{token}", token))
 }

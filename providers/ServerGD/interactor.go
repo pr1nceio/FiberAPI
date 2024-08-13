@@ -3,9 +3,9 @@ package ServerGD
 import (
 	"fmt"
 	gorm "github.com/cradio/gormx"
-	"github.com/fruitspace/FiberAPI/models/gdps_db"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/schemas/db/go/gdps_db"
 	"log"
 	"strconv"
 	"strings"

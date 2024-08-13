@@ -22,7 +22,7 @@ func (api *AuthAPI) Register(router fiber.Router) error {
 	return nil
 }
 
-// AuthRegister registers new FruitSpace user
+// ARegister registers new FruitSpace user
 // @Tags Authentication
 // @Summary Registers new FruitSpace user
 // @Accept json

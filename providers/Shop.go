@@ -3,7 +3,7 @@ package providers
 import (
 	"fmt"
 	"github.com/cradio/gormx"
-	"github.com/fruitspace/FiberAPI/models/db"
+	"github.com/fruitspace/schemas/db/go/db"
 )
 
 //region ShopProvider

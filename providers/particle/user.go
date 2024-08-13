@@ -1,7 +1,7 @@
 package particle
 
 import (
-	"github.com/fruitspace/FiberAPI/models/db"
+	"github.com/fruitspace/schemas/db/go/db"
 	"github.com/google/uuid"
 )
 

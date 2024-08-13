@@ -2,8 +2,8 @@ package structs
 
 import (
 	"encoding/json"
-	"github.com/fruitspace/FiberAPI/models/db"
-	"github.com/fruitspace/FiberAPI/models/gdps_db"
+	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/schemas/db/go/gdps_db"
 	"strings"
 )
 

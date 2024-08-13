@@ -14,9 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/cradio/gormx"
 	fiberapi "github.com/fruitspace/FiberAPI"
-	"github.com/fruitspace/FiberAPI/models/db"
 	"github.com/fruitspace/FiberAPI/services"
 	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/schemas/db/go/db"
 	"github.com/google/uuid"
 	"github.com/pquerna/otp/totp"
 	email "github.com/xhit/go-simple-mail/v2"
@@ -278,7 +278,7 @@ func (a *Account) UpdateIP(ip string, fetchGeo bool) {
 
 //endregion
 
-// ! TO TRANSFER TO ServerGD as GetCountFor(UID int)
+// TODO: TO TRANSFER TO ServerGD as GetCountFor(UID int)
 func (a *Account) GetServersCount() map[string]int64 {
 	var (
 		cnt_gd int64

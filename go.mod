@@ -1,14 +1,13 @@
 module github.com/fruitspace/FiberAPI
 
-go 1.21
-
-toolchain go1.22.2
+go 1.22.5
 
 require (
 	github.com/aiomonitors/godiscord v0.0.0-20200422003858-41242d4e5847
 	github.com/aws/aws-sdk-go v1.53.14
 	github.com/cradio/gorm_mysql v0.0.0-20240113155843-c6fd66ef9ef2
 	github.com/cradio/gormx v1.25.5
+	github.com/fruitspace/schemas/db/go v0.0.0-20240813145527-a62371df2211
 	github.com/getsentry/sentry-go v0.28.0
 	github.com/go-co-op/gocron v1.37.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -29,8 +28,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/PuerkitoBio/purell v1.2.1 // indirect
-	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
@@ -42,6 +39,7 @@ require (
 	github.com/go-openapi/spec v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
+	github.com/go-test/deep v1.1.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
@@ -69,10 +67,8 @@ require (
 	github.com/valyala/fasthttp v1.54.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.21.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

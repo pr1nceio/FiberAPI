@@ -76,7 +76,7 @@ func (sgp *ServerGDProvider) WithAssets(assets *embed.FS) *ServerGDProvider {
 }
 
 func (sgp *ServerGDProvider) New() *ServerGD {
-	return &ServerGD{Srv: &db.ServerGd{}, p: sgp}
+	return &ServerGD{Srv: &db.ServerGD{}, p: sgp}
 }
 
 func (sgp *ServerGDProvider) ExposeRedis() *utils.MultiRedis {
@@ -87,9 +87,9 @@ func (sgp *ServerGDProvider) ExposeGorm() *gorm.DB {
 	return sgp.db
 }
 
-func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
-	var srvs []*db.ServerGdSmall
-	sgp.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Find(&srvs)
+func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGDSmall {
+	var srvs []*db.ServerGDSmall
+	sgp.db.Model(db.ServerGD{}).Where(db.ServerGD{OwnerID: uid}).Find(&srvs)
 	for _, srv := range srvs {
 		srv.Icon = "https://" + sgp.s3config["cdn"] + "/server_icons/" + srv.Icon
 	}
@@ -97,11 +97,11 @@ func (sgp *ServerGDProvider) GetUserServers(uid int) []*db.ServerGdSmall {
 	return srvs
 }
 
-func (sgp *ServerGDProvider) GetTopServers(offset int) []*db.ServerGdSmall {
-	var srvs []*db.ServerGdSmall
-	sgp.db.Model(db.ServerGd{}).Where(fmt.Sprintf("%s>1", gorm.Column(db.ServerGd{}, "Plan"))).
-		Where(fmt.Sprintf("%s>NOW()", gorm.Column(db.ServerGd{}, "ExpireDate"))).
-		Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).
+func (sgp *ServerGDProvider) GetTopServers(offset int) []*db.ServerGDSmall {
+	var srvs []*db.ServerGDSmall
+	sgp.db.Model(db.ServerGD{}).Where(fmt.Sprintf("%s>1", gorm.Column(db.ServerGD{}, "Plan"))).
+		Where(fmt.Sprintf("%s>NOW()", gorm.Column(db.ServerGD{}, "ExpireDate"))).
+		Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGD{}, "UserCount"))).
 		Limit(10).Offset(offset).Find(&srvs)
 	for _, srv := range srvs {
 		srv.Icon = "https://" + sgp.s3config["cdn"] + "/server_icons/" + srv.Icon
@@ -114,20 +114,20 @@ func (sgp *ServerGDProvider) GetTopServers(offset int) []*db.ServerGdSmall {
 
 func (sgp *ServerGDProvider) CountServers() int {
 	var cnt int64
-	sgp.db.Model(db.ServerGd{}).Count(&cnt)
+	sgp.db.Model(db.ServerGD{}).Count(&cnt)
 	return int(cnt)
 }
 
 func (sgp *ServerGDProvider) CountLevels() int {
 	var cnt int64
-	sgp.db.Table((&db.ServerGd{}).TableName()).Select(fmt.Sprintf("sum(%s)", gorm.Column(db.ServerGd{}, "LevelCount"))).Row().Scan(&cnt)
+	sgp.db.Table((&db.ServerGD{}).TableName()).Select(fmt.Sprintf("sum(%s)", gorm.Column(db.ServerGD{}, "LevelCount"))).Row().Scan(&cnt)
 	return int(cnt)
 }
 
 func (sgp *ServerGDProvider) GetUnpaidServers() []string {
-	var srvs []*db.ServerGdSmall
+	var srvs []*db.ServerGDSmall
 	var srvids []string
-	sgp.db.Model(db.ServerGd{}).Where(fmt.Sprintf("%s<NOW()", gorm.Column(db.ServerGd{}, "ExpireDate"))).Find(&srvs)
+	sgp.db.Model(db.ServerGD{}).Where(fmt.Sprintf("%s<NOW()", gorm.Column(db.ServerGD{}, "ExpireDate"))).Find(&srvs)
 	for _, srv := range srvs {
 		srvids = append(srvids, srv.SrvID)
 	}
@@ -135,13 +135,13 @@ func (sgp *ServerGDProvider) GetUnpaidServers() []string {
 }
 
 func (sgp *ServerGDProvider) GetInactiveServers(maxUsers int, free bool) []string {
-	var srvs []*db.ServerGdSmall
+	var srvs []*db.ServerGDSmall
 	var srvids []string
-	tx := sgp.db.Model(db.ServerGd{}).
-		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 7 DAY)", gorm.Column(db.ServerGd{}, "CreatedAt"))).
-		Where(fmt.Sprintf("%s<=%d", gorm.Column(db.ServerGd{}, "UserCount"), maxUsers))
+	tx := sgp.db.Model(db.ServerGD{}).
+		Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 7 DAY)", gorm.Column(db.ServerGD{}, "CreatedAt"))).
+		Where(fmt.Sprintf("%s<=%d", gorm.Column(db.ServerGD{}, "UserCount"), maxUsers))
 	if free {
-		tx = tx.Where(db.ServerGd{Plan: 1})
+		tx = tx.Where(db.ServerGD{Plan: 1})
 	}
 	tx.Find(&srvs)
 	for _, srv := range srvs {
@@ -151,11 +151,11 @@ func (sgp *ServerGDProvider) GetInactiveServers(maxUsers int, free bool) []strin
 }
 
 func (sgp *ServerGDProvider) GetMissingInstallersServers() []string {
-	var srvs []*db.ServerGdSmall
+	var srvs []*db.ServerGDSmall
 	var srvids []string
-	tx := sgp.db.Model(db.ServerGd{}).
-		//Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 1 DAY)", gorm.Column(db.ServerGd{}, "CreatedAt"))).
-		Where(fmt.Sprintf("%s=''", gorm.Column(db.ServerGd{}, "ClientWindowsURL")))
+	tx := sgp.db.Model(db.ServerGD{}).
+		//Where(fmt.Sprintf("%s<(CURRENT_DATE - INTERVAL 1 DAY)", gorm.Column(db.ServerGD{}, "CreatedAt"))).
+		Where(fmt.Sprintf("%s=''", gorm.Column(db.ServerGD{}, "ClientWindowsURL")))
 	tx.Find(&srvs)
 	for _, srv := range srvs {
 		srvids = append(srvids, srv.SrvID)
@@ -166,7 +166,7 @@ func (sgp *ServerGDProvider) GetMissingInstallersServers() []string {
 //endregion
 
 type ServerGD struct {
-	Srv        *db.ServerGd
+	Srv        *db.ServerGD
 	CoreConfig *structs.GDPSConfig
 	Tariff     *structs.GDTariff
 	p          *ServerGDProvider
@@ -175,7 +175,7 @@ type ServerGD struct {
 //region Getters
 
 func (s *ServerGD) GetRepatchServer(srvid string) (srv *structs.RepatchGDServer) {
-	cnt := s.p.db.Model(db.ServerGd{}).WhereBinary(db.ServerGd{SrvID: srvid}).Find(&srv).RowsAffected
+	cnt := s.p.db.Model(db.ServerGD{}).WhereBinary(db.ServerGD{SrvID: srvid}).Find(&srv).RowsAffected
 	srv.Icon = "https://" + s.p.s3config["cdn"] + "/server_icons/" + srv.Icon
 	if cnt == 0 {
 		srv = nil
@@ -183,25 +183,25 @@ func (s *ServerGD) GetRepatchServer(srvid string) (srv *structs.RepatchGDServer)
 	return
 }
 
-func (s *ServerGD) GetReducedServer(srvid string) (srv db.ServerGdReduced) {
+func (s *ServerGD) GetReducedServer(srvid string) (srv db.ServerGDReduced) {
 	// Empty db.User for convenience
 	u := db.User{}
-	s.p.db.Model(db.ServerGd{}).SelectFields(srv,
+	s.p.db.Model(db.ServerGD{}).SelectFields(srv,
 		fmt.Sprintf("(SELECT %s FROM %s WHERE %s=%s) as owner",
 			gorm.Column(u, "Uname"),
 			u.TableName(),
 			gorm.Column(u, "UID"),
-			gorm.Column(db.ServerGd{}, "OwnerID"),
+			gorm.Column(db.ServerGD{}, "OwnerID"),
 			// Where BINARY SrvID = srvid
-		)).WhereBinary(db.ServerGd{SrvID: srvid}).Find(&srv)
+		)).WhereBinary(db.ServerGD{SrvID: srvid}).Find(&srv)
 	srv.Icon = "https://" + s.p.s3config["cdn"] + "/server_icons/" + srv.Icon
 	srv.Description = strings.ReplaceAll(srv.Description, "#levels#", strconv.Itoa(srv.LevelCount))
 	srv.Description = strings.ReplaceAll(srv.Description, "#players#", strconv.Itoa(srv.UserCount))
 	return srv
 }
 
-func (s *ServerGD) GetTopUserServer(uid int) (srv *db.ServerGdSmall) {
-	cnt := s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid}).Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGd{}, "UserCount"))).First(&srv).RowsAffected
+func (s *ServerGD) GetTopUserServer(uid int) (srv *db.ServerGDSmall) {
+	cnt := s.p.db.Model(db.ServerGD{}).Where(db.ServerGD{OwnerID: uid}).Order(fmt.Sprintf("%s DESC", gorm.Column(db.ServerGD{}, "UserCount"))).First(&srv).RowsAffected
 	srv.Icon = "https://" + s.p.s3config["cdn"] + "/server_icons/" + srv.Icon
 	if cnt == 0 {
 		srv = nil
@@ -211,7 +211,7 @@ func (s *ServerGD) GetTopUserServer(uid int) (srv *db.ServerGdSmall) {
 
 func (s *ServerGD) Exists(srvid string) bool {
 	var cnt int64
-	s.p.db.Model(s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Count(&cnt)
+	s.p.db.Model(s.Srv).WhereBinary(db.ServerGD{SrvID: srvid}).Count(&cnt)
 	if cnt > 0 {
 		s.Srv.SrvID = srvid
 	}
@@ -219,7 +219,7 @@ func (s *ServerGD) Exists(srvid string) bool {
 }
 
 func (s *ServerGD) GetServerBySrvID(srvid string) bool {
-	return s.p.db.WhereBinary(db.ServerGd{SrvID: srvid}).First(&s.Srv).Error == nil
+	return s.p.db.WhereBinary(db.ServerGD{SrvID: srvid}).First(&s.Srv).Error == nil
 }
 
 func (s *ServerGD) LoadCoreConfig() (err error) {
@@ -271,7 +271,7 @@ func (s *ServerGD) ResetDBPassword() error {
 		log.Println(err)
 		return err
 	}
-	err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{DbPassword: pwd}).Error
+	err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGD{SrvID: s.Srv.SrvID}).Updates(db.ServerGD{DbPassword: pwd}).Error
 	return err
 }
 
@@ -320,7 +320,7 @@ func (s *ServerGD) UpdateSettings(settings structs.GDSettings) error {
 		return err
 	}
 
-	return s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).Updates(db.ServerGd{
+	return s.p.db.Model(&s.Srv).WhereBinary(db.ServerGD{SrvID: s.Srv.SrvID}).Updates(db.ServerGD{
 		Description:       s.Srv.Description,
 		TextAlign:         s.Srv.TextAlign,
 		Discord:           s.Srv.Discord,
@@ -645,7 +645,7 @@ func (s *ServerGD) UpgradeServer(uid int, srvid string, tariffid int, duration s
 		}
 	}
 
-	if err := s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(db.ServerGd{ExpireDate: when, Plan: tariffid}).Error; err != nil {
+	if err := s.p.db.Model(&s.Srv).WhereBinary(db.ServerGD{SrvID: srvid}).Updates(db.ServerGD{ExpireDate: when, Plan: tariffid}).Error; err != nil {
 		log.Println(err)
 		return errors.New("DATABASE ERROR. REPORT IMMEDIATELY")
 	}
@@ -690,7 +690,7 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 		//	return "", errors.New("Free server creation is disabled for now |Free server creation is disabled for now")
 		//}
 		var cnt int64
-		s.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: uid, Plan: 1}).Count(&cnt)
+		s.p.db.Model(db.ServerGD{}).Where(db.ServerGD{OwnerID: uid, Plan: 1}).Count(&cnt)
 		if cnt != 0 {
 			return "", errors.New("You already have FREE server")
 		}
@@ -726,9 +726,9 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 	}
 
 	initialSRVID := ""
-	s.p.db.Model(db.ServerGd{}).Order("id DESC").Select("srvid").First(&initialSRVID)
+	s.p.db.Model(db.ServerGD{}).Order("id DESC").Select("srvid").First(&initialSRVID)
 
-	cs := db.ServerGd{
+	cs := db.ServerGD{
 		SrvID:      cbs.CheckAvail(initialSRVID),
 		OwnerID:    uid,
 		Plan:       tariffid,
@@ -743,7 +743,7 @@ func (s *ServerGD) CreateServer(uid int, name string, tariffid int, duration str
 	cs.DbPassword = DbPass
 	cs.SrvKey = SrvKey
 
-	err = s.p.db.Model(db.ServerGd{}).Create(&cs).Error
+	err = s.p.db.Model(db.ServerGD{}).Create(&cs).Error
 	if err != nil {
 		return "", err
 	}
@@ -782,7 +782,7 @@ func (s *ServerGD) UpdateLogo(img []byte) error {
 	if utils.Should(err) != nil {
 		return err
 	}
-	return s.p.db.Model(s.Srv).Updates(db.ServerGd{Icon: s.Srv.Icon}).Error
+	return s.p.db.Model(s.Srv).Updates(db.ServerGD{Icon: s.Srv.Icon}).Error
 }
 
 func (s *ServerGD) UploadTextures(inp io.Reader) error {
@@ -838,7 +838,7 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 			return errors.New("Invalid name |name")
 		}
 		s.Srv.SrvName = conf.SrvName
-		if err := utils.Should(s.p.db.Model(s.Srv).Updates(db.ServerGd{SrvName: s.Srv.SrvName}).Error); err != nil {
+		if err := utils.Should(s.p.db.Model(s.Srv).Updates(db.ServerGD{SrvName: s.Srv.SrvName}).Error); err != nil {
 			return err
 		}
 	} else {
@@ -853,7 +853,7 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	}
 	if conf.Textures == "default" {
 		s.Srv.IsCustomTextures = false
-		s.p.db.Model(s.Srv).UpdateColumn(gorm.Column(db.ServerGd{}, "IsCustomTextures"), 0)
+		s.p.db.Model(s.Srv).UpdateColumn(gorm.Column(db.ServerGD{}, "IsCustomTextures"), 0)
 	} else {
 		r, err := http.Head(conf.Textures)
 		if err != nil || r.StatusCode != 200 {
@@ -877,7 +877,7 @@ func (s *ServerGD) ExecuteBuildLab(conf structs.BuildLabSettings) error {
 	dat, _ := json.Marshal(manif)
 
 	// Set Version
-	s.p.db.Model(s.Srv).Updates(db.ServerGd{
+	s.p.db.Model(s.Srv).Updates(db.ServerGD{
 		Version: conf.Version,
 		Recipe:  string(dat),
 	})
@@ -901,7 +901,7 @@ func (s *ServerGD) FreezeServer() {
 	vdata, _ := json.Marshal(s.CoreConfig)
 	utils.Should(s.p.redis.Get("gdps").Set(context.Background(), s.Srv.SrvID, string(vdata), 0).Err())
 	// Who cares
-	s.p.db.Model(s.Srv).Updates(db.ServerGd{ExpireDate: time.Now()})
+	s.p.db.Model(s.Srv).Updates(db.ServerGD{ExpireDate: time.Now()})
 }
 
 func (s *ServerGD) DeleteInstallers() error {
@@ -950,8 +950,8 @@ func (s *ServerGD) ModuleDiscord(enable bool, data map[string]interface{}) error
 		log.Println(err)
 	} else {
 		s.Srv.MStatHistory = data
-		err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGd{SrvID: s.Srv.SrvID}).
-			Updates(db.ServerGd{MStatHistory: s.Srv.MStatHistory}).Error
+		err = s.p.db.Model(&s.Srv).WhereBinary(db.ServerGD{SrvID: s.Srv.SrvID}).
+			Updates(db.ServerGD{MStatHistory: s.Srv.MStatHistory}).Error
 	}
 	return err
 }

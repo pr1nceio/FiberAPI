@@ -163,7 +163,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/db.ServerGdReduced"
+                            "$ref": "#/definitions/db.ServerGDReduced"
                         }
                     }
                 }
@@ -1075,7 +1075,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/structs.GDPSConfig"
                 },
                 "srv": {
-                    "$ref": "#/definitions/db.ServerGd"
+                    "$ref": "#/definitions/db.ServerGD"
                 },
                 "tariff": {
                     "$ref": "#/definitions/structs.GDTariff"
@@ -1108,7 +1108,7 @@ const docTemplate = `{
                 }
             }
         },
-        "db.ServerGd": {
+        "db.ServerGD": {
             "type": "object",
             "properties": {
                 "auto_pay": {
@@ -1200,7 +1200,7 @@ const docTemplate = `{
                 }
             }
         },
-        "db.ServerGdReduced": {
+        "db.ServerGDReduced": {
             "type": "object",
             "properties": {
                 "client_android_url": {
@@ -1256,7 +1256,7 @@ const docTemplate = `{
                 }
             }
         },
-        "db.ServerGdSmall": {
+        "db.ServerGDSmall": {
             "type": "object",
             "properties": {
                 "expire_date": {
@@ -1621,7 +1621,7 @@ const docTemplate = `{
                 "gd": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/db.ServerGdSmall"
+                        "$ref": "#/definitions/db.ServerGDSmall"
                     }
                 },
                 "mc": {

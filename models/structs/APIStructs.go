@@ -132,7 +132,7 @@ type APIPaymentListResponse struct {
 
 type APIServerListResponse struct {
 	APIBasicSuccess
-	GD []*db.ServerGdSmall `json:"gd"`
+	GD []*db.ServerGDSmall `json:"gd"`
 	MC []*db.ServerMc      `json:"mc"`
 	CS []string            `json:"cs"`
 }
@@ -185,12 +185,12 @@ type APIFetchDiscordUser struct {
 	Avatar  string              `json:"avatar"`
 	Active  string              `json:"active"`
 	Balance int                 `json:"balance"`
-	Servers []*db.ServerGdSmall `json:"servers"`
+	Servers []*db.ServerGDSmall `json:"servers"`
 }
 
 type APITopGDServers struct {
 	APIBasicSuccess
-	Servers []*db.ServerGdSmall `json:"servers"`
+	Servers []*db.ServerGDSmall `json:"servers"`
 }
 
 type InjectedGDRole struct {
@@ -287,4 +287,11 @@ type APIServerMCCreateRequest struct {
 	DedicatedPort bool   `json:"dedicated_port"`
 	Duration      string `json:"duration"`
 	Promocode     string `json:"promocode"`
+}
+
+type ObeyGDPSResponse struct {
+	APIBasicSuccess
+	Username   string              `json:"username"`
+	ProfilePic string              `json:"profile_pic"`
+	Servers    []*db.ServerGDSmall `json:"servers"`
 }

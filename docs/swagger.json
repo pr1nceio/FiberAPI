@@ -155,7 +155,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/db.ServerGdReduced"
+                            "$ref": "#/definitions/db.ServerGDReduced"
                         }
                     }
                 }
@@ -1067,7 +1067,7 @@
                     "$ref": "#/definitions/structs.GDPSConfig"
                 },
                 "srv": {
-                    "$ref": "#/definitions/db.ServerGd"
+                    "$ref": "#/definitions/db.ServerGD"
                 },
                 "tariff": {
                     "$ref": "#/definitions/structs.GDTariff"
@@ -1100,7 +1100,7 @@
                 }
             }
         },
-        "db.ServerGd": {
+        "db.ServerGD": {
             "type": "object",
             "properties": {
                 "auto_pay": {
@@ -1192,7 +1192,7 @@
                 }
             }
         },
-        "db.ServerGdReduced": {
+        "db.ServerGDReduced": {
             "type": "object",
             "properties": {
                 "client_android_url": {
@@ -1248,7 +1248,7 @@
                 }
             }
         },
-        "db.ServerGdSmall": {
+        "db.ServerGDSmall": {
             "type": "object",
             "properties": {
                 "expire_date": {
@@ -1613,7 +1613,7 @@
                 "gd": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/db.ServerGdSmall"
+                        "$ref": "#/definitions/db.ServerGDSmall"
                     }
                 },
                 "mc": {

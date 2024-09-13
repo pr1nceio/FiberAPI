@@ -3,7 +3,6 @@ RUN mkdir /app
 WORKDIR /app
 ADD go.mod go.sum /app/
 RUN echo "Resolving deps..." && \
-    go mod download && \
     go install github.com/swaggo/swag/cmd/swag@latest && \
     go install github.com/gordonklaus/ineffassign@latest && \
     go install github.com/fzipp/gocyclo/cmd/gocyclo@latest

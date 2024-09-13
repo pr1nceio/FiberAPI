@@ -150,7 +150,7 @@ func (b *BuildService) DeleteServer(srvId, srvName string, alterBucket bool) err
 	}
 
 	// Delete from FS DB
-	err = b.db.WhereBinary(db.ServerGd{SrvID: srvId}).Delete(db.ServerGd{}).Error
+	err = b.db.WhereBinary(db.ServerGD{SrvID: srvId}).Delete(db.ServerGD{}).Error
 	_ = b.db.Where(db.Queue{Type: "gd"}).WhereBinary(db.Queue{SrvID: srvId}).Delete(db.Queue{}).Error
 
 	// Delete Queue
@@ -271,7 +271,7 @@ func (b *BuildService) PushClient(srvid string, iType string, file string, alter
 	} else {
 		file = "https://cdn3.fruitspace.one/gdps_installers/" + file
 	}
-	cdata := db.ServerGd{}
+	cdata := db.ServerGD{}
 	switch iType {
 	case "a":
 		cdata.ClientAndroidURL = file
@@ -282,7 +282,7 @@ func (b *BuildService) PushClient(srvid string, iType string, file string, alter
 	case "m":
 		cdata.ClientMacOSURL = file
 	}
-	b.db.Model(db.ServerGd{}).WhereBinary(db.ServerGd{SrvID: srvid}).Updates(cdata)
+	b.db.Model(db.ServerGD{}).WhereBinary(db.ServerGD{SrvID: srvid}).Updates(cdata)
 }
 
 func (b *BuildService) NotifyDone(ltype string, srvid string) {

@@ -12,3 +12,13 @@ type MCCore struct {
 func (m MCCore) VersionConstraintAsSemVer() (constraint version.Constraints, err error) {
 	return version.NewConstraint(m.VersionConstraint)
 }
+
+func (m MCCore) GetDockerImage() string {
+	for ver, java := range MCDockerImages {
+		c, _ := version.NewConstraint(ver)
+		if c.Check(version.Must(version.NewVersion(m.VersionField))) {
+			return java
+		}
+	}
+	return ""
+}

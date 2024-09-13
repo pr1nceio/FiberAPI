@@ -55,11 +55,8 @@ func main() {
 		main()
 	}
 
-	if err = DB.AutoMigrate(&db.ServerGd{}); err != nil {
-		log.Println(err)
-	}
-	if err = DB.AutoMigrate(&db.Notification{}); err != nil {
-		log.Println(err)
+	if migrateDB(DB) != nil {
+		utils.SendMessageDiscord("Database migration failed!")
 	}
 
 	//Bind Redis
@@ -117,4 +114,26 @@ func main() {
 	defer StepDown()
 
 	log.Fatalln(api.StartServer(API))
+}
+
+func migrateDB(DB *gorm.DB) (err error) {
+	if err = DB.AutoMigrate(&db.ACLGd{}); err != nil {
+		log.Println(err)
+	}
+	if err = DB.AutoMigrate(&db.MinecraftNetwork{}); err != nil {
+		log.Println(err)
+	}
+	if err = DB.AutoMigrate(&db.MinecraftServer{}); err != nil {
+		log.Println(err)
+	}
+	if err = DB.AutoMigrate(&db.Pricing{}); err != nil {
+		log.Println(err)
+	}
+	if err = DB.AutoMigrate(&db.Region{}); err != nil {
+		log.Println(err)
+	}
+	if err = DB.AutoMigrate(&db.Tariff{}); err != nil {
+		log.Println(err)
+	}
+	return
 }

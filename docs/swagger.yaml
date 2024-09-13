@@ -5,7 +5,7 @@ definitions:
       coreConfig:
         $ref: '#/definitions/structs.GDPSConfig'
       srv:
-        $ref: '#/definitions/db.ServerGd'
+        $ref: '#/definitions/db.ServerGD'
       tariff:
         $ref: '#/definitions/structs.GDTariff'
     type: object
@@ -26,7 +26,7 @@ definitions:
       uuid:
         type: string
     type: object
-  db.ServerGd:
+  db.ServerGD:
     properties:
       auto_pay:
         type: integer
@@ -87,7 +87,7 @@ definitions:
       vk:
         type: string
     type: object
-  db.ServerGdReduced:
+  db.ServerGDReduced:
     properties:
       client_android_url:
         type: string
@@ -124,7 +124,7 @@ definitions:
       vk:
         type: string
     type: object
-  db.ServerGdSmall:
+  db.ServerGDSmall:
     properties:
       expire_date:
         type: string
@@ -362,7 +362,7 @@ definitions:
         type: array
       gd:
         items:
-          $ref: '#/definitions/db.ServerGdSmall'
+          $ref: '#/definitions/db.ServerGDSmall'
         type: array
       mc:
         items:
@@ -832,7 +832,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/db.ServerGdReduced'
+            $ref: '#/definitions/db.ServerGDReduced'
       summary: Returns
       tags:
       - Public stats fetching

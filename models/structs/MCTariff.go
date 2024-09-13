@@ -98,14 +98,8 @@ var MCCoresEggs = map[string]MCCore{
 	},
 }
 
-var MCVersions = []string{
-	"1.9.4",
-	"1.12.2",
-	"1.14.4",
-	"1.16.5",
-	"1.17.1",
-	"1.18.2",
-	"1.19.3",
-	"1.19.4",
-	"1.20.2",
+var MCDockerImages = map[string]string{
+	">= 1.20.5":         "Java 21",
+	">= 1.17, < 1.20.5": "Java 17",
+	"< 1.17":            "Java 8",
 }

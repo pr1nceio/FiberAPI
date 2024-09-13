@@ -68,7 +68,7 @@ func (ap *AccountProvider) New() *Account {
 func (ap *AccountProvider) GetDiscordIntegrations(onlyClients bool) []string {
 	var ids []string
 	var users []db.User
-	sgd := db.ServerGd{}
+	sgd := db.ServerGD{}
 	mc := ap.db.Model(db.User{}).Where(fmt.Sprintf("%s!=0", gorm.Column(db.User{}, "DiscordID")))
 	if onlyClients {
 		// SELECT count(*) from servers_gd WHERE owner_id=uid AND plan>1)
@@ -285,7 +285,7 @@ func (a *Account) GetServersCount() map[string]int64 {
 		cnt_mc int64
 		cnt_cs int64
 	)
-	a.p.db.Model(db.ServerGd{}).Where(db.ServerGd{OwnerID: a.user.UID}).Count(&cnt_gd)
+	a.p.db.Model(db.ServerGD{}).Where(db.ServerGD{OwnerID: a.user.UID}).Count(&cnt_gd)
 	a.p.db.Model(db.ServerMc{}).Where(db.ServerMc{OwnerID: a.user.UID}).Count(&cnt_mc)
 	count := map[string]int64{
 		"gd": cnt_gd,

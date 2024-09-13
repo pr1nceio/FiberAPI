@@ -1,12 +1,14 @@
 package api
 
 import (
+	"fmt"
 	fiberapi "github.com/fruitspace/FiberAPI"
 	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"math"
 	"strconv"
+	"time"
 )
 
 type FetchAPI struct {
@@ -19,7 +21,8 @@ func (api *FetchAPI) Register(router fiber.Router) error {
 	router.Get("/bot_discord_info", api.DiscordUserInfo)
 	router.Get("/gd/tariffs", api.GDTariffs)
 	router.Get("/gd/top", api.GDTopServers)
-	router.Get("/gd/info/:srvid", api.GDServerInfo) // get public gdps download card
+	router.Get("/gd/info/:srvid", api.GDServerInfo)                   // get public gdps download card
+	router.Get("/partner/obeygdps/:user", api.GDServersByDiscordObey) // get public gdps download card
 	router.Get("/mc/cores", api.MinecraftCores)
 	return nil
 }
@@ -49,18 +52,44 @@ func (api *FetchAPI) Stats(c *fiber.Ctx) error {
 	})
 }
 
-// FetchGDServerInfo returns an eligible download page, etc. data
+// GDServerInfo returns an eligible download page, etc. data
 // @Tags Public stats fetching
 // @Summary Returns
 // @Accept json
 // @Produce json
 // @Param srvid path string true "GDPS Server ID"
-// @Response 200 {object} db.ServerGdReduced
+// @Response 200 {object} db.ServerGDReduced
 // @Router /fetch/gd/info/{srvid} [get]
 func (api *FetchAPI) GDServerInfo(c *fiber.Ctx) error {
 	gdpsID := c.Params("srvid")
 	server := api.ServerGDProvider.New().GetReducedServer(gdpsID)
 	return c.JSON(server)
+}
+
+func (api *FetchAPI) GDServersByDiscordObey(c *fiber.Ctx) error {
+	discordId := c.Params("user")
+	partnerKey := c.Query("partner_key")
+	if partnerKey != "En1gM4t0s" {
+		return c.Status(fiber.StatusNotFound).SendString(fmt.Sprintf("Cannot %s %s", c.Method(), c.Path()))
+	}
+	user := api.AccountProvider.New()
+	if !user.GetUserByDiscord(discordId) {
+		return c.JSON(structs.NewAPIError("No User"))
+	}
+	servers := api.ServerGDProvider.GetUserServers(user.Data().UID)
+	t := time.Now()
+	for _, s := range servers {
+		//cleanup
+		s.Plan = 0
+		s.ExpireDate = t
+		s.OwnerID = 0
+	}
+	return c.JSON(structs.ObeyGDPSResponse{
+		APIBasicSuccess: structs.NewAPIBasicResponse("Success"),
+		Username:        user.Data().Uname,
+		ProfilePic:      user.Data().ProfilePic,
+		Servers:         servers,
+	})
 }
 
 func (api *FetchAPI) GDTopServers(c *fiber.Ctx) error {

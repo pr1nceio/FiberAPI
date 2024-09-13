@@ -1,25 +1,23 @@
 package services
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/fruitspace/schemas/db/go/db"
-	croc "github.com/m41denx/alligator"
-	"io"
-	"net/http"
+	gator "github.com/m41denx/alligator"
+	"github.com/m41denx/alligator/options"
 	"strconv"
 )
 
 type PterodactylService struct {
-	api       *croc.AppConfig
-	wispToken string
+	api *gator.Application
 }
 
+// ptla_ItoKeY0gvzIfhaLxcJxNNogOTBJKUGshAclNpYQynSF
 func NewPterodactylService(apiKey string) *PterodactylService {
-	app, _ := croc.NewApp("https://fruitspace.panel.gg", apiKey)
+	app, _ := gator.NewApp("https://panel.fruitspace.one", apiKey)
 	return &PterodactylService{
 		api: app,
 	}
@@ -29,17 +27,17 @@ func NewPterodactylService(apiKey string) *PterodactylService {
 // region Users
 
 func (p *PterodactylService) HasAccount(uid int) bool {
-	_, err := p.api.GetUserByExternal(strconv.Itoa(uid))
+	_, err := p.api.GetUserExternal(strconv.Itoa(uid))
 	fmt.Println(err)
 	return err == nil
 }
 
 func (p *PterodactylService) CreateAccount(user db.User, password string) (err error) {
-	_, err = p.api.CreateUser(croc.UserAttributes{
+	_, err = p.api.CreateUser(gator.CreateUserDescriptor{
 		Username:   user.Uname,
 		Email:      user.Email,
 		FirstName:  user.Name,
-		LastName:   user.Surname,
+		LastName:   "@FruitSpace",
 		Password:   password,
 		ExternalID: strconv.Itoa(user.UID),
 	})
@@ -48,52 +46,45 @@ func (p *PterodactylService) CreateAccount(user db.User, password string) (err e
 
 // endregion
 
-// region WISP
+// region Nodes
 
-func (p *PterodactylService) WithWispToken(wispToken string) *PterodactylService {
-	p.wispToken = wispToken
-	return p
-}
-
-func (p *PterodactylService) GetWispNodes() (nodes []structs.WispNode, err error) {
+func (p *PterodactylService) GetNodes() (nodes []structs.PterodactylNodeExtended, err error) {
 	defer func() {
 		if l := recover(); l != nil {
-			utils.SendMessageDiscord(fmt.Sprintf("%+v", nodes))
+			utils.SendMessageDiscord(fmt.Sprintf("%#v", nodes))
 
 		}
 	}()
-	url := "https://fruitspace.panel.gg/api/admin/nodes?page=1&per_page=25&sort=name&include[]=servers_count"
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+p.wispToken)
 
-	resp, err := http.DefaultClient.Do(req)
+	nodeResp, err := p.api.ListNodes(options.ListNodesOptions{Include: options.IncludeNodes{Servers: true}})
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-
-	var nodeResponse structs.WispNodesResponse
-	err = json.Unmarshal(data, &nodeResponse)
-	if err != nil {
-		return
-	}
-	for _, obj := range nodeResponse.Data {
-		nodes = append(nodes, obj.Attributes)
-		fmt.Println(obj.Attributes)
+	for _, obj := range nodeResp {
+		nodeAttr := structs.PterodactylNodeExtended{
+			Node:         obj,
+			ServersCount: int64(len(obj.Servers)),
+		}
+		for _, srv := range obj.Servers {
+			nodeAttr.CPUUsage += srv.Limits.CPU
+			nodeAttr.MemoryUsageMB += srv.Limits.Memory
+			nodeAttr.DiskUsageMB += srv.Limits.Disk
+		}
+		nodes = append(nodes, nodeAttr)
 	}
 	return
 }
 
-func (p *PterodactylService) HasSuitableNodes(nodes []structs.WispNode, needRamGB uint, needCPU uint, needDiskGB uint) (ok bool) {
+// calculate percentage of total free resources (avg of cpu, ram and disk)
+
+
+
+func (p *PterodactylService) HasSuitableNodes(nodes []structs.PterodactylNodeExtended, needRamGB uint, needCPU uint, needDiskGB uint) (ok bool) {
 	for _, node := range nodes {
-		freeCoresPercent := int(float64(node.Limits.CPU)*(1+float64(node.Limits.CPUOverallocate/100))) - node.CPUUsage
-		freeRam := int(float64(node.Limits.Memory)*(1+float64(node.Limits.MemoryOverallocate/100))) - node.MemoryUsageMB
-		freeDisk := int(float64(node.Limits.Disk)*(1+float64(node.Limits.DiskOverallocate/100))) - node.DiskUsageMB
+		//TODO: how the fuck are we going to fetch free cores count ohmygoooood
+		freeCoresPercent := 2400 //int(float64(node.Limits.CPU)*(1+float64(node.Limits.CPUOverallocate/100))) - node.CPUUsage
+		freeRam := int64(float64(node.Memory)*(1+float64(node.MemoryOverallocate/100))) - node.MemoryUsageMB
+		freeDisk := int64(float64(node.Disk)*(1+float64(node.DiskOverallocate/100))) - node.DiskUsageMB
 		freeCores := uint(freeCoresPercent / 100)
 
 		fmt.Printf("[%d] %d/%d cores, %d/%d ram, %d/%d disk\n", node.ID, freeCores, needCPU, freeRam, needRamGB*1024, freeDisk, needDiskGB*1024)
@@ -109,38 +100,33 @@ func (p *PterodactylService) HasSuitableNodes(nodes []structs.WispNode, needRamG
 
 // region Minecraft
 
-func (p *PterodactylService) CreateMinecraftServer(name string, uid int, tariff structs.MCTariff, addDiskGB int, core structs.MCCore, version string) (srv croc.ServerAttributes, err error) {
+func (p *PterodactylService) CreateMinecraftServer(name string, uid int, tariff structs.MCTariff, addDiskGB int, core structs.MCCore, version string) (srv *gator.AppServer, err error) {
 	// Prepare egg env
-	eggObj, err := p.api.GetEgg(5, core.EggID)
+	egg, err := p.api.GetEgg(1, core.EggID)
 	if err != nil {
 		return
 	}
-	egg := eggObj.Attributes
 	if egg.DockerImage == "" {
 		egg.DockerImage = "ghcr.io/pterodactyl/yolks:java_17"
 	}
 	env := make(map[string]string)
-	for _, rel := range egg.Relationships.Variables.Data {
-		d := rel.Attributes
-		env[d.EnvVariable] = d.DefaultValue
+	for _, rel := range egg.Variables {
+		env[rel.EnvVariable] = rel.DefaultValue
 	}
 	env[core.VersionField] = version
 
 	// Get Allocs
 	allocID := 0
-	nodes, err := p.api.GetNodes()
+	nodes, err := p.api.ListNodes(options.ListNodesOptions{
+		Include: options.IncludeNodes{Allocations: true},
+	})
 	if err != nil {
 		return
 	}
-	for _, node := range nodes.Nodes {
-		allocs, err := p.api.GetNodeAllocations(node.Attributes.ID)
-		if err != nil {
-			utils.SendMessageDiscord(fmt.Sprintf("%+v", err))
-			continue
-		}
-		for _, alloc := range allocs.Allocations {
-			if !alloc.Attributes.Assigned {
-				allocID = alloc.Attributes.ID
+	for _, node := range nodes {
+		for _, alloc := range node.Allocations {
+			if !alloc.Assigned {
+				allocID = alloc.ID
 				break
 			}
 		}
@@ -154,43 +140,42 @@ func (p *PterodactylService) CreateMinecraftServer(name string, uid int, tariff 
 		return
 	}
 
-	// Get WISP UID
-	user, err := p.api.GetUserByExternal(strconv.Itoa(uid))
+	// Get Pterodactyl UID
+	user, err := p.api.GetUserExternal(strconv.Itoa(uid))
 	if err != nil {
 		return
 	}
-	wispUid := user.Attributes.ID
 
-	conf := croc.ServerChange{
+	envx := make(map[string]interface{})
+	for k, v := range env {
+		envx[k] = v
+	}
+
+	conf := gator.CreateServerDescriptor{
 		Name:        name,
-		User:        wispUid,
+		User:        user.ID,
 		Egg:         core.EggID,
 		DockerImage: egg.DockerImage,
 		Startup:     tariff.GetStartupTemplate(),
-		Environment: env,
-		Limits: croc.ServerLimits{
-			Memory: int(tariff.GetRAM() * 1024),
-			Swap:   int(tariff.GetSwap() * 1024),
-			Disk:   int(tariff.DiskGB*1024) + addDiskGB*1024,
-			Io:     500,
-			CPU:    int(tariff.CPU * 100),
+		Environment: envx,
+		Limits: &gator.Limits{
+			Memory: int64(tariff.GetRAM() * 1024),
+			Swap:   int64(tariff.GetSwap() * 1024),
+			Disk:   int64(tariff.DiskGB*1024) + int64(addDiskGB*1024),
+			IO:     500,
+			CPU:    int64(tariff.CPU * 100),
 		},
-		FeatureLimits: croc.ServerFeatureLimits{
+		FeatureLimits: gator.FeatureLimits{
 			Databases:   1,
 			Allocations: 0,
 		},
-		Allocation: croc.ServerAllocation{
+		Allocation: &gator.AllocationDescriptor{
 			Default:    allocID,
 			Additional: nil,
 		},
 	}
 
-	srvu, err := p.api.CreateServer(conf)
-	if err != nil {
-		return
-	}
-	srv = srvu.Attributes
-	return
+	return p.api.CreateServer(conf)
 }
 
 func (p *PterodactylService) GetMinecraftServerStatus(id int) (status bool, err error) {
@@ -198,7 +183,7 @@ func (p *PterodactylService) GetMinecraftServerStatus(id int) (status bool, err 
 	if err != nil {
 		return
 	}
-	return !srv.Attributes.Suspended, nil
+	return !srv.Suspended, nil
 }
 
 // endregion

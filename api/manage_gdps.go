@@ -9,10 +9,10 @@ import (
 	"github.com/fruitspace/FiberAPI/providers/ServerGD"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/exp/slices"
 	"io"
 	"net/http"
 	"runtime/debug"
+	"slices"
 )
 
 type ManageGDPSAPI struct {

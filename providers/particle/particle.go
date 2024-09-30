@@ -6,7 +6,7 @@ import (
 	gorm "github.com/cradio/gormx"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	dbmodels "github.com/fruitspace/schemas/db/go/db"
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 var arches = []string{"w64", "w32", "l64", "l32", "l64a", "d64", "d64a"}

@@ -14,7 +14,7 @@ ineffassign ./...
 echo -e "${GREEN}Checking for cyclomatic complexity...${GRAY}"
 gocyclo -over 25 .
 echo -e "${GREEN}Building...${GRAY}"
-CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o FiberAPI ./cmd/...
+CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o FiberAPI ./cmd/... || exit 1
 #R=fiber_api
 #echo -e "${GREEN}Pushing to $R...${NC}"
 #docker build -t cr.yandex/crpr24jcqm2dno6qlm3b/$R . && docker push cr.yandex/crpr24jcqm2dno6qlm3b/$R

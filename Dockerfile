@@ -1,4 +1,4 @@
-FROM golang:1.22 AS builder
+FROM golang:1.23 AS builder
 RUN mkdir /app
 WORKDIR /app
 ADD go.mod go.sum /app/
@@ -7,7 +7,7 @@ RUN echo "Resolving deps..." && \
     go install github.com/gordonklaus/ineffassign@latest && \
     go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 ADD . /app
-RUN bash build.sh
+RUN bash build.sh || exit
 
 FROM alpine AS runner
 RUN mkdir /app

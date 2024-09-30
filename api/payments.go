@@ -5,7 +5,7 @@ import (
 	"github.com/fruitspace/FiberAPI/api/ent"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 type PaymentsAPI struct {

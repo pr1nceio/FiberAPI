@@ -12,7 +12,6 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/oliamb/cutter"
 	"golang.org/x/exp/rand"
-	"golang.org/x/exp/slices"
 	"image"
 	"io"
 	"log"
@@ -22,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 )

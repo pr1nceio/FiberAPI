@@ -8,9 +8,9 @@ import (
 	"github.com/fruitspace/FiberAPI/providers"
 	"github.com/fruitspace/schemas/db/go/db"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/exp/slices"
 	"io"
 	"net/http"
+	"slices"
 )
 
 type UserAPI struct {

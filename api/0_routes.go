@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/fruitspace/FiberAPI/api/ent"
+	fetch2 "github.com/fruitspace/FiberAPI/api/fetch"
 	"github.com/fruitspace/FiberAPI/models/structs"
 	"github.com/fruitspace/FiberAPI/utils"
 	"github.com/getsentry/sentry-go"
@@ -65,7 +66,7 @@ func StartServer(api ent.API) error {
 
 	//region Fetch
 	fetch := app.Group("/fetch")
-	ent.Register(&FetchAPI{&api}, fetch)
+	ent.Register(&fetch2.FetchAPI{&api}, fetch)
 	//endregion
 
 	//region Admin

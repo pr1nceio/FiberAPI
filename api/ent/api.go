@@ -1,11 +1,11 @@
 package ent
 
 import (
-	"github.com/fruitspace/FiberAPI/providers"
-	"github.com/fruitspace/FiberAPI/providers/ServerGD"
-	"github.com/fruitspace/FiberAPI/providers/ServerMC"
-	"github.com/fruitspace/FiberAPI/providers/particle"
-	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/HyprrSpace/providers"
+	"github.com/fruitspace/HyprrSpace/providers/ServerGD"
+	"github.com/fruitspace/HyprrSpace/providers/ServerMC"
+	"github.com/fruitspace/HyprrSpace/providers/particle"
+	"github.com/fruitspace/HyprrSpace/utils"
 	"github.com/gofiber/fiber/v2"
 )
 

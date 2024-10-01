@@ -3,7 +3,7 @@ package providers
 import (
 	"errors"
 	"github.com/cradio/gormx"
-	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/HyprrSpace/models/db"
 	"math"
 	"strings"
 	"time"

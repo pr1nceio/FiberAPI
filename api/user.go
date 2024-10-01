@@ -2,11 +2,11 @@ package api
 
 import (
 	"fmt"
-	fiberapi "github.com/fruitspace/FiberAPI"
-	"github.com/fruitspace/FiberAPI/api/ent"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/FiberAPI/providers"
-	"github.com/fruitspace/schemas/db/go/db"
+	fiberapi "github.com/fruitspace/HyprrSpace"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	"github.com/fruitspace/HyprrSpace/models/db"
+	"github.com/fruitspace/HyprrSpace/models/structs"
+	"github.com/fruitspace/HyprrSpace/providers"
 	"github.com/gofiber/fiber/v2"
 	"io"
 	"net/http"

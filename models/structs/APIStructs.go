@@ -2,8 +2,8 @@ package structs
 
 import (
 	"encoding/json"
-	"github.com/fruitspace/schemas/db/go/db"
-	"github.com/fruitspace/schemas/db/go/gdps_db"
+	"github.com/fruitspace/HyprrSpace/models/db"
+	"github.com/fruitspace/HyprrSpace/models/gdps_db"
 	"strings"
 )
 

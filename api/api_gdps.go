@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/fruitspace/FiberAPI/api/ent"
-	"github.com/fruitspace/FiberAPI/models/structs"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	"github.com/fruitspace/HyprrSpace/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"log"
 )

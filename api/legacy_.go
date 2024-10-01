@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/fruitspace/FiberAPI/api/ent"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	"github.com/fruitspace/HyprrSpace/models/db"
+	"github.com/fruitspace/HyprrSpace/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"log"
 	"strings"

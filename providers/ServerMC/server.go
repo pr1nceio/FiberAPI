@@ -2,7 +2,7 @@ package ServerMC
 
 import (
 	"errors"
-	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/HyprrSpace/models/db"
 )
 
 type ServerMC struct {

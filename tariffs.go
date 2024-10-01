@@ -1,6 +1,6 @@
 package fiberapi
 
-import "github.com/fruitspace/FiberAPI/models/structs"
+import "github.com/fruitspace/HyprrSpace/models/structs"
 
 var ProductGDTariffs = map[string]structs.GDTariff{
 	"1": {

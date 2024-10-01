@@ -1,7 +1,7 @@
 package ServerMC
 
 import (
-	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/HyprrSpace/models/db"
 	kubejconfig "go.minekube.com/gate/pkg/edition/java/config"
 	kubeliteconfig "go.minekube.com/gate/pkg/edition/java/lite/config"
 	kubeconfig "go.minekube.com/gate/pkg/gate/config"

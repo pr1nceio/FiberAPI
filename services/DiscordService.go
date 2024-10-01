@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/HyprrSpace/utils"
 	"io"
 	"log"
 	"net/http"

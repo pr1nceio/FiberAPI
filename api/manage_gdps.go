@@ -2,12 +2,12 @@ package api
 
 import (
 	"encoding/json"
-	fiberapi "github.com/fruitspace/FiberAPI"
-	"github.com/fruitspace/FiberAPI/api/ent"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/FiberAPI/providers"
-	"github.com/fruitspace/FiberAPI/providers/ServerGD"
-	"github.com/fruitspace/FiberAPI/utils"
+	fiberapi "github.com/fruitspace/HyprrSpace"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	"github.com/fruitspace/HyprrSpace/models/structs"
+	"github.com/fruitspace/HyprrSpace/providers"
+	"github.com/fruitspace/HyprrSpace/providers/ServerGD"
+	"github.com/fruitspace/HyprrSpace/utils"
 	"github.com/gofiber/fiber/v2"
 	"io"
 	"net/http"

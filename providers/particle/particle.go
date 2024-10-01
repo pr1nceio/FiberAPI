@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	gorm "github.com/cradio/gormx"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	dbmodels "github.com/fruitspace/schemas/db/go/db"
+	dbmodels "github.com/fruitspace/HyprrSpace/models/db"
+	"github.com/fruitspace/HyprrSpace/models/structs"
 	"slices"
 )
 

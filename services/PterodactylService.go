@@ -3,9 +3,9 @@ package services
 import (
 	"errors"
 	"fmt"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/FiberAPI/utils"
-	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/HyprrSpace/models/db"
+	"github.com/fruitspace/HyprrSpace/models/structs"
+	"github.com/fruitspace/HyprrSpace/utils"
 	gator "github.com/m41denx/alligator"
 	"github.com/m41denx/alligator/options"
 	"strconv"
@@ -76,8 +76,6 @@ func (p *PterodactylService) GetNodes() (nodes []structs.PterodactylNodeExtended
 }
 
 // calculate percentage of total free resources (avg of cpu, ram and disk)
-
-
 
 func (p *PterodactylService) HasSuitableNodes(nodes []structs.PterodactylNodeExtended, needRamGB uint, needCPU uint, needDiskGB uint) (ok bool) {
 	for _, node := range nodes {

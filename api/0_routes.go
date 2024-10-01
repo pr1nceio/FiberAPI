@@ -2,10 +2,10 @@ package api
 
 import (
 	"fmt"
-	"github.com/fruitspace/FiberAPI/api/ent"
-	fetch2 "github.com/fruitspace/FiberAPI/api/fetch"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	fetch2 "github.com/fruitspace/HyprrSpace/api/fetch"
+	"github.com/fruitspace/HyprrSpace/models/structs"
+	"github.com/fruitspace/HyprrSpace/utils"
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"

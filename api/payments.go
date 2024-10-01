@@ -1,9 +1,9 @@
 package api
 
 import (
-	fiberapi "github.com/fruitspace/FiberAPI"
-	"github.com/fruitspace/FiberAPI/api/ent"
-	"github.com/fruitspace/FiberAPI/models/structs"
+	fiberapi "github.com/fruitspace/HyprrSpace"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	"github.com/fruitspace/HyprrSpace/models/structs"
 	"github.com/gofiber/fiber/v2"
 	"slices"
 )

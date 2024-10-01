@@ -2,10 +2,10 @@ package api
 
 import (
 	"fmt"
-	"github.com/fruitspace/FiberAPI/api/ent"
-	"github.com/fruitspace/FiberAPI/models/structs"
-	"github.com/fruitspace/FiberAPI/services"
-	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/HyprrSpace/api/ent"
+	"github.com/fruitspace/HyprrSpace/models/structs"
+	"github.com/fruitspace/HyprrSpace/services"
+	"github.com/fruitspace/HyprrSpace/utils"
 	"github.com/gofiber/fiber/v2"
 	"log"
 	"strconv"

@@ -2,7 +2,7 @@ package fiberapi
 
 import (
 	"embed"
-	"github.com/fruitspace/FiberAPI/utils"
+	"github.com/fruitspace/HyprrSpace/utils"
 )
 
 var (

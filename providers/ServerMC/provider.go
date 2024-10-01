@@ -2,8 +2,8 @@ package ServerMC
 
 import (
 	gorm "github.com/cradio/gormx"
-	"github.com/fruitspace/FiberAPI/providers"
-	"github.com/fruitspace/schemas/db/go/db"
+	"github.com/fruitspace/HyprrSpace/models/db"
+	"github.com/fruitspace/HyprrSpace/providers"
 	"github.com/m41denx/alligator"
 )
 

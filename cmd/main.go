@@ -21,6 +21,8 @@ import (
 	"time"
 )
 
+var restartAttempts = 3
+
 // @title		FruitSpace FiberAPI
 // @version	1.0
 // @BasePath	/v2/
@@ -49,6 +51,10 @@ func main() {
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
+		if restartAttempts == 0 {
+			os.Exit(1)
+		}
+		restartAttempts--
 		log.Println("Error while connecting to " + fiberapi.DB_USER + "@" + fiberapi.DB_HOST + ": " + err.Error())
 		//CachedKV.Close()
 		time.Sleep(10 * time.Second)
